@@ -52,9 +52,11 @@ public class SqlTableCrud {
     // ========================= Helper Methods =========================
     /**
      * Checks if a string matches a number regular expression.
+     * 
      * @param str The string to check.
-     * @return boolean true if the string matches the regular expression, false otherwise.
-    */
+     * @return boolean true if the string matches the regular expression, false
+     *         otherwise.
+     */
     private boolean isNumeric(String str) {
         return str.matches("-?\\d+(\\.\\d+)?");
     }
@@ -62,9 +64,10 @@ public class SqlTableCrud {
     /**
      * Prints the values from the result set matching the correct data type to
      * the provided print writer.
-     * @param rs The result set from which to print the value.
+     * 
+     * @param rs    The result set from which to print the value.
      * @param index The index of the value to print.
-     * @param out The print writer to print the value to.
+     * @param out   The print writer to print the value to.
      * @throws SQLException If there is an error while printing the value.
      */
     private void printAttributeValue(ResultSet rs, Integer index, PrintWriter out) throws SQLException {
@@ -92,7 +95,8 @@ public class SqlTableCrud {
 
     /**
      * Gets the number of rows returned from an SQL query.
-     * @param con The connection to the database.
+     * 
+     * @param con   The connection to the database.
      * @param query The query to execute.
      * @return The number of rows returned.
      * @throws SQLException If there is an error while getting the number of rows.
@@ -110,8 +114,9 @@ public class SqlTableCrud {
 
     /**
      * Prints a JSON message with the provided error.
+     * 
      * @param out The print writer to print the error message to.
-     * @param e The exception to print the message from.
+     * @param e   The exception to print the message from.
      */
     private void printErrorMessage(PrintWriter out, Exception e) {
         out.print("{\"success\":" + false + ",\"error\":" + "\""
@@ -121,6 +126,7 @@ public class SqlTableCrud {
     /**
      * Returns a select everything query string based on the schema and table
      * name of the table that this class represents.
+     * 
      * @return The select everything query string.
      */
     private String getSelectQuery() {
@@ -130,6 +136,7 @@ public class SqlTableCrud {
     /**
      * Returns a select everything query string based on the schema, table name,
      * and primary key of the table that this class represents.
+     * 
      * @param recordKey The primary key of the record to select.
      * @return The select query everything string.
      */
@@ -140,19 +147,23 @@ public class SqlTableCrud {
     /**
      * Returns a comma if the index is not the last item of the array, based on
      * its length; otherwise, returns an empty string character.
-     * @param index The index of the item.
+     * 
+     * @param index  The index of the item.
      * @param length The length of the array.
      * @return The comma or empty string character.
      */
     private String getNeccessaryComma(int index, int length) {
-        return index < length - 1 ? "," : "";
+        return index < length - 1 ? ", " : "";
     }
 
     /**
-     * Checks if the json object contains the attributes specified in the array provided.
-     * @param json The json object to check.
+     * Checks if the json object contains the attributes specified in the array
+     * provided.
+     * 
+     * @param json      The json object to check.
      * @param attribute The array of attributes to check.
-     * @return boolean true if the json object contains all the attributes, false otherwise.
+     * @return boolean true if the json object contains all the attributes, false
+     *         otherwise.
      */
     private boolean checkIfJsonContainsAttributes(JSONObject json, String[] attribute) {
         for (String attr : attribute) {
@@ -164,11 +175,25 @@ public class SqlTableCrud {
     }
 
     /**
+     * Check if the string provided is a date with the format yyyy-mm-dd hh:mm:ss
+     * using a regular expression.
+     * 
+     * @param date The string to check.
+     * @return boolean true if the string is a date with the required format, false
+     *         otherwise.
+     */
+    private boolean isDateWithTime(String date) {
+        return date.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
+    }
+
+    /**
      * Returns a string concatenated with the attribute provided as a paramenter
      * with its correct data type.
-     * @param json The json object to get the attribute from.
+     * 
+     * @param json  The json object to get the attribute from.
      * @param index The index of the attribute.
-     * @return The string concatenated with the attribute with its correct data type.
+     * @return The string concatenated with the attribute with its correct data
+     *         type.
      */
     private String getJsonAttrString(JSONObject json, int index) {
         switch (types[index]) {
@@ -179,14 +204,20 @@ public class SqlTableCrud {
             case "BOOLEAN":
                 return "'" + json.getBoolean(attributes[index]) + "'";
             case "DATE":
-                return "TO_DATE('" + json.getString(attributes[index]) + "', 'YYYY-MM-DD')";
+                if (isDateWithTime(json.getString(attributes[index]))) {
+                    return "TO_DATE('" + json.getString(attributes[index]) + "', 'YYYY-MM-DD HH24:MI:SS')";
+                } else {
+                    return "TO_DATE('" + json.getString(attributes[index]) + "', 'YYYY-MM-DD')";
+                }
             default:
                 return "'" + json.getString(attributes[index]) + "'";
         }
     }
 
     /**
-     * Returns an insert query string based on the schema, table name, and json object provided.
+     * Returns an insert query string based on the schema, table name, and json
+     * object provided.
+     * 
      * @param json The json object to get the attributes from.
      * @return The insert query string.
      */
@@ -211,11 +242,14 @@ public class SqlTableCrud {
     }
 
     /**
-     * Prints a JSON message to the print writer with the with the successful attribute and string provided.
-     * @param out The print writer to print the message to.
-     * @param success Wether the operation the message is alluding to was successful or not.
+     * Prints a JSON message to the print writer with the with the successful
+     * attribute and string provided.
+     * 
+     * @param out     The print writer to print the message to.
+     * @param success Wether the operation the message is alluding to was successful
+     *                or not.
      * @param msgName The name of the message attribute.
-     * @param msg The message to print.
+     * @param msg     The message to print.
      */
     private void printJsonMessage(PrintWriter out, boolean success, String msgName, String msg) {
         out.print("{\"success\":" + success + ",\"" + msgName + "\":" + "\"" + msg + "\"}");
@@ -223,6 +257,7 @@ public class SqlTableCrud {
 
     /**
      * Returns a select everything query with an offset and limit.
+     * 
      * @param offset The offset to start at.
      * @return The offset and limit query string.
      */
@@ -233,7 +268,8 @@ public class SqlTableCrud {
 
     /**
      * Prints the record of the result set to the print writer.
-     * @param rs The result set to get the record from.
+     * 
+     * @param rs  The result set to get the record from.
      * @param out The print writer to print the record to.
      * @throws SQLException If the result set is null.
      */
@@ -253,8 +289,10 @@ public class SqlTableCrud {
     }
 
     /**
-     * Gets the update query string based on the schema, table name, and json object provided.
-     * @param json The json object to get the attributes from.
+     * Gets the update query string based on the schema, table name, and json object
+     * provided.
+     * 
+     * @param json      The json object to get the attributes from.
      * @param recordKey The primary key of the record to update.
      * @return The update query string.
      */
@@ -274,7 +312,9 @@ public class SqlTableCrud {
     }
 
     /**
-     * Returns a delete query string based on the schema, table name, and primary key of the record to delete.
+     * Returns a delete query string based on the schema, table name, and primary
+     * key of the record to delete.
+     * 
      * @param recordKey The primary key of the record to delete.
      * @return The delete query string.
      */
@@ -284,11 +324,50 @@ public class SqlTableCrud {
 
     // ========================= CRUD Methods =========================
     /**
+     * Post method helper that attempts to insert a record into the database.
+     * 
+     * @param json     The json object to get the attributes from.
+     * @param out      The print writer to print the message to.
+     * @param recordId The primary key of the record to insert.
+     * @throws Exception If the insert operation fails.
+     */
+    private void attemptToInsertRecord(JSONObject json, PrintWriter out, int recordId) throws Exception {
+        // Establish the connection to the DB and prepare the statement
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        Connection con = DriverManager.getConnection(conUrl, user, password);
+        String recordCheckQuery = getCheckRowQuery(recordId);
+        String insertQuery = getInsertQuery(json);
+
+        // Check if the record already exists
+        Statement checkStmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                ResultSet.CONCUR_READ_ONLY);
+        ResultSet rs = checkStmt.executeQuery(recordCheckQuery);
+
+        if (rs.next()) {
+            // record already exists; cannot be inserted
+            printJsonMessage(out, false, "error",
+                    "A record with the id " + recordId + " already exists.");
+        } else {
+            // record does not exist
+            Statement stmt = con.createStatement();
+
+            // Execute the query and close the connection
+            stmt.executeUpdate(insertQuery);
+            stmt.close();
+            con.close();
+
+            out.print("{\"success\":" + true + ",\"message\":\"Record with id " + recordId
+                    + " created.\",\"dataAdded\":" + json.toString() + "}");
+        }
+    }
+
+    /**
      * Post method of the CRUD operations.
-     * @param request The request object.
+     * 
+     * @param request  The request object.
      * @param response The response object.
      * @throws ServletException If the servlet throws an exception.
-     * @throws IOException If there is an error with the input or output.
+     * @throws IOException      If there is an error with the input or output.
      */
     protected void post(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -307,7 +386,7 @@ public class SqlTableCrud {
 
             // Check if the id is numeric and is positive
             if (isNumeric(id) && Integer.parseInt(id) > 0) {
-                int itemId = Integer.parseInt(id);
+                int recordId = Integer.parseInt(id);
 
                 // Get the body of the request
                 String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
@@ -316,48 +395,22 @@ public class SqlTableCrud {
                 if (body.length() > 0) {
                     // Get body as JSON object
                     JSONObject json = new JSONObject(body);
-                    json.put(primaryKey, itemId);
+                    json.put(primaryKey, recordId);
 
                     // Check if all the attributes are set
                     if (checkIfJsonContainsAttributes(json, attributes)) {
                         try {
-                            // Establish the connection to the DB and prepare the statement
-                            Class.forName("oracle.jdbc.driver.OracleDriver");
-                            Connection con = DriverManager.getConnection(conUrl, user, password);
-                            String entryCheckQuery = getCheckRowQuery(itemId);
-                            String query = getInsertQuery(json);
-
-                            // Check if the entry already exists
-                            Statement checkStmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-                                    ResultSet.CONCUR_READ_ONLY);
-                            ResultSet rs = checkStmt.executeQuery(entryCheckQuery);
-
-                            if (rs.next()) {
-                                // Entry already exists; cannot be inserted
-                                printJsonMessage(out, false, "error",
-                                        "An entry with the id " + id + " already exists.");
-                            } else {
-                                // Entry does not exist
-                                Statement stmt = con.createStatement();
-
-                                // Execute the query and close the connection
-                                stmt.executeUpdate(query);
-                                stmt.close();
-                                con.close();
-
-                                out.print("{\"success\":" + true + ",\"message\":\"Row data entry with id " + id
-                                        + " created.\",\"dataAdded\":" + json.toString() + "}");
-                            }
+                            attemptToInsertRecord(json, out, recordId);
                         } catch (Exception e) {
                             printErrorMessage(out, e);
                         }
                     } else {
                         printJsonMessage(out, false, "error",
-                                "There are missing attributes. Please make sure to add all of the attributes of the entry.");
+                                "There are missing attributes. Please make sure to add all of the attributes of the record.");
                     }
                 } else {
                     printJsonMessage(out, false, "error",
-                            "The body of the request is empty. Please set the attributes of the entry.");
+                            "The body of the request is empty. Please set the attributes of the record.");
                 }
             } else {
                 printJsonMessage(out, false, "error",
@@ -365,17 +418,152 @@ public class SqlTableCrud {
             }
         } else {
             printJsonMessage(out, false, "error",
-                    "The entry id is not set. Please set the paramter 'id' or '" + primaryKey
-                            + "' to add the new entry's data.");
+                    "The record id is not set. Please set the paramter 'id' or '" + primaryKey
+                            + "' to add the new record's data.");
+        }
+    }
+
+    /**
+     * Get method helper that attempts to display all the records in the database.
+     * 
+     * @param out The print writer to print the message to.
+     * @throws Exception If the select operation fails.
+     */
+    private void attemptToDisplayAllRecords(PrintWriter out) throws Exception {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        Connection con = DriverManager.getConnection(conUrl, user, password);
+        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        String query = getSelectOffsetQuery(0);
+        int rowCount = getQueryRowCount(con, query);
+        ResultSet rs = stmt.executeQuery(query);
+
+        out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
+
+        while (rs.next()) {
+            printRows(rs, out);
+
+            if (rs.isLast()) {
+                if (rowCount < maxRows) {
+                    out.print("]}");
+                } else {
+                    out.print("],\"nextPage\":\"http://" + localhostIp
+                            + ":8080/sales-system/" + servletUrl + "?page=2\"}");
+                }
+            } else {
+                out.print(",");
+            }
+        }
+
+        con.close();
+    }
+
+    /**
+     * Get method helper to get a page of records.
+     * 
+     * @param out  The print writer to print the message to.
+     * @param page The page to get.
+     * @throws Exception If the select operation fails.
+     */
+    private void attemptToGetPageOfRecords(PrintWriter out, int page) throws Exception {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        Connection con = DriverManager.getConnection(conUrl, user, password);
+        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                ResultSet.CONCUR_READ_ONLY);
+        String query = getSelectOffsetQuery((page - 1) * maxRows);
+        int rowCount = getQueryRowCount(con, query);
+        String maxCountQuery = getSelectQuery();
+        int maxRowCount = getQueryRowCount(con, maxCountQuery);
+        ResultSet rs = stmt.executeQuery(query);
+
+        if (rowCount == maxRows) {
+            out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
+
+            while (rs.next()) {
+                printRows(rs, out);
+
+                if (rs.isLast()) {
+                    if ((page - 1) * maxRows != maxRowCount - 1 && page - 1 != 0) {
+                        out.print(
+                                "],\"previousPage\":\"http://" + localhostIp
+                                        + ":8080/sales-system/" + servletUrl + "?page="
+                                        + (page - 1)
+                                        + "\",\"nextPage\":\"http://" + localhostIp
+                                        + ":8080/sales-system/" + servletUrl + "?page="
+                                        + (page + 1)
+                                        + "\"}");
+                    } else {
+                        out.print(
+                                "],\"nextPage\":\"http://" + localhostIp
+                                        + ":8080/sales-system/" + servletUrl + "?page="
+                                        + (page + 1)
+                                        + "\"}");
+                    }
+                } else {
+                    out.print(",");
+                }
+            }
+        } else if (rowCount < maxRows && rowCount != 0) {
+            out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
+
+            while (rs.next()) {
+                printRows(rs, out);
+
+                if (rs.isLast()) {
+                    if (page != 1 && rowCount <= maxRows) {
+                        out.print(
+                                "],\"previousPage\":\"http://" + localhostIp
+                                        + ":8080/sales-system/" + servletUrl + "?page="
+                                        + (page - 1)
+                                        + "\"}");
+                    } else {
+                        out.print("]}");
+                    }
+                } else {
+                    out.print(",");
+                }
+            }
+        } else {
+            printJsonMessage(out, false, "error",
+                    "Invalid page number. No data corresponds to this page.");
+        }
+
+        con.close();
+    }
+
+    /**
+     * Get method helper to get a record by its id.
+     * 
+     * @param out      The print writer to print the message to.
+     * @param recordId The id of the record to get.
+     * @throws Exception If the select operation fails.
+     */
+    private void attemptToGetRecordById(PrintWriter out, int recordId) throws Exception {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        Connection con = DriverManager.getConnection(conUrl, user, password);
+        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                ResultSet.CONCUR_READ_ONLY);
+        ResultSet rs = stmt.executeQuery(getCheckRowQuery(recordId));
+
+        // Check if the record exists
+        if (rs.next()) {
+            // Record exists
+            out.print("{\"success\":" + true + ",\"data\":");
+            printRows(rs, out);
+            out.print("}");
+        } else {
+            // The record with the given ID does not exist
+            printJsonMessage(out, false, "error",
+                    "The record with the id " + recordId + " does not exist.");
         }
     }
 
     /**
      * Get method of the CRUD operations.
-     * @param request The request object.
+     * 
+     * @param request  The request object.
      * @param response The response object.
      * @throws ServletException If the servlet throws an exception.
-     * @throws IOException If there is an error with the input or output.
+     * @throws IOException      If there is an error with the input or output.
      */
     protected void get(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -385,33 +573,9 @@ public class SqlTableCrud {
 
         // Check if there are any parameters
         if (request.getParameterMap().size() == 0) {
-            // Display all entries below or equal to the max rows limit
+            // Display all records below or equal to the max rows limit
             try {
-                Class.forName("oracle.jdbc.driver.OracleDriver");
-                Connection con = DriverManager.getConnection(conUrl, user, password);
-                Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-                String query = getSelectOffsetQuery(0);
-                int rowCount = getQueryRowCount(con, query);
-                ResultSet rs = stmt.executeQuery(query);
-
-                out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
-
-                while (rs.next()) {
-                    printRows(rs, out);
-
-                    if (rs.isLast()) {
-                        if (rowCount < maxRows) {
-                            out.print("]}");
-                        } else {
-                            out.print("],\"nextPage\":\"http://" + localhostIp
-                                    + ":8080/sales-system/" + servletUrl +  "?page=2\"}");
-                        }
-                    } else {
-                        out.print(",");
-                    }
-                }
-
-                con.close();
+                attemptToDisplayAllRecords(out);
             } catch (Exception e) {
                 printErrorMessage(out, e);
             }
@@ -429,70 +593,9 @@ public class SqlTableCrud {
                         printJsonMessage(out, false, "error",
                                 "The page number is invalid. Please provide a positive, non-zero number.");
                     } else {
+                        // Display the page of records
                         try {
-                            Class.forName("oracle.jdbc.driver.OracleDriver");
-                            Connection con = DriverManager.getConnection(conUrl, user, password);
-                            Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-                                    ResultSet.CONCUR_READ_ONLY);
-                            String query = getSelectOffsetQuery((page - 1) * maxRows);
-                            int rowCount = getQueryRowCount(con, query);
-                            String maxCountQuery = getSelectQuery();
-                            int maxRowCount = getQueryRowCount(con, maxCountQuery);
-                            ResultSet rs = stmt.executeQuery(query);
-
-                            if (rowCount == maxRows) {
-                                out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
-
-                                while (rs.next()) {
-                                    printRows(rs, out);
-
-                                    if (rs.isLast()) {
-                                        if ((page - 1) * maxRows != maxRowCount - 1 && page - 1 != 0) {
-                                            out.print(
-                                                    "],\"previousPage\":\"http://" + localhostIp
-                                                            + ":8080/sales-system/" + servletUrl +  "?page="
-                                                            + (page - 1)
-                                                            + "\",\"nextPage\":\"http://" + localhostIp
-                                                            + ":8080/sales-system/" + servletUrl +  "?page="
-                                                            + (page + 1)
-                                                            + "\"}");
-                                        } else {
-                                            out.print(
-                                                    "],\"nextPage\":\"http://" + localhostIp
-                                                            + ":8080/sales-system/" + servletUrl +  "?page="
-                                                            + (page + 1)
-                                                            + "\"}");
-                                        }
-                                    } else {
-                                        out.print(",");
-                                    }
-                                }
-                            } else if (rowCount < maxRows && rowCount != 0) {
-                                out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
-
-                                while (rs.next()) {
-                                    printRows(rs, out);
-
-                                    if (rs.isLast()) {
-                                        if (page != 1 && rowCount <= maxRows) {
-                                            out.print(
-                                                    "],\"previousPage\":\"http://" + localhostIp
-                                                            + ":8080/sales-system/" + servletUrl +  "?page="
-                                                            + (page - 1)
-                                                            + "\"}");
-                                        } else {
-                                            out.print("]}");
-                                        }
-                                    } else {
-                                        out.print(",");
-                                    }
-                                }
-                            } else {
-                                printJsonMessage(out, false, "error",
-                                        "Invalid page number. No data corresponds to this page.");
-                            }
-
-                            con.close();
+                            attemptToGetPageOfRecords(out, page);
                         } catch (Exception e) {
                             printErrorMessage(out, e);
                         }
@@ -516,25 +619,11 @@ public class SqlTableCrud {
                     // Check if the id is numeric
                     if (isNumeric(id)) {
                         // Valid id
-                        int itemId = Integer.parseInt(id);
-                        try {
-                            Class.forName("oracle.jdbc.driver.OracleDriver");
-                            Connection con = DriverManager.getConnection(conUrl, user, password);
-                            Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-                                    ResultSet.CONCUR_READ_ONLY);
-                            ResultSet rs = stmt.executeQuery(getCheckRowQuery(itemId));
+                        int recordId = Integer.parseInt(id);
 
-                            // Check if the entry exists
-                            if (rs.next()) {
-                                // Entry exists
-                                out.print("{\"success\":" + true + ",\"data\":");
-                                printRows(rs, out);
-                                out.print("}");
-                            } else {
-                                // The entry with the given ID does not exist
-                                printJsonMessage(out, false, "error",
-                                        "The entry with the id " + itemId + " does not exist.");
-                            }
+                        // Display a record by its id
+                        try {
+                            attemptToGetRecordById(out, recordId);
                         } catch (Exception e) {
                             printErrorMessage(out, e);
                         }
@@ -551,18 +640,74 @@ public class SqlTableCrud {
                 // Incorrect parameter set
                 printJsonMessage(out, false, "error",
                         "An incorrect parameter was set. The valid parameters are 'id' or '" + primaryKey
-                                + "', to search an entry by its id; or 'page', to see a set of entries in groups of "
-                                + maxRows + ".");
+                                + "', to search a record by its id; or 'page', to get a set of records in pages of up to "
+                                + maxRows + " records.");
             }
+        }
+    }
+
+    private void insertNewRecord(PrintWriter out, HttpServletRequest request, int recordId) throws Exception {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        Connection con = DriverManager.getConnection(conUrl, user, password);
+        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                ResultSet.CONCUR_READ_ONLY);
+        ResultSet rs = stmt.executeQuery(getCheckRowQuery(recordId));
+
+        if (rs.next()) {
+            // Record exists
+            JSONObject oldData = new JSONObject();
+
+            // Get the old data
+            for (int i = 0; i < attributes.length; i++) {
+                oldData.put(attributes[i], (types[i] == "INTEGER" ? rs.getInt(attributes[i])
+                        : types[i] == "FLOAT" ? rs.getFloat(attributes[i])
+                                : types[i] == "BOOLEAN" ? rs.getBoolean(attributes[i])
+                                        : rs.getString(attributes[i])));
+            }
+
+            // Get the request body and parse it to a JSON object
+            String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
+            JSONObject newData = new JSONObject(body);
+
+            // Remove the id or primary key attribute from the new data if it exists
+            if (newData.has("id")) {
+                newData.remove("id");
+            }
+
+            if (newData.has(primaryKey)) {
+                newData.remove(primaryKey);
+            }
+
+            // Check if the new data is valid
+            for (int i = 0; i < attributes.length; i++) {
+                if (!newData.has(attributes[i])) {
+                    newData.put(attributes[i], (types[i] == "INTEGER" ? oldData.getInt(attributes[i])
+                            : types[i] == "FLOAT" ? oldData.getFloat(attributes[i])
+                                    : types[i] == "BOOLEAN" ? oldData.getBoolean(attributes[i])
+                                            : oldData.getString(attributes[i])));
+                }
+            }
+
+            // Execute the query to update the record
+            String updateQuery = getUpdateQuery(newData, recordId);
+            stmt.executeUpdate(updateQuery);
+
+            out.print(
+                    "{\"success\":" + true + ",\"message\":\"The data of the record with id " + recordId
+                            + " has been updated.\",\"dataModified:\"" + body.toString() + "}");
+        } else {
+            printJsonMessage(out, false, "error",
+                    "The record with the id " + recordId + " does not exist.");
         }
     }
 
     /**
      * Put method of the CRUD operations.
-     * @param request The request object.
+     * 
+     * @param request  The request object.
      * @param response The response object.
      * @throws ServletException If the servlet throws an exception.
-     * @throws IOException If there is an error with the input or output.
+     * @throws IOException      If there is an error with the input or output.
      */
     protected void put(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -584,59 +729,11 @@ public class SqlTableCrud {
                 // Check if the id is numeric
                 if (isNumeric(id)) {
                     // Valid id
-                    int itemId = Integer.parseInt(id);
+                    int recordId = Integer.parseInt(id);
 
+                    // Insert a new record
                     try {
-                        Class.forName("oracle.jdbc.driver.OracleDriver");
-                        Connection con = DriverManager.getConnection(conUrl, user, password);
-                        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-                                ResultSet.CONCUR_READ_ONLY);
-                        ResultSet rs = stmt.executeQuery(getCheckRowQuery(itemId));
-
-                        if (rs.next()) {
-                            // Entry exists
-                            JSONObject oldData = new JSONObject();
-
-                            // Get the old data
-                            for (int i = 0; i < attributes.length; i++) {
-                                oldData.put(attributes[i], (types[i] == "INTEGER" ? rs.getInt(attributes[i])
-                                        : types[i] == "FLOAT" ? rs.getFloat(attributes[i])
-                                                : types[i] == "BOOLEAN" ? rs.getBoolean(attributes[i])
-                                                        : rs.getString(attributes[i])));
-                            }
-
-                            String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
-                            JSONObject newData = new JSONObject(body);
-
-                            if (newData.has("id")) {
-                                newData.remove("id");
-                            }
-
-                            if (newData.has(primaryKey)) {
-                                newData.remove(primaryKey);
-                            }
-
-                            // Check if the new data is valid
-                            for (int i = 0; i < attributes.length; i++) {
-                                if (!newData.has(attributes[i])) {
-                                    newData.put(attributes[i], (types[i] == "INTEGER" ? oldData.getInt(attributes[i])
-                                            : types[i] == "FLOAT" ? oldData.getFloat(attributes[i])
-                                                    : types[i] == "BOOLEAN" ? oldData.getBoolean(attributes[i])
-                                                            : oldData.getString(attributes[i])));
-                                }
-                            }
-
-                            // Update the data
-                            String updateQuery = getUpdateQuery(newData, itemId);
-                            stmt.executeUpdate(updateQuery);
-
-                            out.print(
-                                    "{\"success\":" + true + ",\"message\":\"The data of the entry with id " + itemId
-                                            + " has been updated.\",\"dataAdded:\"" + body.toString() + "\"}");
-                        } else {
-                            printJsonMessage(out, false, "error",
-                                    "The entry with the id " + id + " does not exist.");
-                        }
+                        insertNewRecord(out, request, recordId);
                     } catch (Exception e) {
                         printErrorMessage(out, e);
                     }
@@ -650,16 +747,36 @@ public class SqlTableCrud {
         } else {
             printJsonMessage(out, false, "error",
                     "Incorrect parameter set. The valid parameters are 'id' or '" + primaryKey
-                            + "', to update the entry's data by its id.");
+                            + "', to update the record's data by its id.");
+        }
+    }
+
+    private void attemptToDeleteRecordById(PrintWriter out, int recordId) throws Exception {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        Connection con = DriverManager.getConnection(conUrl, user, password);
+        Statement stmt = con.createStatement();
+        String recordCheckQuery = getCheckRowQuery(recordId);
+        ResultSet rs = stmt.executeQuery(recordCheckQuery);
+
+        if (rs.next()) {
+            // Record exists
+            String deleteRecordQuery = getDeleteQuery(recordId);
+            stmt.executeUpdate(deleteRecordQuery);
+            printJsonMessage(out, true, "success", "Record data with id " + recordId + " has been deleted.");
+        } else {
+            // Record does not exist
+            printJsonMessage(out, false, "error",
+                    "The record with the given id does not exist.");
         }
     }
 
     /**
      * Delete method of the CRUD operations.
-     * @param request The request object.
+     * 
+     * @param request  The request object.
      * @param response The response object.
      * @throws ServletException If the servlet throws an exception.
-     * @throws IOException If there is an error with the input or output.
+     * @throws IOException      If there is an error with the input or output.
      */
     protected void delete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -680,25 +797,11 @@ public class SqlTableCrud {
                 // Check if the id is numeric
                 if (isNumeric(id)) {
                     // Valid id
-                    int itemId = Integer.parseInt(id);
+                    int recordId = Integer.parseInt(id);
 
+                    // Delete the record
                     try {
-                        Class.forName("oracle.jdbc.driver.OracleDriver");
-                        Connection con = DriverManager.getConnection(conUrl, user, password);
-                        Statement stmt = con.createStatement();
-                        String entryCheckQuery = getCheckRowQuery(itemId);
-                        ResultSet rs = stmt.executeQuery(entryCheckQuery);
-
-                        if (rs.next()) {
-                            // Entry exists
-                            String deleteEntry = getDeleteQuery(itemId);
-                            stmt.executeUpdate(deleteEntry);
-                            printJsonMessage(out, true, "success", "Entry data deleted.");
-                        } else {
-                            // Entry does not exist
-                            printJsonMessage(out, false, "error",
-                                    "The entry with the given id does not exist.");
-                        }
+                        attemptToDeleteRecordById(out, recordId);
                     } catch (Exception e) {
                         printErrorMessage(out, e);
                     }
@@ -712,7 +815,7 @@ public class SqlTableCrud {
         } else {
             printJsonMessage(out, false, "error",
                     "Incorrect parameter set. The valid parameters are 'id' or '" + primaryKey
-                            + "', to delete the entry's data by its id.");
+                            + "', to delete the record's data by its id.");
         }
     }
 }
