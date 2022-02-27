@@ -51,9 +51,47 @@ public class SqlTableCrud {
         return str.matches("-?\\d+(\\.\\d+)?");
     }
 
+    private void printAttributeValue(ResultSet rs, Integer index, PrintWriter out) throws SQLException {
+        if (rs.getObject(attributes[index]) == null) {
+            // Null attribute
+            out.print("" + null + "");
+        } else {
+            // Non-null attribute
+            switch (types[index]) {
+                case "INTEGER":
+                    out.print(rs.getInt(attributes[index]));
+                    break;
+                case "FLOAT":
+                    out.print(rs.getFloat(attributes[index]));
+                    break;
+                case "BOOLEAN":
+                    out.print(rs.getBoolean(attributes[index]));
+                    break;
+                default:
+                    out.print("\"" + rs.getString(attributes[index]) + "\"");
+                    break;
+            }
+        }
+    }
+
+    private int getQueryRowCount(Connection con, String query) throws SQLException {
+        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                ResultSet.CONCUR_READ_ONLY);
+        ResultSet rowCount = stmt.executeQuery("SELECT COUNT(*) AS TOTAL FROM (" + query + ")");
+        rowCount.next();
+        int totalRows = rowCount.getInt("TOTAL");
+        rowCount.close();
+
+        return totalRows;
+    }
+
     private void printErrorMessage(PrintWriter out, Exception e) {
         out.print("{\"success\":" + false + ",\"error\":" + "\""
                 + e.getMessage().replace("\n", "").replace("\r", "") + "\"}");
+    }
+
+    private String getSelectQuery() {
+        return "SELECT * FROM " + schema + "." + tableName;
     }
 
     private String getCheckRowQuery(int item) {
@@ -110,6 +148,26 @@ public class SqlTableCrud {
 
     private void printJsonMessage(PrintWriter out, boolean success, String msgName, String error) {
         out.print("{\"success\":" + success + ",\"" + msgName + "\":" + "\"" + error + "\"}");
+    }
+
+    private String getSelectOffsetQuery(int offset) {
+        return "SELECT * FROM " + schema + "." + tableName + " ORDER BY " + primaryKey + " ASC OFFSET " + offset
+                + " ROWS FETCH NEXT " + maxRows + " ROWS ONLY";
+    }
+
+    private void printRows(ResultSet rs, PrintWriter out) throws SQLException {
+        out.print("{");
+
+        for (int i = 0; i < attributes.length; i++) {
+            out.print("\"" + attributes[i] + "\":");
+            printAttributeValue(rs, i, out);
+
+            if (i < attributes.length - 1) {
+                out.print(",");
+            }
+        }
+
+        out.print("}");
     }
 
     // ========================= CRUD Methods =========================
@@ -191,6 +249,187 @@ public class SqlTableCrud {
             printJsonMessage(out, false, "error",
                     "The entry id is not set. Please set the paramter 'id' or '" + primaryKey
                             + "' to add the new entry's data.");
+        }
+    }
+
+    // Read
+    protected void get(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        PrintWriter out = response.getWriter();
+
+        // Check if there are any parameters
+        if (request.getParameterMap().size() == 0) {
+            // Display all entries below or equal to the max rows limit
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                Connection con = DriverManager.getConnection(conUrl, user, password);
+                Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                String query = getSelectOffsetQuery(0);
+                int rowCount = getQueryRowCount(con, query);
+                ResultSet rs = stmt.executeQuery(query);
+
+                out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
+
+                while (rs.next()) {
+                    printRows(rs, out);
+
+                    if (rs.isLast()) {
+                        if (rowCount < maxRows) {
+                            out.print("]}");
+                        } else {
+                            out.print("],\"nextPage\":\"http://" + localhostIp
+                                    + ":8080/sales-system/" + servletUrl +  "?page=2\"}");
+                        }
+                    } else {
+                        out.print(",");
+                    }
+                }
+
+                con.close();
+            } catch (Exception e) {
+                printErrorMessage(out, e);
+            }
+        } else {
+            // Check if the page parameter is set
+            if (request.getParameterMap().containsKey("page")) {
+                String pageParam = request.getParameter("page");
+
+                // Check if the page parameter can be parsed to an integer
+                if (isNumeric(pageParam)) {
+                    int page = Integer.parseInt(request.getParameter("page"));
+
+                    // Check if the page is valid
+                    if (page < 1) {
+                        printJsonMessage(out, false, "error",
+                                "The page number is invalid. Please provide a positive, non-zero number.");
+                    } else {
+                        try {
+                            Class.forName("oracle.jdbc.driver.OracleDriver");
+                            Connection con = DriverManager.getConnection(conUrl, user, password);
+                            Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                    ResultSet.CONCUR_READ_ONLY);
+                            String query = getSelectOffsetQuery((page - 1) * maxRows);
+                            int rowCount = getQueryRowCount(con, query);
+                            String maxCountQuery = getSelectQuery();
+                            int maxRowCount = getQueryRowCount(con, maxCountQuery);
+                            ResultSet rs = stmt.executeQuery(query);
+
+                            if (rowCount == maxRows) {
+                                out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
+
+                                while (rs.next()) {
+                                    printRows(rs, out);
+
+                                    if (rs.isLast()) {
+                                        if ((page - 1) * maxRows != maxRowCount - 1 && page - 1 != 0) {
+                                            out.print(
+                                                    "],\"previousPage\":\"http://" + localhostIp
+                                                            + ":8080/sales-system/" + servletUrl +  "?page="
+                                                            + (page - 1)
+                                                            + "\",\"nextPage\":\"http://" + localhostIp
+                                                            + ":8080/sales-system/" + servletUrl +  "?page="
+                                                            + (page + 1)
+                                                            + "\"}");
+                                        } else {
+                                            out.print(
+                                                    "],\"nextPage\":\"http://" + localhostIp
+                                                            + ":8080/sales-system/" + servletUrl +  "?page="
+                                                            + (page + 1)
+                                                            + "\"}");
+                                        }
+                                    } else {
+                                        out.print(",");
+                                    }
+                                }
+                            } else if (rowCount < maxRows && rowCount != 0) {
+                                out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
+
+                                while (rs.next()) {
+                                    printRows(rs, out);
+
+                                    if (rs.isLast()) {
+                                        if (page != 1 && rowCount <= maxRows) {
+                                            out.print(
+                                                    "],\"previousPage\":\"http://" + localhostIp
+                                                            + ":8080/sales-system/" + servletUrl +  "?page="
+                                                            + (page - 1)
+                                                            + "\"}");
+                                        } else {
+                                            out.print("]}");
+                                        }
+                                    } else {
+                                        out.print(",");
+                                    }
+                                }
+                            } else {
+                                printJsonMessage(out, false, "error",
+                                        "Invalid page number. No data corresponds to this page.");
+                            }
+
+                            con.close();
+                        } catch (Exception e) {
+                            printErrorMessage(out, e);
+                        }
+                    }
+                } else {
+                    printJsonMessage(out, false, "error",
+                            "Invalid page parameter. Please provide a positive, non-zero number.");
+                }
+            } else if (request.getParameterMap().containsKey("id")
+                    || request.getParameterMap().containsKey(primaryKey)) {
+                // Correct parameter set
+                String id;
+                if (request.getParameterMap().containsKey("id")) {
+                    id = request.getParameter("id");
+                } else {
+                    id = request.getParameter(primaryKey);
+                }
+
+                // Check if the id is empty
+                if (id.length() > 0) {
+                    // Check if the id is numeric
+                    if (isNumeric(id)) {
+                        // Valid id
+                        int itemId = Integer.parseInt(id);
+                        try {
+                            Class.forName("oracle.jdbc.driver.OracleDriver");
+                            Connection con = DriverManager.getConnection(conUrl, user, password);
+                            Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                    ResultSet.CONCUR_READ_ONLY);
+                            ResultSet rs = stmt.executeQuery(getCheckRowQuery(itemId));
+
+                            // Check if the entry exists
+                            if (rs.next()) {
+                                // Entry exists
+                                out.print("{\"success\":" + true + ",\"data\":");
+                                printRows(rs, out);
+                                out.print("}");
+                            } else {
+                                // The entry with the given ID does not exist
+                                printJsonMessage(out, false, "error",
+                                        "The entry with the id " + itemId + " does not exist.");
+                            }
+                        } catch (Exception e) {
+                            printErrorMessage(out, e);
+                        }
+                    } else {
+                        printJsonMessage(out, false, "error",
+                                "The given id is not a number. Please provide a numeric id.");
+                    }
+                } else {
+                    // Empty id
+                    printJsonMessage(out, false, "error",
+                            "The id you set is empty. Please provide one.");
+                }
+            } else {
+                // Incorrect parameter set
+                printJsonMessage(out, false, "error",
+                        "An incorrect parameter was set. The valid parameters are 'id' or '" + primaryKey
+                                + "', to search an entry by its id; or 'page', to see a set of entries in groups of "
+                                + maxRows + ".");
+            }
         }
     }
 }
