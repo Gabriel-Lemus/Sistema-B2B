@@ -761,6 +761,12 @@ public class SqlTableCrud {
         }
     }
 
+    /**
+     * Delete method helper to attempt to delete a record by its id.
+     * @param out The output writer.
+     * @param recordId The id of the record.
+     * @throws Exception If there is an error.
+     */
     private void attemptToDeleteRecordById(PrintWriter out, int recordId) throws Exception {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection con = DriverManager.getConnection(conUrl, user, password);
