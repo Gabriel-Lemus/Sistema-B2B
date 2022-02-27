@@ -9,6 +9,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
 
+/**
+ * This class represents a table from the Oracle database. It is used to
+ * create, read, update, and delete records from the table.
+ */
 public class SqlTableCrud {
     // Attributes
     private String conUrl;
@@ -46,11 +50,23 @@ public class SqlTableCrud {
     }
 
     // ========================= Helper Methods =========================
-
+    /**
+     * Checks if a string matches a number regular expression.
+     * @param str The string to check.
+     * @return boolean true if the string matches the regular expression, false otherwise.
+    */
     private boolean isNumeric(String str) {
         return str.matches("-?\\d+(\\.\\d+)?");
     }
 
+    /**
+     * Prints the values from the result set matching the correct data type to
+     * the provided print writer.
+     * @param rs The result set from which to print the value.
+     * @param index The index of the value to print.
+     * @param out The print writer to print the value to.
+     * @throws SQLException If there is an error while printing the value.
+     */
     private void printAttributeValue(ResultSet rs, Integer index, PrintWriter out) throws SQLException {
         if (rs.getObject(attributes[index]) == null) {
             // Null attribute
@@ -74,6 +90,13 @@ public class SqlTableCrud {
         }
     }
 
+    /**
+     * Gets the number of rows returned from an SQL query.
+     * @param con The connection to the database.
+     * @param query The query to execute.
+     * @return The number of rows returned.
+     * @throws SQLException If there is an error while getting the number of rows.
+     */
     private int getQueryRowCount(Connection con, String query) throws SQLException {
         Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                 ResultSet.CONCUR_READ_ONLY);
@@ -85,23 +108,52 @@ public class SqlTableCrud {
         return totalRows;
     }
 
+    /**
+     * Prints a JSON message with the provided error.
+     * @param out The print writer to print the error message to.
+     * @param e The exception to print the message from.
+     */
     private void printErrorMessage(PrintWriter out, Exception e) {
         out.print("{\"success\":" + false + ",\"error\":" + "\""
                 + e.getMessage().replace("\n", "").replace("\r", "") + "\"}");
     }
 
+    /**
+     * Returns a select everything query string based on the schema and table
+     * name of the table that this class represents.
+     * @return The select everything query string.
+     */
     private String getSelectQuery() {
         return "SELECT * FROM " + schema + "." + tableName;
     }
 
-    private String getCheckRowQuery(int item) {
-        return "SELECT * FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = " + item;
+    /**
+     * Returns a select everything query string based on the schema, table name,
+     * and primary key of the table that this class represents.
+     * @param recordKey The primary key of the record to select.
+     * @return The select query everything string.
+     */
+    private String getCheckRowQuery(int recordKey) {
+        return "SELECT * FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = " + recordKey;
     }
 
-    private String getNeccessaryComma(int i, int length) {
-        return i < length - 1 ? "," : "";
+    /**
+     * Returns a comma if the index is not the last item of the array, based on
+     * its length; otherwise, returns an empty string character.
+     * @param index The index of the item.
+     * @param length The length of the array.
+     * @return The comma or empty string character.
+     */
+    private String getNeccessaryComma(int index, int length) {
+        return index < length - 1 ? "," : "";
     }
 
+    /**
+     * Checks if the json object contains the attributes specified in the array provided.
+     * @param json The json object to check.
+     * @param attribute The array of attributes to check.
+     * @return boolean true if the json object contains all the attributes, false otherwise.
+     */
     private boolean checkIfJsonContainsAttributes(JSONObject json, String[] attribute) {
         for (String attr : attribute) {
             if (!json.has(attr)) {
@@ -111,6 +163,13 @@ public class SqlTableCrud {
         return true;
     }
 
+    /**
+     * Returns a string concatenated with the attribute provided as a paramenter
+     * with its correct data type.
+     * @param json The json object to get the attribute from.
+     * @param index The index of the attribute.
+     * @return The string concatenated with the attribute with its correct data type.
+     */
     private String getJsonAttrString(JSONObject json, int index) {
         switch (types[index]) {
             case "INTEGER":
@@ -126,6 +185,11 @@ public class SqlTableCrud {
         }
     }
 
+    /**
+     * Returns an insert query string based on the schema, table name, and json object provided.
+     * @param json The json object to get the attributes from.
+     * @return The insert query string.
+     */
     private String getInsertQuery(JSONObject json) {
         String query = "INSERT INTO " + schema + "." + tableName + " (";
 
@@ -146,15 +210,33 @@ public class SqlTableCrud {
         return query;
     }
 
-    private void printJsonMessage(PrintWriter out, boolean success, String msgName, String error) {
-        out.print("{\"success\":" + success + ",\"" + msgName + "\":" + "\"" + error + "\"}");
+    /**
+     * Prints a JSON message to the print writer with the with the successful attribute and string provided.
+     * @param out The print writer to print the message to.
+     * @param success Wether the operation the message is alluding to was successful or not.
+     * @param msgName The name of the message attribute.
+     * @param msg The message to print.
+     */
+    private void printJsonMessage(PrintWriter out, boolean success, String msgName, String msg) {
+        out.print("{\"success\":" + success + ",\"" + msgName + "\":" + "\"" + msg + "\"}");
     }
 
+    /**
+     * Returns a select everything query with an offset and limit.
+     * @param offset The offset to start at.
+     * @return The offset and limit query string.
+     */
     private String getSelectOffsetQuery(int offset) {
         return "SELECT * FROM " + schema + "." + tableName + " ORDER BY " + primaryKey + " ASC OFFSET " + offset
                 + " ROWS FETCH NEXT " + maxRows + " ROWS ONLY";
     }
 
+    /**
+     * Prints the record of the result set to the print writer.
+     * @param rs The result set to get the record from.
+     * @param out The print writer to print the record to.
+     * @throws SQLException If the result set is null.
+     */
     private void printRows(ResultSet rs, PrintWriter out) throws SQLException {
         out.print("{");
 
@@ -170,7 +252,13 @@ public class SqlTableCrud {
         out.print("}");
     }
 
-    private String getUpdateQuery(JSONObject json, int item) {
+    /**
+     * Gets the update query string based on the schema, table name, and json object provided.
+     * @param json The json object to get the attributes from.
+     * @param recordKey The primary key of the record to update.
+     * @return The update query string.
+     */
+    private String getUpdateQuery(JSONObject json, int recordKey) {
         String updateQuery = "UPDATE " + schema + "." + tableName + " SET ";
 
         for (int i = 0; i < attributes.length; i++) {
@@ -180,17 +268,28 @@ public class SqlTableCrud {
                     + getNeccessaryComma(i, attributes.length);
         }
 
-        updateQuery += " WHERE " + primaryKey + " = " + item;
+        updateQuery += " WHERE " + primaryKey + " = " + recordKey;
 
         return updateQuery;
     }
 
-    private String getDeleteQuery(int item) {
-        return "DELETE FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = " + item;
+    /**
+     * Returns a delete query string based on the schema, table name, and primary key of the record to delete.
+     * @param recordKey The primary key of the record to delete.
+     * @return The delete query string.
+     */
+    private String getDeleteQuery(int recordKey) {
+        return "DELETE FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = " + recordKey;
     }
 
     // ========================= CRUD Methods =========================
-    // Create
+    /**
+     * Post method of the CRUD operations.
+     * @param request The request object.
+     * @param response The response object.
+     * @throws ServletException If the servlet throws an exception.
+     * @throws IOException If there is an error with the input or output.
+     */
     protected void post(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("application/json");
@@ -271,7 +370,13 @@ public class SqlTableCrud {
         }
     }
 
-    // Read
+    /**
+     * Get method of the CRUD operations.
+     * @param request The request object.
+     * @param response The response object.
+     * @throws ServletException If the servlet throws an exception.
+     * @throws IOException If there is an error with the input or output.
+     */
     protected void get(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("application/json");
@@ -452,7 +557,13 @@ public class SqlTableCrud {
         }
     }
 
-    // Update
+    /**
+     * Put method of the CRUD operations.
+     * @param request The request object.
+     * @param response The response object.
+     * @throws ServletException If the servlet throws an exception.
+     * @throws IOException If there is an error with the input or output.
+     */
     protected void put(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("application/json");
@@ -543,7 +654,13 @@ public class SqlTableCrud {
         }
     }
 
-    // Delete
+    /**
+     * Delete method of the CRUD operations.
+     * @param request The request object.
+     * @param response The response object.
+     * @throws ServletException If the servlet throws an exception.
+     * @throws IOException If there is an error with the input or output.
+     */
     protected void delete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("application/json");
