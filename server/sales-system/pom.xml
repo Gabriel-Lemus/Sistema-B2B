@@ -36,6 +36,11 @@
       <artifactId>ojdbc8</artifactId>
       <version>12.1.0.2</version>
     </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20190722</version>
+    </dependency>
   </dependencies>
 
   <build>
