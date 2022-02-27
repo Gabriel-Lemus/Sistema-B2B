@@ -170,6 +170,21 @@ public class SqlTableCrud {
         out.print("}");
     }
 
+    private String getUpdateQuery(JSONObject json, int item) {
+        String updateQuery = "UPDATE " + schema + "." + tableName + " SET ";
+
+        for (int i = 0; i < attributes.length; i++) {
+            updateQuery += attributes[i] + " = "
+                    + (nullableAttributes[i] && json.isNull(attributes[i]) ? "''"
+                            : (getJsonAttrString(json, i)))
+                    + getNeccessaryComma(i, attributes.length);
+        }
+
+        updateQuery += " WHERE " + primaryKey + " = " + item;
+
+        return updateQuery;
+    }
+
     // ========================= CRUD Methods =========================
     // Create
     protected void post(HttpServletRequest request, HttpServletResponse response)
@@ -430,6 +445,97 @@ public class SqlTableCrud {
                                 + "', to search an entry by its id; or 'page', to see a set of entries in groups of "
                                 + maxRows + ".");
             }
+        }
+    }
+
+    // Update
+    protected void put(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        PrintWriter out = response.getWriter();
+
+        // Check if the id parameter is set
+        if (request.getParameterMap().containsKey("id") || request.getParameterMap().containsKey(primaryKey)) {
+            // Correct parameter set
+            String id = request.getParameter("id");
+
+            if (id == "" || id == null) {
+                id = request.getParameter(primaryKey);
+            }
+
+            // Check if the id is empty
+            if (id.length() > 0) {
+                // Check if the id is numeric
+                if (isNumeric(id)) {
+                    // Valid id
+                    int itemId = Integer.parseInt(id);
+
+                    try {
+                        Class.forName("oracle.jdbc.driver.OracleDriver");
+                        Connection con = DriverManager.getConnection(conUrl, user, password);
+                        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                ResultSet.CONCUR_READ_ONLY);
+                        ResultSet rs = stmt.executeQuery(getCheckRowQuery(itemId));
+
+                        if (rs.next()) {
+                            // Entry exists
+                            JSONObject oldData = new JSONObject();
+
+                            // Get the old data
+                            for (int i = 0; i < attributes.length; i++) {
+                                oldData.put(attributes[i], (types[i] == "INTEGER" ? rs.getInt(attributes[i])
+                                        : types[i] == "FLOAT" ? rs.getFloat(attributes[i])
+                                                : types[i] == "BOOLEAN" ? rs.getBoolean(attributes[i])
+                                                        : rs.getString(attributes[i])));
+                            }
+
+                            String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
+                            JSONObject newData = new JSONObject(body);
+
+                            if (newData.has("id")) {
+                                newData.remove("id");
+                            }
+
+                            if (newData.has(primaryKey)) {
+                                newData.remove(primaryKey);
+                            }
+
+                            // Check if the new data is valid
+                            for (int i = 0; i < attributes.length; i++) {
+                                if (!newData.has(attributes[i])) {
+                                    newData.put(attributes[i], (types[i] == "INTEGER" ? oldData.getInt(attributes[i])
+                                            : types[i] == "FLOAT" ? oldData.getFloat(attributes[i])
+                                                    : types[i] == "BOOLEAN" ? oldData.getBoolean(attributes[i])
+                                                            : oldData.getString(attributes[i])));
+                                }
+                            }
+
+                            // Update the data
+                            String updateQuery = getUpdateQuery(newData, itemId);
+                            stmt.executeUpdate(updateQuery);
+
+                            out.print(
+                                    "{\"success\":" + true + ",\"message\":\"The data of the entry with id " + itemId
+                                            + " has been updated.\",\"dataAdded:\"" + body.toString() + "\"}");
+                        } else {
+                            printJsonMessage(out, false, "error",
+                                    "The entry with the id " + id + " does not exist.");
+                        }
+                    } catch (Exception e) {
+                        printErrorMessage(out, e);
+                    }
+                } else {
+                    printJsonMessage(out, false, "error",
+                            "The given id is not a number. Please provide a numeric id.");
+                }
+            } else {
+                printJsonMessage(out, false, "error", "The id you set is empty. Please provide one.");
+            }
+        } else {
+            printJsonMessage(out, false, "error",
+                    "Incorrect parameter set. The valid parameters are 'id' or '" + primaryKey
+                            + "', to update the entry's data by its id.");
         }
     }
 }
