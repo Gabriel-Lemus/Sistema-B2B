@@ -439,19 +439,29 @@ public class SqlTableCrud {
 
         out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
 
-        while (rs.next()) {
-            printRows(rs, out);
+        // Check if there are any records
+        if (rs.next()) {
+            // Return the first record
+            rs.beforeFirst();
+            
+            // There are records; print them
+            while (rs.next()) {
+                printRows(rs, out);
 
-            if (rs.isLast()) {
-                if (rowCount < maxRows) {
-                    out.print("]}");
+                if (rs.isLast()) {
+                    if (rowCount < maxRows) {
+                        out.print("]}");
+                    } else {
+                        out.print("],\"nextPage\":\"http://" + localhostIp
+                                + ":8080/sales-system/" + servletUrl + "?page=2\"}");
+                    }
                 } else {
-                    out.print("],\"nextPage\":\"http://" + localhostIp
-                            + ":8080/sales-system/" + servletUrl + "?page=2\"}");
+                    out.print(",");
                 }
-            } else {
-                out.print(",");
             }
+        } else {
+            // There are no records; print an empty array
+            out.print("{}]}");
         }
 
         con.close();
