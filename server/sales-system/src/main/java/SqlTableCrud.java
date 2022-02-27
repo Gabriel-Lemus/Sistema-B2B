@@ -185,6 +185,10 @@ public class SqlTableCrud {
         return updateQuery;
     }
 
+    private String getDeleteQuery(int item) {
+        return "DELETE FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = " + item;
+    }
+
     // ========================= CRUD Methods =========================
     // Create
     protected void post(HttpServletRequest request, HttpServletResponse response)
@@ -536,6 +540,62 @@ public class SqlTableCrud {
             printJsonMessage(out, false, "error",
                     "Incorrect parameter set. The valid parameters are 'id' or '" + primaryKey
                             + "', to update the entry's data by its id.");
+        }
+    }
+
+    // Delete
+    protected void delete(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        PrintWriter out = response.getWriter();
+
+        // Check parameters
+        if (request.getParameterMap().containsKey("id") || request.getParameterMap().containsKey(primaryKey)) {
+            String id = request.getParameter("id");
+
+            if (id == "" || id == null) {
+                id = request.getParameter(primaryKey);
+            }
+
+            // Check if the id is empty
+            if (id.length() > 0) {
+                // Check if the id is numeric
+                if (isNumeric(id)) {
+                    // Valid id
+                    int itemId = Integer.parseInt(id);
+
+                    try {
+                        Class.forName("oracle.jdbc.driver.OracleDriver");
+                        Connection con = DriverManager.getConnection(conUrl, user, password);
+                        Statement stmt = con.createStatement();
+                        String entryCheckQuery = getCheckRowQuery(itemId);
+                        ResultSet rs = stmt.executeQuery(entryCheckQuery);
+
+                        if (rs.next()) {
+                            // Entry exists
+                            String deleteEntry = getDeleteQuery(itemId);
+                            stmt.executeUpdate(deleteEntry);
+                            printJsonMessage(out, true, "success", "Entry data deleted.");
+                        } else {
+                            // Entry does not exist
+                            printJsonMessage(out, false, "error",
+                                    "The entry with the given id does not exist.");
+                        }
+                    } catch (Exception e) {
+                        printErrorMessage(out, e);
+                    }
+                } else {
+                    printJsonMessage(out, false, "error",
+                            "The given id is not a number. Please provide a numeric id.");
+                }
+            } else {
+                printJsonMessage(out, false, "error", "The id you set is empty. Please provide one.");
+            }
+        } else {
+            printJsonMessage(out, false, "error",
+                    "Incorrect parameter set. The valid parameters are 'id' or '" + primaryKey
+                            + "', to delete the entry's data by its id.");
         }
     }
 }
