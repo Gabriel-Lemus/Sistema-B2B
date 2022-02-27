@@ -1,0 +1,14 @@
+# VSCode configuration
+.vscode
+
+# Miscellaneous files
+Misc
+
+# Prettier configuration
+.prettierrc
+
+# Local helper scripts
+.helper-scripts
+
+# Environment variables
+.env
