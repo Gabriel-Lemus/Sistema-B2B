@@ -9,7 +9,7 @@
   <body>
     <p>Available API links:</p>
     <ul>
-      <li><a href="./employees">Test Servlet API</a></li>
+      <li><a href="./sales">Sales scheme</a></li>
     </ul>
   </body>
 </html>
