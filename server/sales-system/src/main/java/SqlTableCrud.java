@@ -19,7 +19,6 @@ public class SqlTableCrud {
     private String user;
     private String password;
     private String localhostIp;
-    private String servletUrl;
     private String schema;
     private String tableName;
     private String primaryKey;
@@ -31,16 +30,13 @@ public class SqlTableCrud {
 
     // Constructor
     public SqlTableCrud(String conUrl, String user, String password,
-            String localhostIp, String servletUrl, String schema,
+            String localhostIp, String tableServletUrl, String schema,
             String tableName, String primaryKey, String[] attributes,
             String[] types, boolean[] nullableAttributes, int maxRows) {
-        super();
-
         this.conUrl = conUrl;
         this.user = user;
         this.password = password;
         this.localhostIp = localhostIp;
-        this.servletUrl = servletUrl;
         this.schema = schema;
         this.tableName = tableName;
         this.primaryKey = primaryKey;
@@ -162,6 +158,21 @@ public class SqlTableCrud {
      */
     private String getDeleteQuery(int recordKey) {
         return "DELETE FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = " + recordKey;
+    }
+
+    /**
+     * Returns the url for the records that belong to the next page.
+     * 
+     * @param page Current page number.
+     * @return The url for the next page.
+     */
+    private String getNextPageUrl(int page) {
+        return "\"http://" + localhostIp + ":8080/sales-system/" + schema.toLowerCase() + "?table=" + tableName
+                + "&page=" + (page + 1) + "\"";
+    }
+
+    private int getMaxNumberOfPages(int rowCount) throws Exception {
+        return (rowCount - (rowCount % maxRows)) / maxRows + (rowCount % maxRows == 0 ? 0 : 1);
     }
 
     // ========================= CRUD Methods =========================
@@ -294,8 +305,7 @@ public class SqlTableCrud {
                     if (rowCount < maxRows) {
                         out.print("]}");
                     } else {
-                        out.print("],\"nextPage\":\"http://" + localhostIp
-                                + ":8080/sales-system/" + servletUrl + "?page=2\"}");
+                        out.print("],\"nextPage\":" + getNextPageUrl(1) + "}");
                     }
                 } else {
                     out.print(",");
@@ -334,21 +344,14 @@ public class SqlTableCrud {
                 helper.printRow(rs, out, attributes, types);
 
                 if (rs.isLast()) {
-                    if ((page - 1) * maxRows != maxRowCount - 1 && page - 1 != 0) {
+                    if (page == getMaxNumberOfPages(maxRowCount)) {
+                        out.print("],\"previousPage\":" + getNextPageUrl(page - 2) + "}");
+                    } else if (page != 1) {
                         out.print(
-                                "],\"previousPage\":\"http://" + localhostIp
-                                        + ":8080/sales-system/" + servletUrl + "?page="
-                                        + (page - 1)
-                                        + "\",\"nextPage\":\"http://" + localhostIp
-                                        + ":8080/sales-system/" + servletUrl + "?page="
-                                        + (page + 1)
-                                        + "\"}");
+                                "],\"previousPage\":" + getNextPageUrl(page - 2) + ",\"nextPage\":"
+                                        + getNextPageUrl(page) + "}");
                     } else {
-                        out.print(
-                                "],\"nextPage\":\"http://" + localhostIp
-                                        + ":8080/sales-system/" + servletUrl + "?page="
-                                        + (page + 1)
-                                        + "\"}");
+                        out.print("],\"nextPage\":" + getNextPageUrl(page) + "}");
                     }
                 } else {
                     out.print(",");
@@ -363,10 +366,7 @@ public class SqlTableCrud {
                 if (rs.isLast()) {
                     if (page != 1 && rowCount <= maxRows) {
                         out.print(
-                                "],\"previousPage\":\"http://" + localhostIp
-                                        + ":8080/sales-system/" + servletUrl + "?page="
-                                        + (page - 1)
-                                        + "\"}");
+                                "],\"previousPage\":" + getNextPageUrl(page - 2) + "}");
                     } else {
                         out.print("]}");
                     }
@@ -423,8 +423,13 @@ public class SqlTableCrud {
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
 
+        // Get the number of parameters
+        int paramCount = request.getParameterMap().size();
+        boolean isTableParamSet = request.getParameterMap().containsKey("table")
+                || request.getParameterMap().containsKey("tableName");
+
         // Check if there are any parameters
-        if (request.getParameterMap().size() == 0) {
+        if (paramCount == 0 || (paramCount == 1 && isTableParamSet)) {
             // Display all records below or equal to the max rows limit
             try {
                 attemptToDisplayAllRecords(out);
