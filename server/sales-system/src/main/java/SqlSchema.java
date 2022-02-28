@@ -131,4 +131,57 @@ public class SqlSchema {
                     "The table name parameter is not set. Please set the parameter 'table' or 'tableName' to search a table inside the schema.");
         }
     }
+
+    /**
+     * Handle the GET requests for the CRUD operations of the tables.
+     * 
+     * @param request    The request object.
+     * @param response   The response object.
+     * @param tableIndex The index of the table in the tableCruds array.
+     * @throws ServletException If the servlet throws an exception.
+     * @throws IOException      If there is an error with the input or output.
+     */
+    protected void handleGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        PrintWriter out = response.getWriter();
+
+        // Check if the table name parameter is set
+        if (request.getParameterMap().containsKey("tableName")
+                || request.getParameterMap().containsKey("table")) {
+            String tableName = request.getParameter("tableName");
+
+            if (tableName == "" || tableName == null) {
+                tableName = request.getParameter("table");
+            }
+
+            // Check if the table name is valid
+            if (tableName != "" && tableName != null) {
+                // Check if the table exists
+                try {
+                    if (tableExists(tableName)) {
+                        int tableIndex = getTableIndexFromName(tableName);
+
+                        if (tableIndex != -1) {
+                            // Handle post request
+                            tableCruds[tableIndex].get(request, response);
+                        } else {
+                            helper.printJsonMessage(out, false, "error", "The table was not found.");
+                        }
+                    } else {
+                        helper.printJsonMessage(out, false, "error", "The table does not exist.");
+                    }
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                }
+            } else {
+                helper.printJsonMessage(out, false, "error",
+                        "The table name you set is empty, please provide one.");
+            }
+        } else {
+            helper.printJsonMessage(out, false, "error",
+                    "The table name parameter is not set. Please set the parameter 'table' or 'tableName' to search a table inside the schema.");
+        }
+    }
 }
