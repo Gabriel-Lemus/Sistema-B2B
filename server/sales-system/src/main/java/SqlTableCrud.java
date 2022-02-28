@@ -27,6 +27,7 @@ public class SqlTableCrud {
     private String[] types;
     private boolean[] nullableAttributes;
     private int maxRows;
+    private ServletHelper helper;
 
     // Constructor
     public SqlTableCrud(String conUrl, String user, String password,
@@ -47,52 +48,10 @@ public class SqlTableCrud {
         this.types = types;
         this.nullableAttributes = nullableAttributes;
         this.maxRows = maxRows;
+        this.helper = new ServletHelper();
     }
 
     // ========================= Helper Methods =========================
-    /**
-     * Checks if a string matches a number regular expression.
-     * 
-     * @param str The string to check.
-     * @return boolean true if the string matches the regular expression, false
-     *         otherwise.
-     */
-    private boolean isNumeric(String str) {
-        return str.matches("-?\\d+(\\.\\d+)?");
-    }
-
-    /**
-     * Prints the values from the result set matching the correct data type to
-     * the provided print writer.
-     * 
-     * @param rs    The result set from which to print the value.
-     * @param index The index of the value to print.
-     * @param out   The print writer to print the value to.
-     * @throws SQLException If there is an error while printing the value.
-     */
-    private void printAttributeValue(ResultSet rs, Integer index, PrintWriter out) throws SQLException {
-        if (rs.getObject(attributes[index]) == null) {
-            // Null attribute
-            out.print("" + null + "");
-        } else {
-            // Non-null attribute
-            switch (types[index]) {
-                case "INTEGER":
-                    out.print(rs.getInt(attributes[index]));
-                    break;
-                case "FLOAT":
-                    out.print(rs.getFloat(attributes[index]));
-                    break;
-                case "BOOLEAN":
-                    out.print(rs.getBoolean(attributes[index]));
-                    break;
-                default:
-                    out.print("\"" + rs.getString(attributes[index]) + "\"");
-                    break;
-            }
-        }
-    }
-
     /**
      * Gets the number of rows returned from an SQL query.
      * 
@@ -110,17 +69,6 @@ public class SqlTableCrud {
         rowCount.close();
 
         return totalRows;
-    }
-
-    /**
-     * Prints a JSON message with the provided error.
-     * 
-     * @param out The print writer to print the error message to.
-     * @param e   The exception to print the message from.
-     */
-    private void printErrorMessage(PrintWriter out, Exception e) {
-        out.print("{\"success\":" + false + ",\"error\":" + "\""
-                + e.getMessage().replace("\n", "").replace("\r", "") + "\"}");
     }
 
     /**
@@ -145,76 +93,6 @@ public class SqlTableCrud {
     }
 
     /**
-     * Returns a comma if the index is not the last item of the array, based on
-     * its length; otherwise, returns an empty string character.
-     * 
-     * @param index  The index of the item.
-     * @param length The length of the array.
-     * @return The comma or empty string character.
-     */
-    private String getNeccessaryComma(int index, int length) {
-        return index < length - 1 ? ", " : "";
-    }
-
-    /**
-     * Checks if the json object contains the attributes specified in the array
-     * provided.
-     * 
-     * @param json      The json object to check.
-     * @param attribute The array of attributes to check.
-     * @return boolean true if the json object contains all the attributes, false
-     *         otherwise.
-     */
-    private boolean checkIfJsonContainsAttributes(JSONObject json, String[] attribute) {
-        for (String attr : attribute) {
-            if (!json.has(attr)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Check if the string provided is a date with the format yyyy-mm-dd hh:mm:ss
-     * using a regular expression.
-     * 
-     * @param date The string to check.
-     * @return boolean true if the string is a date with the required format, false
-     *         otherwise.
-     */
-    private boolean isDateWithTime(String date) {
-        return date.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
-    }
-
-    /**
-     * Returns a string concatenated with the attribute provided as a paramenter
-     * with its correct data type.
-     * 
-     * @param json  The json object to get the attribute from.
-     * @param index The index of the attribute.
-     * @return The string concatenated with the attribute with its correct data
-     *         type.
-     */
-    private String getJsonAttrString(JSONObject json, int index) {
-        switch (types[index]) {
-            case "INTEGER":
-                return "'" + json.getInt(attributes[index]) + "'";
-            case "FLOAT":
-                return "'" + json.getDouble(attributes[index]) + "'";
-            case "BOOLEAN":
-                return "'" + json.getBoolean(attributes[index]) + "'";
-            case "DATE":
-                if (isDateWithTime(json.getString(attributes[index]))) {
-                    return "TO_DATE('" + json.getString(attributes[index]) + "', 'YYYY-MM-DD HH24:MI:SS')";
-                } else {
-                    return "TO_DATE('" + json.getString(attributes[index]) + "', 'YYYY-MM-DD')";
-                }
-            default:
-                return "'" + json.getString(attributes[index]) + "'";
-        }
-    }
-
-    /**
      * Returns an insert query string based on the schema, table name, and json
      * object provided.
      * 
@@ -225,34 +103,20 @@ public class SqlTableCrud {
         String query = "INSERT INTO " + schema + "." + tableName + " (";
 
         for (int i = 0; i < attributes.length; i++) {
-            query += attributes[i] + getNeccessaryComma(i, attributes.length);
+            query += attributes[i] + helper.getNeccessaryComma(i, attributes.length);
         }
 
         query += ") VALUES (";
 
         for (int i = 0; i < attributes.length; i++) {
             query += (nullableAttributes[i] && json.isNull(attributes[i]) ? "''"
-                    : "" + (getJsonAttrString(json, i)) + "")
-                    + getNeccessaryComma(i, attributes.length);
+                    : "" + (helper.getJsonAttrString(json, i, attributes, types)) + "")
+                    + helper.getNeccessaryComma(i, attributes.length);
         }
 
         query += ")";
 
         return query;
-    }
-
-    /**
-     * Prints a JSON message to the print writer with the with the successful
-     * attribute and string provided.
-     * 
-     * @param out     The print writer to print the message to.
-     * @param success Wether the operation the message is alluding to was successful
-     *                or not.
-     * @param msgName The name of the message attribute.
-     * @param msg     The message to print.
-     */
-    private void printJsonMessage(PrintWriter out, boolean success, String msgName, String msg) {
-        out.print("{\"success\":" + success + ",\"" + msgName + "\":" + "\"" + msg + "\"}");
     }
 
     /**
@@ -264,28 +128,6 @@ public class SqlTableCrud {
     private String getSelectOffsetQuery(int offset) {
         return "SELECT * FROM " + schema + "." + tableName + " ORDER BY " + primaryKey + " ASC OFFSET " + offset
                 + " ROWS FETCH NEXT " + maxRows + " ROWS ONLY";
-    }
-
-    /**
-     * Prints the record of the result set to the print writer.
-     * 
-     * @param rs  The result set to get the record from.
-     * @param out The print writer to print the record to.
-     * @throws SQLException If the result set is null.
-     */
-    private void printRows(ResultSet rs, PrintWriter out) throws SQLException {
-        out.print("{");
-
-        for (int i = 0; i < attributes.length; i++) {
-            out.print("\"" + attributes[i] + "\":");
-            printAttributeValue(rs, i, out);
-
-            if (i < attributes.length - 1) {
-                out.print(",");
-            }
-        }
-
-        out.print("}");
     }
 
     /**
@@ -302,8 +144,8 @@ public class SqlTableCrud {
         for (int i = 0; i < attributes.length; i++) {
             updateQuery += attributes[i] + " = "
                     + (nullableAttributes[i] && json.isNull(attributes[i]) ? "''"
-                            : (getJsonAttrString(json, i)))
-                    + getNeccessaryComma(i, attributes.length);
+                            : (helper.getJsonAttrString(json, i, attributes, types)))
+                    + helper.getNeccessaryComma(i, attributes.length);
         }
 
         updateQuery += " WHERE " + primaryKey + " = " + recordKey;
@@ -345,7 +187,7 @@ public class SqlTableCrud {
 
         if (rs.next()) {
             // record already exists; cannot be inserted
-            printJsonMessage(out, false, "error",
+            helper.printJsonMessage(out, false, "error",
                     "A record with the id " + recordId + " already exists.");
         } else {
             // record does not exist
@@ -385,7 +227,7 @@ public class SqlTableCrud {
             }
 
             // Check if the id is numeric and is positive
-            if (isNumeric(id) && Integer.parseInt(id) > 0) {
+            if (helper.isNumeric(id) && Integer.parseInt(id) > 0) {
                 int recordId = Integer.parseInt(id);
 
                 // Get the body of the request
@@ -398,26 +240,26 @@ public class SqlTableCrud {
                     json.put(primaryKey, recordId);
 
                     // Check if all the attributes are set
-                    if (checkIfJsonContainsAttributes(json, attributes)) {
+                    if (helper.checkIfJsonContainsAttributes(json, attributes)) {
                         try {
                             attemptToInsertRecord(json, out, recordId);
                         } catch (Exception e) {
-                            printErrorMessage(out, e);
+                            helper.printErrorMessage(out, e);
                         }
                     } else {
-                        printJsonMessage(out, false, "error",
+                        helper.printJsonMessage(out, false, "error",
                                 "There are missing attributes. Please make sure to add all of the attributes of the record.");
                     }
                 } else {
-                    printJsonMessage(out, false, "error",
+                    helper.printJsonMessage(out, false, "error",
                             "The body of the request is empty. Please set the attributes of the record.");
                 }
             } else {
-                printJsonMessage(out, false, "error",
+                helper.printJsonMessage(out, false, "error",
                         "The id provided is not a number or is a negative number or zero. Please provide a positive number as the id.");
             }
         } else {
-            printJsonMessage(out, false, "error",
+            helper.printJsonMessage(out, false, "error",
                     "The record id is not set. Please set the paramter 'id' or '" + primaryKey
                             + "' to add the new record's data.");
         }
@@ -443,10 +285,10 @@ public class SqlTableCrud {
         if (rs.next()) {
             // Return the first record
             rs.beforeFirst();
-            
+
             // There are records; print them
             while (rs.next()) {
-                printRows(rs, out);
+                helper.printRow(rs, out, attributes, types);
 
                 if (rs.isLast()) {
                     if (rowCount < maxRows) {
@@ -489,7 +331,7 @@ public class SqlTableCrud {
             out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
 
             while (rs.next()) {
-                printRows(rs, out);
+                helper.printRow(rs, out, attributes, types);
 
                 if (rs.isLast()) {
                     if ((page - 1) * maxRows != maxRowCount - 1 && page - 1 != 0) {
@@ -516,7 +358,7 @@ public class SqlTableCrud {
             out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
 
             while (rs.next()) {
-                printRows(rs, out);
+                helper.printRow(rs, out, attributes, types);
 
                 if (rs.isLast()) {
                     if (page != 1 && rowCount <= maxRows) {
@@ -533,7 +375,7 @@ public class SqlTableCrud {
                 }
             }
         } else {
-            printJsonMessage(out, false, "error",
+            helper.printJsonMessage(out, false, "error",
                     "Invalid page number. No data corresponds to this page.");
         }
 
@@ -558,11 +400,11 @@ public class SqlTableCrud {
         if (rs.next()) {
             // Record exists
             out.print("{\"success\":" + true + ",\"data\":");
-            printRows(rs, out);
+            helper.printRow(rs, out, attributes, types);
             out.print("}");
         } else {
             // The record with the given ID does not exist
-            printJsonMessage(out, false, "error",
+            helper.printJsonMessage(out, false, "error",
                     "The record with the id " + recordId + " does not exist.");
         }
     }
@@ -587,7 +429,7 @@ public class SqlTableCrud {
             try {
                 attemptToDisplayAllRecords(out);
             } catch (Exception e) {
-                printErrorMessage(out, e);
+                helper.printErrorMessage(out, e);
             }
         } else {
             // Check if the page parameter is set
@@ -595,23 +437,23 @@ public class SqlTableCrud {
                 String pageParam = request.getParameter("page");
 
                 // Check if the page parameter can be parsed to an integer
-                if (isNumeric(pageParam)) {
+                if (helper.isNumeric(pageParam)) {
                     int page = Integer.parseInt(request.getParameter("page"));
 
                     // Check if the page is valid
                     if (page < 1) {
-                        printJsonMessage(out, false, "error",
+                        helper.printJsonMessage(out, false, "error",
                                 "The page number is invalid. Please provide a positive, non-zero number.");
                     } else {
                         // Display the page of records
                         try {
                             attemptToGetPageOfRecords(out, page);
                         } catch (Exception e) {
-                            printErrorMessage(out, e);
+                            helper.printErrorMessage(out, e);
                         }
                     }
                 } else {
-                    printJsonMessage(out, false, "error",
+                    helper.printJsonMessage(out, false, "error",
                             "Invalid page parameter. Please provide a positive, non-zero number.");
                 }
             } else if (request.getParameterMap().containsKey("id")
@@ -627,7 +469,7 @@ public class SqlTableCrud {
                 // Check if the id is empty
                 if (id.length() > 0) {
                     // Check if the id is numeric
-                    if (isNumeric(id)) {
+                    if (helper.isNumeric(id)) {
                         // Valid id
                         int recordId = Integer.parseInt(id);
 
@@ -635,20 +477,20 @@ public class SqlTableCrud {
                         try {
                             attemptToGetRecordById(out, recordId);
                         } catch (Exception e) {
-                            printErrorMessage(out, e);
+                            helper.printErrorMessage(out, e);
                         }
                     } else {
-                        printJsonMessage(out, false, "error",
+                        helper.printJsonMessage(out, false, "error",
                                 "The given id is not a number. Please provide a numeric id.");
                     }
                 } else {
                     // Empty id
-                    printJsonMessage(out, false, "error",
+                    helper.printJsonMessage(out, false, "error",
                             "The id you set is empty. Please provide one.");
                 }
             } else {
                 // Incorrect parameter set
-                printJsonMessage(out, false, "error",
+                helper.printJsonMessage(out, false, "error",
                         "An incorrect parameter was set. The valid parameters are 'id' or '" + primaryKey
                                 + "', to search a record by its id; or 'page', to get a set of records in pages of up to "
                                 + maxRows + " records.");
@@ -706,7 +548,7 @@ public class SqlTableCrud {
                     "{\"success\":" + true + ",\"message\":\"The data of the record with id " + recordId
                             + " has been updated.\",\"dataModified:\"" + body.toString() + "}");
         } else {
-            printJsonMessage(out, false, "error",
+            helper.printJsonMessage(out, false, "error",
                     "The record with the id " + recordId + " does not exist.");
         }
     }
@@ -737,7 +579,7 @@ public class SqlTableCrud {
             // Check if the id is empty
             if (id.length() > 0) {
                 // Check if the id is numeric
-                if (isNumeric(id)) {
+                if (helper.isNumeric(id)) {
                     // Valid id
                     int recordId = Integer.parseInt(id);
 
@@ -745,17 +587,17 @@ public class SqlTableCrud {
                     try {
                         insertNewRecord(out, request, recordId);
                     } catch (Exception e) {
-                        printErrorMessage(out, e);
+                        helper.printErrorMessage(out, e);
                     }
                 } else {
-                    printJsonMessage(out, false, "error",
+                    helper.printJsonMessage(out, false, "error",
                             "The given id is not a number. Please provide a numeric id.");
                 }
             } else {
-                printJsonMessage(out, false, "error", "The id you set is empty. Please provide one.");
+                helper.printJsonMessage(out, false, "error", "The id you set is empty. Please provide one.");
             }
         } else {
-            printJsonMessage(out, false, "error",
+            helper.printJsonMessage(out, false, "error",
                     "Incorrect parameter set. The valid parameters are 'id' or '" + primaryKey
                             + "', to update the record's data by its id.");
         }
@@ -763,7 +605,8 @@ public class SqlTableCrud {
 
     /**
      * Delete method helper to attempt to delete a record by its id.
-     * @param out The output writer.
+     * 
+     * @param out      The output writer.
      * @param recordId The id of the record.
      * @throws Exception If there is an error.
      */
@@ -778,10 +621,10 @@ public class SqlTableCrud {
             // Record exists
             String deleteRecordQuery = getDeleteQuery(recordId);
             stmt.executeUpdate(deleteRecordQuery);
-            printJsonMessage(out, true, "success", "Record data with id " + recordId + " has been deleted.");
+            helper.printJsonMessage(out, true, "success", "Record data with id " + recordId + " has been deleted.");
         } else {
             // Record does not exist
-            printJsonMessage(out, false, "error",
+            helper.printJsonMessage(out, false, "error",
                     "The record with the given id does not exist.");
         }
     }
@@ -811,7 +654,7 @@ public class SqlTableCrud {
             // Check if the id is empty
             if (id.length() > 0) {
                 // Check if the id is numeric
-                if (isNumeric(id)) {
+                if (helper.isNumeric(id)) {
                     // Valid id
                     int recordId = Integer.parseInt(id);
 
@@ -819,17 +662,17 @@ public class SqlTableCrud {
                     try {
                         attemptToDeleteRecordById(out, recordId);
                     } catch (Exception e) {
-                        printErrorMessage(out, e);
+                        helper.printErrorMessage(out, e);
                     }
                 } else {
-                    printJsonMessage(out, false, "error",
+                    helper.printJsonMessage(out, false, "error",
                             "The given id is not a number. Please provide a numeric id.");
                 }
             } else {
-                printJsonMessage(out, false, "error", "The id you set is empty. Please provide one.");
+                helper.printJsonMessage(out, false, "error", "The id you set is empty. Please provide one.");
             }
         } else {
-            printJsonMessage(out, false, "error",
+            helper.printJsonMessage(out, false, "error",
                     "Incorrect parameter set. The valid parameters are 'id' or '" + primaryKey
                             + "', to delete the record's data by its id.");
         }
