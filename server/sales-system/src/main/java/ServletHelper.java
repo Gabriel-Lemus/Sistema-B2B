@@ -17,7 +17,7 @@ public class ServletHelper {
      * 
      * @param json      The json object to check.
      * @param attribute The array of attributes to check.
-     * @return boolean true if the json object contains all the attributes, false
+     * @return True if the json object contains all the attributes, false
      *         otherwise.
      */
     public boolean checkIfJsonContainsAttributes(JSONObject json, String[] attribute) {
@@ -143,7 +143,7 @@ public class ServletHelper {
      * Checks if a string matches a number regular expression.
      * 
      * @param str The string to check.
-     * @return boolean true if the string matches the regular expression, false
+     * @return True if the string matches the regular expression, false
      *         otherwise.
      */
     public boolean isNumeric(String str) {
@@ -155,7 +155,7 @@ public class ServletHelper {
      * using a regular expression.
      * 
      * @param date The string to check.
-     * @return boolean true if the string is a date with the required format, false
+     * @return True if the string is a date with the required format, false
      *         otherwise.
      */
     private boolean isDateWithTime(String date) {
