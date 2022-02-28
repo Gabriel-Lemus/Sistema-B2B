@@ -30,9 +30,9 @@ public class SqlTableCrud {
 
     // Constructor
     public SqlTableCrud(String conUrl, String user, String password,
-            String localhostIp, String tableServletUrl, String schema,
-            String tableName, String primaryKey, String[] attributes,
-            String[] types, boolean[] nullableAttributes, int maxRows) {
+            String localhostIp, String schema, String tableName,
+            String primaryKey, String[] attributes, String[] types,
+            boolean[] nullableAttributes, int maxRows) {
         this.conUrl = conUrl;
         this.user = user;
         this.password = password;

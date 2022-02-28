@@ -22,21 +22,21 @@ public class SqlSchema {
 
     // Constructor
     public SqlSchema(String conUrl, String user, String password,
-            String localhostIp, String schema, String[] tableServletUrls,
-            String[] tableNames, String[] primaryKeys, String[][] tableAttrs,
-            String[][] tableAttrTypes, boolean[][] tableAttrNulls, int[] tablesMaxRows) {
+            String localhostIp, String schema, String[] tableNames,
+            String[] primaryKeys, String[][] tableAttrs, String[][] tableAttrTypes,
+            boolean[][] tableAttrNulls, int[] tablesMaxRows) {
         this.conUrl = conUrl;
         this.user = user;
         this.password = password;
         this.schemaTables = tableNames;
         this.helper = new ServletHelper();
-        this.tableCruds = new SqlTableCrud[tableServletUrls.length];
+        this.tableCruds = new SqlTableCrud[tableNames.length];
 
         // Initialize the table cruds
-        for (int i = 0; i < tableServletUrls.length; i++) {
+        for (int i = 0; i < tableNames.length; i++) {
             tableCruds[i] = new SqlTableCrud(conUrl, user,
-                    password, localhostIp, tableServletUrls[i], schema,
-                    tableNames[i], primaryKeys[i], tableAttrs[i], tableAttrTypes[i],
+                    password, localhostIp, schema, tableNames[i],
+                    primaryKeys[i], tableAttrs[i], tableAttrTypes[i],
                     tableAttrNulls[i], tablesMaxRows[i]);
         }
     }
