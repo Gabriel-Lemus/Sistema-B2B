@@ -288,6 +288,8 @@ public class SqlTableCrud {
         Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         String query = getSelectOffsetQuery(0);
         int rowCount = getQueryRowCount(con, query);
+        String maxCountQuery = getSelectQuery();
+        int maxRowCount = getQueryRowCount(con, maxCountQuery);
         ResultSet rs = stmt.executeQuery(query);
 
         out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
@@ -302,7 +304,7 @@ public class SqlTableCrud {
                 helper.printRow(rs, out, attributes, types);
 
                 if (rs.isLast()) {
-                    if (rowCount < maxRows) {
+                    if (rowCount < maxRows || rowCount == maxRowCount) {
                         out.print("]}");
                     } else {
                         out.print("],\"nextPage\":" + getNextPageUrl(1) + "}");
@@ -344,14 +346,16 @@ public class SqlTableCrud {
                 helper.printRow(rs, out, attributes, types);
 
                 if (rs.isLast()) {
-                    if (page == getMaxNumberOfPages(maxRowCount)) {
+                    if (page == getMaxNumberOfPages(maxRowCount) && page != 1) {
                         out.print("],\"previousPage\":" + getNextPageUrl(page - 2) + "}");
                     } else if (page != 1) {
                         out.print(
                                 "],\"previousPage\":" + getNextPageUrl(page - 2) + ",\"nextPage\":"
                                         + getNextPageUrl(page) + "}");
-                    } else {
+                    } else if (page == 1 && rowCount != maxRowCount) {
                         out.print("],\"nextPage\":" + getNextPageUrl(page) + "}");
+                    } else {
+                        out.print("]}");
                     }
                 } else {
                     out.print(",");
