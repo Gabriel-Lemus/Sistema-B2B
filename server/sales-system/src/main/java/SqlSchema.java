@@ -23,7 +23,8 @@ public class SqlSchema {
     // Constructor
     public SqlSchema(String conUrl, String user, String password,
             String localhostIp, String schema, String[] tableNames,
-            String[] primaryKeys, String[][] tableAttrs, String[][] tableAttrTypes,
+            String[] primaryKeys, String[] nonRepeatableField,
+            String[][] tableAttrs, String[][] tableAttrTypes,
             boolean[][] tableAttrNulls, int[] tablesMaxRows) {
         this.conUrl = conUrl;
         this.user = user;
@@ -37,7 +38,7 @@ public class SqlSchema {
             tableCruds[i] = new SqlTableCrud(conUrl, user,
                     password, localhostIp, schema, tableNames[i],
                     primaryKeys[i], tableAttrs[i], tableAttrTypes[i],
-                    tableAttrNulls[i], tablesMaxRows[i]);
+                    tableAttrNulls[i], nonRepeatableField[i], tablesMaxRows[i]);
         }
     }
 
