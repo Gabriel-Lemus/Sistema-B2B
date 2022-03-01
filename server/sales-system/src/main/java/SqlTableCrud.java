@@ -495,7 +495,7 @@ public class SqlTableCrud {
                 || request.getParameterMap().containsKey("tableName");
 
         // Check if there are any parameters
-        if (paramCount == 0 || (paramCount == 1 && isTableParamSet)) {
+        if (paramCount == 0 || (isTableParamSet)) {
             // Display all records below or equal to the max rows limit
             try {
                 attemptToDisplayAllRecords(out);
