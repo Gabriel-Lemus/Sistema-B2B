@@ -25,6 +25,7 @@ public class SqlTableCrud {
     private String[] attributes;
     private String[] types;
     private boolean[] nullableAttributes;
+    private String nonRepeatableField;
     private int maxRows;
     private ServletHelper helper;
 
@@ -32,7 +33,8 @@ public class SqlTableCrud {
     public SqlTableCrud(String conUrl, String user, String password,
             String localhostIp, String schema, String tableName,
             String primaryKey, String[] attributes, String[] types,
-            boolean[] nullableAttributes, int maxRows) {
+            boolean[] nullableAttributes, String nonRepeatableField,
+            int maxRows) {
         this.conUrl = conUrl;
         this.user = user;
         this.password = password;
@@ -43,6 +45,7 @@ public class SqlTableCrud {
         this.attributes = attributes;
         this.types = types;
         this.nullableAttributes = nullableAttributes;
+        this.nonRepeatableField = nonRepeatableField;
         this.maxRows = maxRows;
         this.helper = new ServletHelper();
     }
@@ -197,11 +200,11 @@ public class SqlTableCrud {
         ResultSet rs = checkStmt.executeQuery(recordCheckQuery);
 
         if (rs.next()) {
-            // record already exists; cannot be inserted
+            // Record already exists; cannot be inserted
             helper.printJsonMessage(out, false, "error",
                     "A record with the id " + recordId + " already exists.");
         } else {
-            // record does not exist
+            // Record does not exist
             Statement stmt = con.createStatement();
 
             // Execute the query and close the connection
@@ -211,6 +214,54 @@ public class SqlTableCrud {
 
             out.print("{\"success\":" + true + ",\"message\":\"Record with id " + recordId
                     + " created.\",\"dataAdded\":" + json.toString() + "}");
+        }
+    }
+
+    /**
+     * Attempt to insert a record without providing a primary key.
+     * 
+     * @param request  The request to get the json object from.
+     * @param response The response to print the message to.
+     * @throws Exception If the insert operation fails.
+     */
+    private void attemptToInsertRecord(String body, PrintWriter out)
+            throws Exception {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        Connection con = DriverManager.getConnection(conUrl, user, password);
+        String maxCountQuery = getSelectQuery();
+        int newId = getQueryRowCount(con, maxCountQuery) + 1;
+
+        // Get body as JSON object
+        JSONObject json = new JSONObject(body);
+        json.put(primaryKey, newId);
+
+        // Check if the non-repeatable field has to be checked
+        String nonRepeatFieldQuery;
+        int count = -1;
+
+        if (nonRepeatableField != null) {
+            // Check if there is a record with the same value in the non-repeatable field
+            nonRepeatFieldQuery = "SELECT * FROM " + schema + "." + tableName + " WHERE "
+                    + nonRepeatableField + " = '" + json.get(nonRepeatableField) + "'";
+            count = getQueryRowCount(con, nonRepeatFieldQuery);
+        }
+
+        // Check if there are no records with the same value in the non-repeatable field
+        if (count == 0 || nonRepeatableField == null) {
+            // Check if all the attributes are set
+            if (helper.checkIfJsonContainsAttributes(json, attributes)) {
+                try {
+                    attemptToInsertRecord(json, out, newId);
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                }
+            } else {
+                helper.printJsonMessage(out, false, "error",
+                        "There are missing attributes. Please make sure to add all of the attributes of the record.");
+            }
+        } else {
+            helper.printJsonMessage(out, false, "error",
+                    "A record with the unique value " + json.get(nonRepeatableField) + " already exists.");
         }
     }
 
@@ -270,9 +321,20 @@ public class SqlTableCrud {
                         "The id provided is not a number or is a negative number or zero. Please provide a positive number as the id.");
             }
         } else {
-            helper.printJsonMessage(out, false, "error",
-                    "The record id is not set. Please set the paramter 'id' or '" + primaryKey
-                            + "' to add the new record's data.");
+            // Get the body of the request
+            String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
+
+            // Check if the body is empty
+            if (body.length() > 0) {
+                try {
+                    attemptToInsertRecord(body, out);
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                }
+            } else {
+                helper.printJsonMessage(out, false, "error",
+                        "The body of the request is empty. Please set the attributes of the record.");
+            }
         }
     }
 
