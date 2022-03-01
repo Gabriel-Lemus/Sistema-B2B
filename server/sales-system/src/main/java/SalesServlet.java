@@ -1,6 +1,10 @@
+import java.io.IOException;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @WebServlet("/sales")
 public class SalesServlet extends HttpServlet {
@@ -38,5 +42,58 @@ public class SalesServlet extends HttpServlet {
                     { false, false },
                 },
                 new int[] { 100, 100, 100, 100 });
+    }
+
+    // ========================= CRUD Methods =========================
+    /**
+     * Method to allow the handling of the post request to the schema instance.
+     * 
+     * @param request  The request to be handled.
+     * @param response The response to be handled.
+     * @throws ServletException If the request could not be handled.
+     * @throws IOException      If the request could not be handled.
+     */
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        sqlSchema.handlePost(request, response);
+    }
+
+    /**
+     * Method to allow the handling of the get request to the schema instance.
+     * 
+     * @param request  The request to be handled.
+     * @param response The response to be handled.
+     * @throws ServletException If the request could not be handled.
+     * @throws IOException      If the request could not be handled.
+     */
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        sqlSchema.handleGet(request, response);
+    }
+
+    /**
+     * Method to allow the handling of the put request to the schema instance.
+     * 
+     * @param request  The request to be handled.
+     * @param response The response to be handled.
+     * @throws ServletException If the request could not be handled.
+     * @throws IOException      If the request could not be handled.
+     */
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        sqlSchema.handlePut(request, response);
+    }
+
+    /**
+     * Method to allow the handling of the delete request to the schema instance.
+     * 
+     * @param request  The request to be handled.
+     * @param response The response to be handled.
+     * @throws ServletException If the request could not be handled.
+     * @throws IOException      If the request could not be handled.
+     */
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        sqlSchema.handleDelete(request, response);
     }
 }
