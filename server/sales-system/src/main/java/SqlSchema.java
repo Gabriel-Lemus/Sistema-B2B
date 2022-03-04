@@ -79,6 +79,87 @@ public class SqlSchema {
         return -1;
     }
 
+    /**
+     * Check if the table parameter is set.
+     * 
+     * @param request The request object.
+     * @return True if the table parameter is set, false otherwise.
+     */
+    private boolean isTableParamSet(HttpServletRequest request) {
+        return request.getParameterMap().containsKey("tableName") || request.getParameterMap().containsKey("table");
+    }
+
+    /**
+     * Check if the provided table parameter is valid.
+     * 
+     * @param request The request object.
+     * @return True if the table parameter is valid, false otherwise.
+     */
+    private boolean validTableParam(HttpServletRequest request) {
+        String tableName = request.getParameter("tableName");
+
+        if (tableName == "" || tableName == null) {
+            tableName = request.getParameter("table");
+        }
+
+        return tableName != "" && tableName != null;
+    }
+
+    /**
+     * Get the value set as the table parameter.
+     * 
+     * @param request The request object.
+     * @return The value set as the table parameter.
+     */
+    private String getTableParam(HttpServletRequest request) {
+        String tableName = request.getParameter("tableName");
+
+        if (tableName == "" || tableName == null) {
+            tableName = request.getParameter("table");
+        }
+
+        return tableName;
+    }
+
+    /**
+     * Check if a valid table index can be obtained.
+     * 
+     * @param request  The request object.
+     * @param response The response object.
+     * @param out      The print writer to write the response.
+     * @return True if a valid table index can be obtained, false otherwise.
+     */
+    private boolean canGetValidTableIndex(HttpServletRequest request, HttpServletResponse response, PrintWriter out) {
+        // Check if the table name parameter is set
+        if (isTableParamSet(request)) {
+            String tableName = getTableParam(request);
+
+            // Check if the table name is valid
+            if (validTableParam(request)) {
+                // Check if the table exists
+                try {
+                    if (tableExists(tableName)) {
+                        return getTableIndexFromName(tableName) != -1;
+                    } else {
+                        helper.printJsonMessage(out, false, "error", "The table does not exist.");
+                        return false;
+                    }
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                    return false;
+                }
+            } else {
+                helper.printJsonMessage(out, false, "error",
+                        "The table name you set is empty, please provide one.");
+                return false;
+            }
+        } else {
+            helper.printJsonMessage(out, false, "error",
+                    "The table name parameter is not set. Please set the parameter 'table' or 'tableName' to search a table inside the schema.");
+            return false;
+        }
+    }
+
     // ====================== CRUD Operations Handlers ======================
     /**
      * Handle the POST requests for the CRUD operations of the tables.
@@ -95,41 +176,12 @@ public class SqlSchema {
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
 
-        // Check if the table name parameter is set
-        if (request.getParameterMap().containsKey("tableName")
-                || request.getParameterMap().containsKey("table")) {
-            String tableName = request.getParameter("tableName");
+        if (canGetValidTableIndex(request, response, out)) {
+            int tableIndex = getTableIndexFromName(getTableParam(request));
 
-            if (tableName == "" || tableName == null) {
-                tableName = request.getParameter("table");
+            if (tableIndex != -1) {
+                tableCruds[tableIndex].post(request, response);
             }
-
-            // Check if the table name is valid
-            if (tableName != "" && tableName != null) {
-                // Check if the table exists
-                try {
-                    if (tableExists(tableName)) {
-                        int tableIndex = getTableIndexFromName(tableName);
-
-                        if (tableIndex != -1) {
-                            // Handle post request
-                            tableCruds[tableIndex].post(request, response);
-                        } else {
-                            helper.printJsonMessage(out, false, "error", "The table was not found.");
-                        }
-                    } else {
-                        helper.printJsonMessage(out, false, "error", "The table does not exist.");
-                    }
-                } catch (Exception e) {
-                    helper.printErrorMessage(out, e);
-                }
-            } else {
-                helper.printJsonMessage(out, false, "error",
-                        "The table name you set is empty, please provide one.");
-            }
-        } else {
-            helper.printJsonMessage(out, false, "error",
-                    "The table name parameter is not set. Please set the parameter 'table' or 'tableName' to search a table inside the schema.");
         }
     }
 
@@ -148,41 +200,12 @@ public class SqlSchema {
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
 
-        // Check if the table name parameter is set
-        if (request.getParameterMap().containsKey("tableName")
-                || request.getParameterMap().containsKey("table")) {
-            String tableName = request.getParameter("tableName");
+        if (canGetValidTableIndex(request, response, out)) {
+            int tableIndex = getTableIndexFromName(getTableParam(request));
 
-            if (tableName == "" || tableName == null) {
-                tableName = request.getParameter("table");
+            if (tableIndex != -1) {
+                tableCruds[tableIndex].get(request, response);
             }
-
-            // Check if the table name is valid
-            if (tableName != "" && tableName != null) {
-                // Check if the table exists
-                try {
-                    if (tableExists(tableName)) {
-                        int tableIndex = getTableIndexFromName(tableName);
-
-                        if (tableIndex != -1) {
-                            // Handle post request
-                            tableCruds[tableIndex].get(request, response);
-                        } else {
-                            helper.printJsonMessage(out, false, "error", "The table was not found.");
-                        }
-                    } else {
-                        helper.printJsonMessage(out, false, "error", "The table does not exist.");
-                    }
-                } catch (Exception e) {
-                    helper.printErrorMessage(out, e);
-                }
-            } else {
-                helper.printJsonMessage(out, false, "error",
-                        "The table name you set is empty, please provide one.");
-            }
-        } else {
-            helper.printJsonMessage(out, false, "error",
-                    "The table name parameter is not set. Please set the parameter 'table' or 'tableName' to search a table inside the schema.");
         }
     }
 
@@ -201,41 +224,12 @@ public class SqlSchema {
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
 
-        // Check if the table name parameter is set
-        if (request.getParameterMap().containsKey("tableName")
-                || request.getParameterMap().containsKey("table")) {
-            String tableName = request.getParameter("tableName");
+        if (canGetValidTableIndex(request, response, out)) {
+            int tableIndex = getTableIndexFromName(getTableParam(request));
 
-            if (tableName == "" || tableName == null) {
-                tableName = request.getParameter("table");
+            if (tableIndex != -1) {
+                tableCruds[tableIndex].put(request, response);
             }
-
-            // Check if the table name is valid
-            if (tableName != "" && tableName != null) {
-                // Check if the table exists
-                try {
-                    if (tableExists(tableName)) {
-                        int tableIndex = getTableIndexFromName(tableName);
-
-                        if (tableIndex != -1) {
-                            // Handle post request
-                            tableCruds[tableIndex].put(request, response);
-                        } else {
-                            helper.printJsonMessage(out, false, "error", "The table was not found.");
-                        }
-                    } else {
-                        helper.printJsonMessage(out, false, "error", "The table does not exist.");
-                    }
-                } catch (Exception e) {
-                    helper.printErrorMessage(out, e);
-                }
-            } else {
-                helper.printJsonMessage(out, false, "error",
-                        "The table name you set is empty, please provide one.");
-            }
-        } else {
-            helper.printJsonMessage(out, false, "error",
-                    "The table name parameter is not set. Please set the parameter 'table' or 'tableName' to search a table inside the schema.");
         }
     }
 
@@ -255,41 +249,12 @@ public class SqlSchema {
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
 
-        // Check if the table name parameter is set
-        if (request.getParameterMap().containsKey("tableName")
-                || request.getParameterMap().containsKey("table")) {
-            String tableName = request.getParameter("tableName");
+        if (canGetValidTableIndex(request, response, out)) {
+            int tableIndex = getTableIndexFromName(getTableParam(request));
 
-            if (tableName == "" || tableName == null) {
-                tableName = request.getParameter("table");
+            if (tableIndex != -1) {
+                tableCruds[tableIndex].delete(request, response);
             }
-
-            // Check if the table name is valid
-            if (tableName != "" && tableName != null) {
-                // Check if the table exists
-                try {
-                    if (tableExists(tableName)) {
-                        int tableIndex = getTableIndexFromName(tableName);
-
-                        if (tableIndex != -1) {
-                            // Handle post request
-                            tableCruds[tableIndex].delete(request, response);
-                        } else {
-                            helper.printJsonMessage(out, false, "error", "The table was not found.");
-                        }
-                    } else {
-                        helper.printJsonMessage(out, false, "error", "The table does not exist.");
-                    }
-                } catch (Exception e) {
-                    helper.printErrorMessage(out, e);
-                }
-            } else {
-                helper.printJsonMessage(out, false, "error",
-                        "The table name you set is empty, please provide one.");
-            }
-        } else {
-            helper.printJsonMessage(out, false, "error",
-                    "The table name parameter is not set. Please set the parameter 'table' or 'tableName' to search a table inside the schema.");
         }
     }
 }
