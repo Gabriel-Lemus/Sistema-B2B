@@ -181,7 +181,7 @@ public class ServletHelper {
 
         return totalRows;
     }
-    
+
     /**
      * Returns an insert query string based on the schema, table name, and json
      * object provided.
@@ -189,7 +189,8 @@ public class ServletHelper {
      * @param json The json object to get the attributes from.
      * @return The insert query string.
      */
-    public String getInsertQuery(String schema, String table, String[] attrs, String[] types, boolean[] nullableAttrs, JSONObject json) {
+    public String getInsertQuery(String schema, String table, String[] attrs, String[] types, boolean[] nullableAttrs,
+            JSONObject json) {
         String query = "INSERT INTO " + schema + "." + table + " (";
 
         for (int i = 0; i < attrs.length; i++) {
