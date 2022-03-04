@@ -52,25 +52,6 @@ public class SqlTableCrud {
 
     // ========================= Helper Methods =========================
     /**
-     * Gets the number of rows returned from an SQL query.
-     * 
-     * @param con   The connection to the database.
-     * @param query The query to execute.
-     * @return The number of rows returned.
-     * @throws SQLException If there is an error while getting the number of rows.
-     */
-    private int getQueryRowCount(Connection con, String query) throws SQLException {
-        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-                ResultSet.CONCUR_READ_ONLY);
-        ResultSet rowCount = stmt.executeQuery("SELECT COUNT(*) AS TOTAL FROM (" + query + ")");
-        rowCount.next();
-        int totalRows = rowCount.getInt("TOTAL");
-        rowCount.close();
-
-        return totalRows;
-    }
-
-    /**
      * Returns a select everything query string based on the schema and table
      * name of the table that this class represents.
      * 
@@ -89,33 +70,6 @@ public class SqlTableCrud {
      */
     private String getCheckRowQuery(int recordKey) {
         return "SELECT * FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = " + recordKey;
-    }
-
-    /**
-     * Returns an insert query string based on the schema, table name, and json
-     * object provided.
-     * 
-     * @param json The json object to get the attributes from.
-     * @return The insert query string.
-     */
-    private String getInsertQuery(JSONObject json) {
-        String query = "INSERT INTO " + schema + "." + tableName + " (";
-
-        for (int i = 0; i < attributes.length; i++) {
-            query += attributes[i] + helper.getNeccessaryComma(i, attributes.length);
-        }
-
-        query += ") VALUES (";
-
-        for (int i = 0; i < attributes.length; i++) {
-            query += (nullableAttributes[i] && json.isNull(attributes[i]) ? "''"
-                    : "" + (helper.getJsonAttrString(json, i, attributes, types)) + "")
-                    + helper.getNeccessaryComma(i, attributes.length);
-        }
-
-        query += ")";
-
-        return query;
     }
 
     /**
@@ -192,7 +146,7 @@ public class SqlTableCrud {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection con = DriverManager.getConnection(conUrl, user, password);
         String recordCheckQuery = getCheckRowQuery(recordId);
-        String insertQuery = getInsertQuery(json);
+        String insertQuery = helper.getInsertQuery(schema, tableName, attributes, types, nullableAttributes, json);
 
         // Check if the record already exists
         Statement checkStmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
@@ -229,7 +183,7 @@ public class SqlTableCrud {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection con = DriverManager.getConnection(conUrl, user, password);
         String maxCountQuery = getSelectQuery();
-        int newId = getQueryRowCount(con, maxCountQuery) + 1;
+        int newId = helper.getQueryRowCount(con, maxCountQuery) + 1;
 
         // Get body as JSON object
         JSONObject json = new JSONObject(body);
@@ -243,7 +197,7 @@ public class SqlTableCrud {
             // Check if there is a record with the same value in the non-repeatable field
             nonRepeatFieldQuery = "SELECT * FROM " + schema + "." + tableName + " WHERE "
                     + nonRepeatableField + " = '" + json.get(nonRepeatableField) + "'";
-            count = getQueryRowCount(con, nonRepeatFieldQuery);
+            count = helper.getQueryRowCount(con, nonRepeatFieldQuery);
         }
 
         // Check if there are no records with the same value in the non-repeatable field
@@ -349,9 +303,9 @@ public class SqlTableCrud {
         Connection con = DriverManager.getConnection(conUrl, user, password);
         Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         String query = getSelectOffsetQuery(0);
-        int rowCount = getQueryRowCount(con, query);
+        int rowCount = helper.getQueryRowCount(con, query);
         String maxCountQuery = getSelectQuery();
-        int maxRowCount = getQueryRowCount(con, maxCountQuery);
+        int maxRowCount = helper.getQueryRowCount(con, maxCountQuery);
         ResultSet rs = stmt.executeQuery(query);
 
         out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
@@ -396,9 +350,9 @@ public class SqlTableCrud {
         Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                 ResultSet.CONCUR_READ_ONLY);
         String query = getSelectOffsetQuery((page - 1) * maxRows);
-        int rowCount = getQueryRowCount(con, query);
+        int rowCount = helper.getQueryRowCount(con, query);
         String maxCountQuery = getSelectQuery();
-        int maxRowCount = getQueryRowCount(con, maxCountQuery);
+        int maxRowCount = helper.getQueryRowCount(con, maxCountQuery);
         ResultSet rs = stmt.executeQuery(query);
 
         if (rowCount == maxRows) {
@@ -493,9 +447,12 @@ public class SqlTableCrud {
         int paramCount = request.getParameterMap().size();
         boolean isTableParamSet = request.getParameterMap().containsKey("table")
                 || request.getParameterMap().containsKey("tableName");
+        boolean isSellerParamSet = request.getParameterMap().containsKey("seller");
+        boolean isPageParamSet = request.getParameterMap().containsKey("page");
 
         // Check if there are any parameters
-        if (paramCount == 0 || (isTableParamSet)) {
+        if (paramCount == 0 || paramCount == 1 && isTableParamSet
+                || isSellerParamSet && isTableParamSet && !isPageParamSet) {
             // Display all records below or equal to the max rows limit
             try {
                 attemptToDisplayAllRecords(out);
@@ -504,7 +461,7 @@ public class SqlTableCrud {
             }
         } else {
             // Check if the page parameter is set
-            if (request.getParameterMap().containsKey("page")) {
+            if (isPageParamSet) {
                 String pageParam = request.getParameter("page");
 
                 // Check if the page parameter can be parsed to an integer
