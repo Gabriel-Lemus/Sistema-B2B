@@ -162,6 +162,53 @@ public class ServletHelper {
         return date.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
     }
 
+    // ========================= SQL Helper Methods =========================
+    /**
+     * Gets the number of rows returned from an SQL query.
+     * 
+     * @param con   The connection to the database.
+     * @param query The query to execute.
+     * @return The number of rows returned.
+     * @throws SQLException If there is an error while getting the number of rows.
+     */
+    public int getQueryRowCount(Connection con, String query) throws SQLException {
+        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                ResultSet.CONCUR_READ_ONLY);
+        ResultSet rowCount = stmt.executeQuery("SELECT COUNT(*) AS TOTAL FROM (" + query + ")");
+        rowCount.next();
+        int totalRows = rowCount.getInt("TOTAL");
+        rowCount.close();
+
+        return totalRows;
+    }
+    
+    /**
+     * Returns an insert query string based on the schema, table name, and json
+     * object provided.
+     * 
+     * @param json The json object to get the attributes from.
+     * @return The insert query string.
+     */
+    public String getInsertQuery(String schema, String table, String[] attrs, String[] types, boolean[] nullableAttrs, JSONObject json) {
+        String query = "INSERT INTO " + schema + "." + table + " (";
+
+        for (int i = 0; i < attrs.length; i++) {
+            query += attrs[i] + getNeccessaryComma(i, attrs.length);
+        }
+
+        query += ") VALUES (";
+
+        for (int i = 0; i < attrs.length; i++) {
+            query += (nullableAttrs[i] && json.isNull(attrs[i]) ? "''"
+                    : "" + (getJsonAttrString(json, i, attrs, types)) + "")
+                    + getNeccessaryComma(i, attrs.length);
+        }
+
+        query += ")";
+
+        return query;
+    }
+
     // ========================= Misc Helper Methods ========================
 
     /**
