@@ -246,8 +246,8 @@ public class SqlTableCrud {
             if (helper.isNumeric(id) && Integer.parseInt(id) > 0) {
                 int recordId = Integer.parseInt(id);
 
-                // Get the body of the request
-                String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
+                // Get the body of the request and make all the attributes lowercase
+                String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur).toLowerCase();
 
                 // Check if the body is empty
                 if (body.length() > 0) {
@@ -275,8 +275,8 @@ public class SqlTableCrud {
                         "The id provided is not a number or is a negative number or zero. Please provide a positive number as the id.");
             }
         } else {
-            // Get the body of the request
-            String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
+            // Get the body of the request and make all the attributes lowercase
+            String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur).toLowerCase();
 
             // Check if the body is empty
             if (body.length() > 0) {
