@@ -432,4 +432,60 @@ public class SellersServlet extends HttpServlet {
                     "You didn't provide the seller parameter. Please set the 'seller' parameter.");
         }
     }
+
+    /**
+     * Method to allow the handling of the put request to the schema instance.
+     * 
+     * @param request  The request to be handled.
+     * @param response The response to be handled.
+     * @throws ServletException If the request could not be handled.
+     * @throws IOException      If the request could not be handled.
+     */
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        PrintWriter out = response.getWriter();
+
+        // Check if the seller parameter is set
+        if (request.getParameterMap().containsKey("seller")) {
+            String seller = request.getParameter("seller").toUpperCase();
+
+            // Chedk if the seller parameter is valid
+            if (seller.length() > 0) {
+                user = seller + "_SELLER";
+                password = seller + "_ADMIN_SALES";
+
+                // Check if the seller exists
+                try {
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    Connection con = DriverManager.getConnection(adminConUrl, adminUser,
+                            adminPassword);
+                    String sellerInTableQueryCount = "SELECT COUNT(*) FROM SALES.VENDEDORES WHERE UPPER(NOMBRE) = UPPER('"
+                            + seller + "')";
+                    String sellerSchemaQueryCount = "SELECT COUNT(*) FROM all_users WHERE UPPER(username) = UPPER('"
+                            + seller + "_SELLER')";
+
+                    int sellerInTableCount = getCountFromQuery(con, sellerInTableQueryCount);
+                    int sellerSchemaCount = getCountFromQuery(con, sellerSchemaQueryCount);
+
+                    if (sellerInTableCount == 1 && sellerSchemaCount == 1) {
+                        setSchema(user, password, "localhost", user);
+                        sqlSchema.handlePut(request, response);
+                    } else {
+                        helper.printJsonMessage(out, false, "error",
+                                "The seller " + seller + " does not exist.");
+                    }
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                }
+            } else {
+                helper.printJsonMessage(out, false, "error",
+                        "The seller parameter you set is empty. Please provide a valid seller parameter.");
+            }
+        } else {
+            helper.printJsonMessage(out, false, "error",
+                    "You didn't provide the seller parameter. Please set the 'seller' parameter.");
+        }
+    }
 }
