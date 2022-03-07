@@ -1,6 +1,9 @@
+import java.sql.*;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
+
 @WebServlet("/sellers")
 public class SellersServlet extends HttpServlet {
     // Attributes
@@ -47,6 +50,20 @@ public class SellersServlet extends HttpServlet {
                     { false, false, false, false },
             },
             new int[] { 100, 100, 100, 100, 100, 100, 100 });
+    }
+
+    /**
+     * Get the row count from the provided query.
+     * @param con The connection to use.
+     * @param countQuery The query to use.
+     * @return The row count.
+     * @throws SQLException If an error occurs.
+     */
+    private int getCountFromQuery(Connection con, String countQuery) throws SQLException {
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery(countQuery);
+        rs.next();
+        return rs.getInt(1);
     }
 
     // Servlet initialization
