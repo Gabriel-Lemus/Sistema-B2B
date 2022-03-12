@@ -1,5 +1,5 @@
 import java.sql.*;
-
+import java.util.Base64;
 import java.io.PrintWriter;
 
 import org.json.JSONObject;
@@ -95,6 +95,13 @@ public class ServletHelper {
                 case "BOOLEAN":
                     out.print(rs.getBoolean(attributes[index]));
                     break;
+                case "BLOB":
+                    out.print("\"" + Base64.getEncoder().encodeToString(rs.getBytes(attributes[index])) + "\"");
+                    // out.print("\"" +
+                    // Base64.getEncoder().encodeToString(rs.getBytes(attributes[index])).substring(0,
+                    // 25)
+                    // + "...\"");
+                    break;
                 default:
                     out.print("\"" + rs.getString(attributes[index]) + "\"");
                     break;
@@ -119,10 +126,10 @@ public class ServletHelper {
     /**
      * Prints the record of the result set to the print writer.
      * 
-     * @param rs  The result set to get the record from.
-     * @param out The print writer to print the record to.
+     * @param rs         The result set to get the record from.
+     * @param out        The print writer to print the record to.
      * @param attributes The array of attributes to print.
-     * @param types The array of types to print.
+     * @param types      The array of types to print.
      * @throws SQLException If the result set is null.
      */
     public void printRow(ResultSet rs, PrintWriter out, String[] attributes, String[] types) throws SQLException {
