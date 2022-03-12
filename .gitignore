@@ -12,3 +12,6 @@ Misc
 
 # Environment variables
 .env
+
+# Maven target folder
+/server/sales-system/target/
