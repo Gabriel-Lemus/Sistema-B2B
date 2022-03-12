@@ -478,10 +478,11 @@ public class SqlTableCrud {
                 || request.getParameterMap().containsKey("tableName");
         boolean isSellerParamSet = request.getParameterMap().containsKey("seller");
         boolean isPageParamSet = request.getParameterMap().containsKey("page");
+        boolean isIdParamSet = request.getParameterMap().containsKey("id");
 
         // Check if there are any parameters
         if (paramCount == 0 || paramCount == 1 && isTableParamSet
-                || isSellerParamSet && isTableParamSet && !isPageParamSet) {
+                || isSellerParamSet && isTableParamSet && !isPageParamSet & !isIdParamSet) {
             // Display all records below or equal to the max rows limit
             try {
                 attemptToDisplayAllRecords(request, out);
