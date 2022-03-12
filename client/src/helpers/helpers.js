@@ -1,29 +1,4 @@
 /**
- * Function to get the copyright text with the current year.
- * @return {string}
- */
-const getCopyrightText = () => {
-  return `Copyright © ${new Date().getFullYear()}`;
-};
-
-/**
- * Function to get the web app authors.
- * @return {string}
- */
-const getAuthors = () => {
-  return 'Dylan Rodas y Gabriel Lemus';
-};
-
-/**
- * Function that receives a number and returns a string with the thousand separators.
- * @param {number} number
- * @return {string}
- */
-const getThousandSeparators = (number) => {
-  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-};
-
-/**
  * Color palette
  */
 const PALETTE = {
@@ -40,6 +15,42 @@ const PALETTE = {
 };
 
 /**
+ * Get the copyright text with the current year.
+ * @return {string}
+ */
+const getCopyrightText = () => {
+  return `Copyright © ${new Date().getFullYear()}`;
+};
+
+/**
+ * Get the web app authors.
+ * @return {string}
+ */
+const getAuthors = () => {
+  return 'Dylan Rodas y Gabriel Lemus';
+};
+
+/**
+ * Return a string with the thousand separators.
+ * @param {number} number
+ * @return {string}
+ */
+const getThousandSeparators = (number) => {
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+
+/**
+ * Determine if a string has an email format by regex.
+ * @param {string} email
+ * @return {boolean} True if the string has an email format.
+ */
+const isValidEmail = (email) => {
+  const regex =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return regex.test(email);
+};
+
+/**
  * General helpers
  */
 const helpers = {
@@ -47,6 +58,7 @@ const helpers = {
   getCopyrightText,
   getAuthors,
   getThousandSeparators,
+  isValidEmail,
 };
 
 export default helpers;
