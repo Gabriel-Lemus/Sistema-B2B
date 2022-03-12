@@ -14,7 +14,7 @@ function LoginForm() {
           height="72"
         />
       </div>
-      <h1 className="h3 mb-3 font-weight-normal text-center">Login</h1>
+      <h1 className="h3 mb-3 font-weight-normal text-center">Iniciar Sesión</h1>
       <label htmlFor="inputEmail" className="email-input-label">
         Email address
       </label>
@@ -53,13 +53,13 @@ function LoginForm() {
           borderColor: helpers.PALETTE.darkGreen,
         }}
       >
-        Login
+        Iniciar Sesión
       </button>
       <section className="login-bottom-text">
         <p className="mt-3 mb-3 text-muted text-center">
           <b>{"Don't have an accout?"}</b>
           &nbsp;
-          <Link to="/sign-up">Sign up</Link>
+          <Link to="/sign-up">Registrarse</Link>
         </p>
       </section>
     </form>
