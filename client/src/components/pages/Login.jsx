@@ -4,7 +4,7 @@ import HeaderFooterTemplate from '../templates/HeaderFooterTemplate';
 
 function Login() {
   useEffect(() => {
-    document.title = 'Login';
+    document.title = 'Inicio de Sesión';
   }, []);
   
   return (

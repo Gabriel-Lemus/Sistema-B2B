@@ -4,7 +4,7 @@ import HeaderFooterTemplate from '../templates/HeaderFooterTemplate';
 
 function SignUp() {
   useEffect(() => {
-    document.title = 'Sign Up';
+    document.title = 'Registro';
   }, []);
   
   return (
