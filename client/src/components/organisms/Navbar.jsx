@@ -46,7 +46,7 @@ function Navbar(props) {
             className={`nav-item${props.activePageIdx === 1 ? ' active' : ''}`}
           >
             <Link className="nav-link" to="/login">
-              Login{' '}
+              Iniciar Sesión{' '}
               {props.activePageIdx === 1 ? (
                 <span className="sr-only">(current)</span>
               ) : (
@@ -58,7 +58,7 @@ function Navbar(props) {
             className={`nav-item${props.activePageIdx === 2 ? ' active' : ''}`}
           >
             <Link className="nav-link" to="/sign-up">
-              Sign Up{' '}
+              Registrarse{' '}
               {props.activePageIdx === 2 ? (
                 <span className="sr-only">(current)</span>
               ) : (
