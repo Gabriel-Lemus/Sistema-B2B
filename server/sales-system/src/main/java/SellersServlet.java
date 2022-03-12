@@ -29,37 +29,43 @@ public class SellersServlet extends HttpServlet {
     // ========================= Helper Methods =========================
     private void setSchema(String user, String password, String localhostIp, String schName) {
         sqlSchema = new SqlSchema("jdbc:oracle:thin:@localhost:1521/XEPDB1", user, password, localhostIp, schName,
-            new String[] { "dispositivos", "fotos_dispositivos", "ventas", "pagos", "pedidos_futuros", "dispositivos_x_ventas", "dispositivos_x_pedidos_futuros" },
-            new String[] { "id_dispositivo", "id_foto", "id_venta", "id_pago", "id_pedido", "id_dispositivo_x_venta", "id_dispositivo_x_pedido" },
-            new String[] { null, null, null, null, null, null, null },
-            new String[][] {
-                    { "id_dispositivo", "id_vendedor", "id_marca", "nombre", "descripcion", "existencias", "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia" },
-                    { "id_foto", "id_dispositivo", "foto" },
-                    { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precio_venta", "cantidad_dispositivos", "impuestos", "descuentos", "total_venta" },
-                    { "id_pago", "id_venta", "id_cliente", "id_vendedor", "fecha_pago", "total" },
-                    { "id_pedido", "id_cliente", "id_vendedor", "fecha_pedido", "precio_pedido", "cantidad_dispositivos", "impuestos", "descuentos", "total_pedido" },
-                    { "id_dispositivo_x_venta", "id_venta", "id_dispositivo", "cantidad_dispositivos" },
-                    { "id_dispositivo_x_pedido", "id_pedido", "id_dispositivo", "cantidad_dispositivos" },
-            },
-            new String[][] {
-                    { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER" },
-                    { "INTEGER", "INTEGER", "BLOB" },
-                    { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
-                    { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT" },
-                    { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
-                    { "INTEGER", "INTEGER", "INTEGER", "INTEGER" },
-                    { "INTEGER", "INTEGER", "INTEGER", "INTEGER" },
-            },
-            new boolean[][] {
-                    { false, false, false, false, false, false, false, false, false, false, false },
-                    { false, false, false },
-                    { false, false, false, false, false, false, false, false, false },
-                    { false, false, false, false, false, false },
-                    { false, false, false, false, false, false },
-                    { false, false, false, false },
-                    { false, false, false, false },
-            },
-            new int[] { 100, 100, 100, 100, 100, 100, 100 });
+                new String[] { "dispositivos", "fotos_dispositivos", "ventas", "pagos", "pedidos_futuros",
+                        "dispositivos_x_ventas", "dispositivos_x_pedidos_futuros" },
+                new String[] { "id_dispositivo", "id_foto", "id_venta", "id_pago", "id_pedido",
+                        "id_dispositivo_x_venta", "id_dispositivo_x_pedido" },
+                new String[] { null, null, null, null, null, null, null },
+                new String[][] {
+                        { "id_dispositivo", "id_vendedor", "id_marca", "nombre", "descripcion", "existencias", "precio",
+                                "codigo_modelo", "color", "categoria", "tiempo_garantia" },
+                        { "id_foto", "id_dispositivo", "foto" },
+                        { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precio_venta",
+                                "cantidad_dispositivos", "impuestos", "descuentos", "total_venta" },
+                        { "id_pago", "id_venta", "id_cliente", "id_vendedor", "fecha_pago", "total" },
+                        { "id_pedido", "id_cliente", "id_vendedor", "fecha_pedido", "precio_pedido",
+                                "cantidad_dispositivos", "impuestos", "descuentos", "total_pedido" },
+                        { "id_dispositivo_x_venta", "id_venta", "id_dispositivo", "cantidad_dispositivos" },
+                        { "id_dispositivo_x_pedido", "id_pedido", "id_dispositivo", "cantidad_dispositivos" },
+                },
+                new String[][] {
+                        { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
+                                "VARCHAR2", "VARCHAR2", "INTEGER" },
+                        { "INTEGER", "INTEGER", "BLOB" },
+                        { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
+                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT" },
+                        { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
+                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER" },
+                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER" },
+                },
+                new boolean[][] {
+                        { false, false, false, false, false, false, false, false, false, false, false },
+                        { false, false, false },
+                        { false, false, false, false, false, false, false, false, false },
+                        { false, false, false, false, false, false },
+                        { false, false, false, false, false, false },
+                        { false, false, false, false },
+                        { false, false, false, false },
+                },
+                new int[] { 100, 100, 100, 100, 100, 100, 100 });
     }
 
     /**
@@ -440,9 +446,8 @@ public class SellersServlet extends HttpServlet {
                         // Commit the transaction
                         con.commit();
 
-                        helper.printJsonMessage(out, true, "message",
-                                "The seller " + seller
-                                        + " has been successfully created");
+                        out.print("{\"success\":" + true + ",\"message\": \"The seller " + seller
+                                + " has been successfully created\", \"seller_id\":" + newId + "}");
                     } catch (Exception e) {
                         // Rollback the transaction
                         con.rollback();
@@ -582,8 +587,12 @@ public class SellersServlet extends HttpServlet {
                                     // There are records; print them
                                     while (rs2.next()) {
                                         helper.printRow(rs2, out,
-                                                new String[] { "id_dispositivo", "dispositivo", "descripcion", "existencias", "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia", "vendedor", "marca" },
-                                                new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCAHR2" });
+                                                new String[] { "id_dispositivo", "dispositivo", "descripcion",
+                                                        "existencias", "precio", "codigo_modelo", "color", "categoria",
+                                                        "tiempo_garantia", "vendedor", "marca" },
+                                                new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT",
+                                                        "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2",
+                                                        "VARCAHR2" });
 
                                         if (rs2.isLast()) {
                                             if (page == getMaxNumberOfPages(maxRowCount, maxDevices) && page != 1) {
