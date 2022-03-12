@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "startReact": "cd ./client && npm start",
-    "deploySalesServlets": "cd ./server/sales-system/.helper-scripts && ./deploy-servlets.sh"
+    "deploySalesServlets": "cd ./server/sales-system/.helper-scripts && ./deploy-servlets.sh",
+    "startFrontEnd": "cd ./client && npm start",
+    "deployFrontEnd": "cd ./client/.helper-scripts && ./deploy-front-end.sh"
   },
   "repository": {
     "type": "git",
