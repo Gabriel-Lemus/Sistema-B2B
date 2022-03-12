@@ -7,7 +7,8 @@
     "startReact": "cd ./client && npm start",
     "deploySalesServlets": "cd ./server/sales-system/.helper-scripts && ./deploy-servlets.sh",
     "startFrontEnd": "cd ./client && npm start",
-    "deployFrontEnd": "cd ./client/.helper-scripts && ./deploy-front-end.sh"
+    "deployFrontEnd": "cd ./client/.helper-scripts && ./deploy-front-end.sh",
+    "sass": "cd ./client && node-sass ./public/sass/styles.scss ./public/css/styles.css --watch"
   },
   "repository": {
     "type": "git",
