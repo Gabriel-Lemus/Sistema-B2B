@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import java.util.ArrayList;
+import java.util.Base64;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -121,9 +122,39 @@ public class SellersServlet extends HttpServlet {
         return rs.getInt(1);
     }
 
+    /**
+     * Concatenate a JSON string representation to form an array of pictures in
+     * base64 format.
+     * 
+     * @param deviceJson The JSON string representation of the device.
+     * @return The JSON string representation of the device with the pictures in
+     *         base64 format.
+     */
+    private String concatenateDeviceInfo(String deviceJson) {
+        String deviceInfo = deviceJson.substring(0, deviceJson.indexOf("\"foto\":"));
+        deviceInfo += "\"fotos\":[";
+
+        // Iterate through the string and get the values of the foto attributes
+        // There may be more than one foto, so we need to get the values of all of them
+        while (deviceJson.contains("\"foto\":")) {
+            deviceJson = deviceJson.substring(deviceJson.indexOf("\"foto\":") + 8);
+            deviceInfo += "\"" + deviceJson.substring(0, deviceJson.indexOf("\"")) + "\"";
+            deviceJson = deviceJson.substring(deviceJson.indexOf("\"") + 1);
+            if (deviceJson.contains("\"foto\":")) {
+                deviceInfo += ",";
+            }
+        }
+
+        deviceInfo += "]}]}";
+
+        return deviceInfo;
+    }
+
     // TODO: work on the delete method
 
     // TODO: work on the get implementations for the DB views
+
+    // TODO: Check if there are no devices to display in the current selected page
 
     // Servlet initialization
     public void init() throws ServletException {
@@ -490,7 +521,6 @@ public class SellersServlet extends HttpServlet {
 
                 if (helper.isNumeric(possiblePage)) {
                     int page = Integer.parseInt(possiblePage);
-                    // TODO: Check if there are no devices to display in the current selected page
 
                     if (page > 0) {
                         try {
@@ -603,6 +633,83 @@ public class SellersServlet extends HttpServlet {
                 } else {
                     helper.printJsonMessage(out, false, "error",
                             "The page parameter you set is not a number. Please provide a valid page parameter.");
+                }
+            } else if (request.getParameterMap().containsKey("dispositivo")) {
+                int deviceId = Integer.parseInt(request.getParameter("dispositivo"));
+
+                try {
+                    String seller = request.getParameter("vendedor") + "_SELLER";
+                    String devicesQuery = "WITH s AS (SELECT " + seller
+                            + ".dispositivos.ID_DISPOSITIVO ID_DISPOSITIVO, " + seller
+                            + ".dispositivos.NOMBRE NOMBRE, " + seller
+                            + ".dispositivos.DESCRIPCION DESCRIPCION, " + seller
+                            + ".dispositivos.EXISTENCIAS EXISTENCIAS, " + seller
+                            + ".dispositivos.PRECIO PRECIO, " + seller
+                            + ".dispositivos.CODIGO_MODELO CODIGO_MODELO, " + seller
+                            + ".dispositivos.COLOR COLOR, " + seller
+                            + ".dispositivos.CATEGORIA CATEGORIA, " + seller
+                            + ".dispositivos.TIEMPO_GARANTIA TIEMPO_GARANTIA, " + seller
+                            + ".fotos_dispositivos.FOTO FOTO FROM "
+                            + seller + ".dispositivos, " + seller + ".fotos_dispositivos WHERE " + seller
+                            + ".dispositivos.id_dispositivo = " + seller
+                            + ".fotos_dispositivos.id_dispositivo) SELECT s.* FROM s WHERE s.id_dispositivo = "
+                            + deviceId;
+
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    Connection con = DriverManager.getConnection(connectionUrl, "Sales", "adminsales");
+                    Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    ResultSet rs = stmt.executeQuery(devicesQuery);
+                    String deviceStr = "{\"success\":" + true + ",\"data\":[";
+                    String[] attributes = new String[] { "id_dispositivo", "nombre", "descripcion", "existencias",
+                            "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia", "foto" };
+                    String[] types = new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
+                            "VARCHAR2", "VARCHAR2", "VARCHAR2", "BLOB" };
+
+                    while (rs.next()) {
+                        deviceStr += ("{");
+
+                        for (int i = 1; i < attributes.length; i++) {
+                            deviceStr += ("\"" + attributes[i] + "\":");
+
+                            switch (types[i]) {
+                                case "INTEGER":
+                                    deviceStr += (rs.getInt(attributes[i]));
+                                    break;
+                                case "FLOAT":
+                                    deviceStr += (rs.getFloat(attributes[i]));
+                                    break;
+                                case "BOOLEAN":
+                                    deviceStr += (rs.getBoolean(attributes[i]));
+                                    break;
+                                case "BLOB":
+                                    deviceStr += ("\"" +
+                                            Base64.getEncoder().encodeToString(rs.getBytes(attributes[i]))
+                                            + "\"");
+                                    break;
+                                default:
+                                    deviceStr += ("\"" + rs.getString(attributes[i]) + "\"");
+                                    break;
+                            }
+
+                            if (i < attributes.length - 1) {
+                                deviceStr += (",");
+                            }
+                        }
+
+                        deviceStr += ("}");
+
+                        if (rs.isLast()) {
+                            deviceStr += ("]}");
+                        } else {
+                            deviceStr += (",");
+                        }
+                    }
+
+                    // out.print(deviceStr);
+                    out.print(concatenateDeviceInfo(deviceStr));
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
                 }
             } else {
                 helper.printJsonMessage(out, false, "error",
