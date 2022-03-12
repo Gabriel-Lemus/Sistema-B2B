@@ -34,7 +34,7 @@ function Navbar(props) {
             className={`nav-item${props.activePageIdx === 0 ? ' active' : ''}`}
           >
             <Link className="nav-link" to="/">
-              Home{' '}
+              Inicio{' '}
               {props.activePageIdx === 0 ? (
                 <span className="sr-only">(current)</span>
               ) : (
