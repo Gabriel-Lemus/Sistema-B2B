@@ -558,7 +558,7 @@ public class SellersServlet extends HttpServlet {
                                         }
                                     }
 
-                                    devicesQuery += ") SELECT s.nombre as dispositivo, descripcion, existencias, precio, codigo_modelo, color, categoria, tiempo_garantia, vendedores.nombre AS vendedor, marcas.nombre AS marca FROM s INNER JOIN VENDEDORES ON s.ID_VENDEDOR = VENDEDORES.ID_VENDEDOR INNER JOIN MARCAS ON s.ID_MARCA = MARCAS.ID_MARCA OFFSET "
+                                    devicesQuery += ") SELECT s.id_dispositivo, s.nombre as dispositivo, descripcion, existencias, precio, codigo_modelo, color, categoria, tiempo_garantia, vendedores.nombre AS vendedor, marcas.nombre AS marca FROM s INNER JOIN VENDEDORES ON s.ID_VENDEDOR = VENDEDORES.ID_VENDEDOR INNER JOIN MARCAS ON s.ID_MARCA = MARCAS.ID_MARCA OFFSET "
                                             + (page - 1) * maxDevices + " ROWS FETCH NEXT " + maxDevices + " ROWS ONLY";
                                 } else {
                                     devicesQuery = "SELECT * FROM " + sellers.get(0)
@@ -582,16 +582,8 @@ public class SellersServlet extends HttpServlet {
                                     // There are records; print them
                                     while (rs2.next()) {
                                         helper.printRow(rs2, out,
-                                                new String[] { "dispositivo", "descripcion",
-                                                        "existencias", "precio",
-                                                        "codigo_modelo", "color",
-                                                        "categoria", "tiempo_garantia",
-                                                        "vendedor", "marca" },
-                                                new String[] { "VARCHAR2", "VARCHAR2",
-                                                        "INTEGER", "FLOAT", "VARCHAR2",
-                                                        "VARCHAR2", "VARCHAR2",
-                                                        "INTEGER", "VARCHAR2",
-                                                        "VARCAHR2" });
+                                                new String[] { "id_dispositivo", "dispositivo", "descripcion", "existencias", "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia", "vendedor", "marca" },
+                                                new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCAHR2" });
 
                                         if (rs2.isLast()) {
                                             if (page == getMaxNumberOfPages(maxRowCount, maxDevices) && page != 1) {
