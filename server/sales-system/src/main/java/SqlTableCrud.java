@@ -546,6 +546,37 @@ public class SqlTableCrud {
                     helper.printJsonMessage(out, false, "error",
                             "The id you set is empty. Please provide one.");
                 }
+            } else if (request.getParameterMap().containsKey("exists")) {
+                String value = request.getParameter("exists");
+                String existanceQuery = "SELECT COUNT(*) FROM " + tableName + " WHERE ";
+
+                for (int i = 0; i < attributes.length; i++) {
+                    if (i == 0) {
+                        existanceQuery += attributes[i] + " = '" + value + "'";
+                    } else {
+                        existanceQuery += " OR " + attributes[i] + " = '" + value + "'";
+                    }
+                }
+
+                try {
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    Connection con = DriverManager.getConnection(conUrl, user, password);
+                    Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    ResultSet rs = stmt.executeQuery(existanceQuery);
+
+                    // Check if the count is greater than 0
+                    rs.next();
+                    if (rs.getInt(1) > 0) {
+                        // The value exists
+                        out.print("{\"success\":" + true + ",\"exists\":" + true + "}");
+                    } else {
+                        // The value does not exist
+                        out.print("{\"success\":" + true + ",\"exists\":" + false + "}");
+                    }
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                }
             } else {
                 // Incorrect parameter set
                 helper.printJsonMessage(out, false, "error",
