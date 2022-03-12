@@ -276,7 +276,7 @@ public class SqlTableCrud {
                 int recordId = Integer.parseInt(id);
 
                 // Get the body of the request and make all the attributes lowercase
-                String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur).toLowerCase();
+                String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
 
                 // Check if the body is empty
                 if (body.length() > 0) {
@@ -305,7 +305,7 @@ public class SqlTableCrud {
             }
         } else {
             // Get the body of the request and make all the attributes lowercase
-            String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur).toLowerCase();
+            String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
 
             // Check if the body is empty
             if (body.length() > 0) {
