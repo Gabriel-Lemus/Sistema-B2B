@@ -3,6 +3,8 @@ import java.sql.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import java.util.ArrayList;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -60,8 +62,54 @@ public class SellersServlet extends HttpServlet {
     }
 
     /**
+     * Returns the url for the records that belong to the next page.
+     * 
+     * @param request The http request object.
+     * @param page    The page number.
+     * @return The url for the next page.
+     */
+    private String getNextPageUrl(HttpServletRequest request, int page) {
+        String[] params = request.getParameterMap().keySet().toArray(new String[0]);
+        String schemaStr = "sellers";
+        String localhostIp = "localhost";
+
+        // Check if the schema matches the regex "something"_seller; if so, change the
+        // schema name to "sellers"
+        if (schemaStr.matches("^[a-zA-Z]*_seller")) {
+            schemaStr = "sellers";
+        }
+
+        String nextPageUrl = "\"http://" + localhostIp + ":8080/sales-system/" + schemaStr;
+
+        if (params.length > 0) {
+            nextPageUrl += "?";
+        }
+
+        for (int i = 0; i < params.length; i++) {
+            if (!params[i].equals("page")) {
+                nextPageUrl += params[i] + "=" + request.getParameter(params[i]) + "&";
+            }
+        }
+
+        nextPageUrl += "page=" + (page + 1) + "\"";
+
+        return nextPageUrl;
+    }
+
+    /**
+     * Get the maximum number of pages based on the row count and the set max rows.
+     * 
+     * @param rowCount The number of rows.
+     * @return The maximum number of pages.
+     */
+    private int getMaxNumberOfPages(int rowCount, int maxRows) {
+        return (rowCount - (rowCount % maxRows)) / maxRows + (rowCount % maxRows == 0 ? 0 : 1);
+    }
+
+    /**
      * Get the row count from the provided query.
-     * @param con The connection to use.
+     * 
+     * @param con        The connection to use.
      * @param countQuery The query to use.
      * @return The row count.
      * @throws SQLException If an error occurs.
@@ -72,6 +120,10 @@ public class SellersServlet extends HttpServlet {
         rs.next();
         return rs.getInt(1);
     }
+
+    // TODO: work on the delete method
+
+    // TODO: work on the get implementations for the DB views
 
     // Servlet initialization
     public void init() throws ServletException {
@@ -120,10 +172,13 @@ public class SellersServlet extends HttpServlet {
                         Class.forName("oracle.jdbc.driver.OracleDriver");
                         Connection con = DriverManager.getConnection(adminConUrl, adminUser,
                                 adminPassword);
-                        String sellerInTableQueryCount = "SELECT COUNT(*) FROM SALES.VENDEDORES WHERE UPPER(NOMBRE) = UPPER('" + seller + "')";
-                        String sellerSchemaQueryCount = "SELECT COUNT(*) FROM all_users WHERE UPPER(username) = UPPER('" + seller + "_SELLER')";
+                        String sellerInTableQueryCount = "SELECT COUNT(*) FROM SALES.VENDEDORES WHERE UPPER(NOMBRE) = UPPER('"
+                                + seller + "')";
+                        String sellerSchemaQueryCount = "SELECT COUNT(*) FROM all_users WHERE UPPER(username) = UPPER('"
+                                + seller + "_SELLER')";
 
-                        int sellerInTableCount = getCountFromQuery(con, sellerInTableQueryCount);
+                        int sellerInTableCount = getCountFromQuery(con,
+                                sellerInTableQueryCount);
                         int sellerSchemaCount = getCountFromQuery(con, sellerSchemaQueryCount);
 
                         if (sellerInTableCount == 1 && sellerSchemaCount == 1) {
@@ -426,6 +481,132 @@ public class SellersServlet extends HttpServlet {
             } else {
                 helper.printJsonMessage(out, false, "error",
                         "The seller parameter you set is empty. Please provide a valid seller parameter.");
+            }
+        } else if (request.getParameterMap().containsKey("dispositivos")) {
+            int maxDevices = 100;
+
+            if (request.getParameterMap().containsKey("page")) {
+                String possiblePage = request.getParameter("page");
+
+                if (helper.isNumeric(possiblePage)) {
+                    int page = Integer.parseInt(possiblePage);
+                    // TODO: Check if there are no devices to display in the current selected page
+
+                    if (page > 0) {
+                        try {
+                            Class.forName("oracle.jdbc.driver.OracleDriver");
+                            Connection con = DriverManager.getConnection(connectionUrl, "Sales", "adminsales");
+                            Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                    ResultSet.CONCUR_READ_ONLY);
+                            String allSellersQuery = "SELECT username FROM all_users WHERE username LIKE '%_SELLER'";
+
+                            // Start transaction
+                            con.setAutoCommit(false);
+
+                            // Get all the sellers
+                            ResultSet rs = stmt.executeQuery(allSellersQuery);
+
+                            // Save the sellers in an array
+                            ArrayList<String> sellers = new ArrayList<String>();
+                            String devicesQuery = "";
+
+                            while (rs.next()) {
+                                sellers.add(rs.getString("username"));
+                            }
+
+                            // Build the devices query from all the sellers
+                            if (sellers.size() > 0) {
+                                devicesQuery += "WITH s AS (";
+
+                                if (sellers.size() > 1) {
+                                    for (int i = 0; i < sellers.size(); i++) {
+                                        devicesQuery += "SELECT * FROM " + sellers.get(i)
+                                                + ".dispositivos";
+
+                                        if (i < sellers.size() - 1) {
+                                            devicesQuery += " UNION ALL ";
+                                        }
+                                    }
+
+                                    devicesQuery += ") SELECT s.nombre as dispositivo, descripcion, existencias, precio, codigo_modelo, color, categoria, tiempo_garantia, vendedores.nombre AS vendedor, marcas.nombre AS marca FROM s INNER JOIN VENDEDORES ON s.ID_VENDEDOR = VENDEDORES.ID_VENDEDOR INNER JOIN MARCAS ON s.ID_MARCA = MARCAS.ID_MARCA OFFSET "
+                                            + (page - 1) * maxDevices + " ROWS FETCH NEXT " + maxDevices + " ROWS ONLY";
+                                } else {
+                                    devicesQuery = "SELECT * FROM " + sellers.get(0)
+                                            + ".dispositivos OFFSET " + (page - 1) * maxDevices + " ROWS FETCH NEXT "
+                                            + maxDevices + " ROWS ONLY";
+                                }
+
+                                // Get the row count and execute the query
+                                int rowCount = helper.getQueryRowCount(con, devicesQuery);
+                                String maxCountQuery = devicesQuery.substring(0, devicesQuery.indexOf("OFFSET"));
+                                int maxRowCount = helper.getQueryRowCount(con, maxCountQuery);
+                                ResultSet rs2 = stmt.executeQuery(devicesQuery);
+
+                                out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
+
+                                // Check if there are any devices
+                                if (rs2.next()) {
+                                    // Return the first device
+                                    rs2.beforeFirst();
+
+                                    // There are records; print them
+                                    while (rs2.next()) {
+                                        helper.printRow(rs2, out,
+                                                new String[] { "dispositivo", "descripcion",
+                                                        "existencias", "precio",
+                                                        "codigo_modelo", "color",
+                                                        "categoria", "tiempo_garantia",
+                                                        "vendedor", "marca" },
+                                                new String[] { "VARCHAR2", "VARCHAR2",
+                                                        "INTEGER", "FLOAT", "VARCHAR2",
+                                                        "VARCHAR2", "VARCHAR2",
+                                                        "INTEGER", "VARCHAR2",
+                                                        "VARCAHR2" });
+
+                                        if (rs2.isLast()) {
+                                            if (page == getMaxNumberOfPages(maxRowCount, maxDevices) && page != 1) {
+                                                out.print("],\"previousPage\":" + getNextPageUrl(request, page - 2)
+                                                        + "}");
+                                            } else if (page != 1) {
+                                                out.print(
+                                                        "],\"previousPage\":" + getNextPageUrl(request, page - 2)
+                                                                + ",\"nextPage\":"
+                                                                + getNextPageUrl(request, page) + "}");
+                                            } else if (page == 1 && rowCount != maxRowCount) {
+                                                out.print("],\"nextPage\":" + getNextPageUrl(request, page) + "}");
+                                            } else {
+                                                out.print("]}");
+                                            }
+                                        } else {
+                                            out.print(",");
+                                        }
+                                    }
+                                } else {
+                                    out.print("]}");
+                                }
+                            } else {
+                                out.print("{\"success\":" + true + ",\"rowCount\":" + 0 + ",\"data\":[]}");
+                            }
+
+                            // Commit the transaction
+                            con.commit();
+
+                            // Close the connection
+                            con.close();
+                        } catch (Exception e) {
+                            helper.printErrorMessage(out, e);
+                        }
+                    } else {
+                        helper.printJsonMessage(out, false, "error",
+                                "The page number is invalid. Please provide a positive, non-zero number.");
+                    }
+                } else {
+                    helper.printJsonMessage(out, false, "error",
+                            "The page parameter you set is not a number. Please provide a valid page parameter.");
+                }
+            } else {
+                helper.printJsonMessage(out, false, "error",
+                        "The page parameter you set is empty. Please provide a valid page parameter.");
             }
         } else {
             helper.printJsonMessage(out, false, "error",
