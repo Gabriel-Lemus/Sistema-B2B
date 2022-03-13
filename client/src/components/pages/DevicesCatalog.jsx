@@ -1,6 +1,5 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import helpers from '../../helpers/helpers';
 import DashboardTemplate from '../templates/DashboardTemplate';
 import DevicesCards from '../molecules/DevicesCards';
