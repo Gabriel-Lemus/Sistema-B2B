@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import helpers from '../../helpers/helpers';
 import DashboardTemplate from '../templates/DashboardTemplate';
+import DevicesCards from '../molecules/DevicesCards';
 
 // React icons
 import { AiOutlineUser } from 'react-icons/ai';
@@ -54,32 +55,7 @@ function DevicesCatalog() {
         </>
       ) : (
         <>
-          <section className="devices-catalog">
-            {devices.map((device) => (
-              <div className="card product-card" key={devices.indexOf(device)}>
-                <div className="card-body">
-                  <h5 className="card-title">{device.dispositivo}</h5>
-                  <img
-                    className="product-image"
-                    src={
-                      device.imagen !== null && device.imagen !== undefined
-                        ? device.imagen
-                        : 'https://us.123rf.com/450wm/pavelstasevich/pavelstasevich1811/pavelstasevich181101028/112815904-no-image-available-icon-flat-vector-illustration.jpg?ver=6'
-                    }
-                    alt="Imagen del dispositivo"
-                  />
-                  <p className="card-text">
-                    {device.descripcion}
-                    <br />
-                    {device.precio}
-                  </p>
-                  <Link to={`/devices/${device.id}`}>
-                    <button className="btn btn-primary">Ver más</button>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </section>
+          <DevicesCards devices={devices} />
         </>
       )}
     </DashboardTemplate>
