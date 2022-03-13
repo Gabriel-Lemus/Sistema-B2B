@@ -168,11 +168,160 @@ function SignUpForm() {
           clientName !== '' &&
           email !== '' &&
           password !== '' &&
-          passwordConfirmation !== ''
+          passwordConfirmation !== '' &&
+          clientNIT === ''
         ) {
           // Individual client check
+          // Check if the email is already registered
+          let emailCheck = await axios.get(
+            `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${email}`
+          );
+
+          if (emailCheck.data.success) {
+            if (!emailCheck.data.exists) {
+              // Attempt to register the user
+              let clientRegistration = await axios.post(
+                `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes`,
+                {
+                  nombre: clientName,
+                  nit: null,
+                  email: null,
+                  telefono: null,
+                  patente_comercio: null,
+                  tipo_cliente: null,
+                  tiene_suscripcion: 'False',
+                  vencimiento_suscripcion: null,
+                }
+              );
+
+              if (clientRegistration.data.success) {
+                let salt = helpers.getCryptoSalt(32);
+                let userCredentialsTableData = {
+                  id_cliente: clientRegistration.data.dataAdded.id_cliente,
+                  id_vendedor: null,
+                  tipo_usuario: 'cliente',
+                  email: email,
+                  salt: salt,
+                  hash: helpers.getHashedPassword(password, salt),
+                };
+                let userCredentialsRegistration = await axios.post(
+                  `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios`,
+                  userCredentialsTableData
+                );
+
+                if (userCredentialsRegistration.data.success) {
+                  // Redirect to the login page
+                  // window.location.href = '/login';
+                  helpers.showModal(
+                    'Registro exitoso',
+                    '¡Bienvenido a la tienda! Enseguida será redirigido a su página de tienda.'
+                  );
+                } else {
+                  helpers.showModal(
+                    'Ocurrió un error',
+                    'Hubo un error al registrar sus datos. Por favor, inténtelo de nuevo.'
+                  );
+                }
+              } else {
+                helpers.showModal(
+                  'Hubo un error',
+                  'No se pudo registrar el vendedor. Por favor, inténtelo de nuevo.'
+                );
+              }
+            } else {
+              helpers.showModal(
+                'Correo electrónico ya registrado',
+                'El correo provisto ya se encuentra registrado. Por favor, ingrese otro correo electrónico.'
+              );
+            }
+          } else {
+            helpers.showModal(
+              'Ocurrió un error',
+              'Hubo un error al verificar sus datos. Por favor inténtelo de nuevo'
+            );
+          }
         } else {
           // Large customer or distributor check
+          let emailCheck = await axios.get(
+            `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${email}`
+          );
+
+          if (emailCheck.data.success) {
+            if (!emailCheck.data.exists) {
+              let suscriptionExpiration = new Date(
+                new Date().getTime() + 365 * 24 * 60 * 60 * 1000
+              );
+              suscriptionExpiration = suscriptionExpiration
+                .toISOString()
+                .slice(0, 19)
+                .replace('T', ' ');
+
+              // Attempt to register the user
+              let clientRegistration = await axios.post(
+                `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes`,
+                {
+                  nombre: clientName,
+                  nit: clientNIT,
+                  email: email,
+                  telefono: clientPhone,
+                  patente_comercio: clientComPat,
+                  tipo_cliente: clientType,
+                  tiene_suscripcion: 'True',
+                  vencimiento_suscripcion:
+                    'TO_DATE("' +
+                    suscriptionExpiration +
+                    '", "YYYY-MM-DD HH24:MI:SS")',
+                }
+              );
+              console.log(clientRegistration.data);
+
+              if (clientRegistration.data.success) {
+                let salt = helpers.getCryptoSalt(32);
+                let userCredentialsTableData = {
+                  id_cliente: clientRegistration.data.dataAdded.id_cliente,
+                  id_vendedor: null,
+                  tipo_usuario: 'cliente',
+                  email: email,
+                  salt: salt,
+                  hash: helpers.getHashedPassword(password, salt),
+                };
+                let userCredentialsRegistration = await axios.post(
+                  `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios`,
+                  userCredentialsTableData
+                );
+                console.log(userCredentialsRegistration.data);
+
+                if (userCredentialsRegistration.data.success) {
+                  // Redirect to the login page
+                  // window.location.href = '/login';
+                  helpers.showModal(
+                    'Registro exitoso',
+                    '¡Bienvenido a la tienda! Enseguida será redirigido a su página de tienda.'
+                  );
+                } else {
+                  helpers.showModal(
+                    'Ocurrió un error',
+                    'Hubo un error al registrar sus datos. Por favor, inténtelo de nuevo.'
+                  );
+                }
+              } else {
+                helpers.showModal(
+                  'Hubo un error',
+                  'No se pudo registrar el vendedor. Por favor, inténtelo de nuevo.'
+                );
+              }
+            } else {
+              helpers.showModal(
+                'Correo electrónico ya registrado',
+                'El correo provisto ya se encuentra registrado. Por favor, ingrese otro correo electrónico.'
+              );
+            }
+          } else {
+            helpers.showModal(
+              'Ocurrió un error',
+              'Hubo un error al verificar sus datos. Por favor inténtelo de nuevo'
+            );
+          }
         }
       } else {
         helpers.showModal(
