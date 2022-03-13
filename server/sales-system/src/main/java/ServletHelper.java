@@ -44,8 +44,6 @@ public class ServletHelper {
                 return "'" + json.getInt(attributes[index]) + "'";
             case "FLOAT":
                 return "'" + json.getDouble(attributes[index]) + "'";
-            case "BOOLEAN":
-                return "'" + json.getBoolean(attributes[index]) + "'";
             case "DATE":
                 if (isDateWithTime(json.getString(attributes[index]))) {
                     return "TO_DATE('" + json.getString(attributes[index]) + "', 'YYYY-MM-DD HH24:MI:SS')";
