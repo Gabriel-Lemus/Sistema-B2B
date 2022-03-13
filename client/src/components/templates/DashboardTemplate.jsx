@@ -49,7 +49,7 @@ function DashboardTemplate(props) {
               <ul className="nav flex-column">
                 {props.sideBarItems.map((item, index) => (
                   <li key={index} className="nav-item">
-                    <a className="nav-link active" href={item.reference}>
+                    <a className="nav-link sidebar-link" href={item.reference}>
                       {item.icon}
                       &nbsp;&nbsp;
                       {item.title}
