@@ -1,3 +1,8 @@
+import React from 'react';
+import ReactDOMServer from 'react-dom/server';
+import $ from 'jquery';
+import CryptoJS from 'crypto-js';
+
 /**
  * Color palette
  */
@@ -41,7 +46,7 @@ const getThousandSeparators = (number) => {
 
 /**
  * Determine if a string has an email format by regex.
- * @param {string} email
+ * @param {string} email The string to be evaluated.
  * @return {boolean} True if the string has an email format.
  */
 const isValidEmail = (email) => {
@@ -49,6 +54,98 @@ const isValidEmail = (email) => {
     /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return regex.test(email);
 };
+
+/**
+ * Display a Bootstrap modal with a message.
+ * @param {string} title The modal title.
+ * @param {string} message The modal message.
+ * @return {JSX.Element} The modal to be displayed.
+ */
+const getModal = (title, message) => {
+  return (
+    <div id="pageModal" className="modal" tabIndex="-1">
+      <div className="modal-dialog">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title">{title}</h5>
+            <button
+              type="button"
+              className="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div className="modal-body">
+            <p>{message}</p>
+          </div>
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-secondary close-btn"
+              data-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Add a modal to the DOM and display it.
+ * @param {string} title The modal title.
+ * @param {string} message The modal message.
+ */
+const showModal = (title, message) => {
+  let modal = getModal(title, message);
+  $('#pageModal').remove();
+  $('body').append(ReactDOMServer.renderToString(modal));
+  $('#pageModal').modal('show');
+  $('#pageModal .close-btn').on('click', () => {
+    $('#pageModal').modal('hide');
+    $('#pageModal').remove();
+    $('.modal-backdrop').remove();
+  });
+};
+
+/**
+ * Generate cryptographic salt.
+ * @param {length} The length of the salt.
+ * @return {string} The salt.
+ */
+const getCryptoSalt = (length) => {
+  let result = '';
+  let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
+/**
+ * Concatenate the password with the salt and hash them.
+ * @param {string} password The password.
+ * @param {string} salt The cryptographic salt.
+ * @return {string} The hashed password.
+ */
+const getHashedPassword = (password, salt) => {
+  // Use crypto-js
+  return CryptoJS.SHA256(password + salt).toString();
+};
+
+/**
+ * Localhost IP address.
+ */
+const LOCALHOST_IP = 'localhost';
+
+/**
+ * Tomcat port.
+ */
+const TOMCAT_PORT = '8080';
 
 /**
  * General helpers
@@ -59,6 +156,11 @@ const helpers = {
   getAuthors,
   getThousandSeparators,
   isValidEmail,
+  showModal,
+  LOCALHOST_IP,
+  TOMCAT_PORT,
+  getCryptoSalt,
+  getHashedPassword,
 };
 
 export default helpers;
