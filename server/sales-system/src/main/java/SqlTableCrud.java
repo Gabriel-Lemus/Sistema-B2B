@@ -549,12 +549,16 @@ public class SqlTableCrud {
             } else if (request.getParameterMap().containsKey("exists")) {
                 String value = request.getParameter("exists");
                 String existanceQuery = "SELECT COUNT(*) FROM " + tableName + " WHERE ";
+                boolean setFirstValue = false;
 
                 for (int i = 0; i < attributes.length; i++) {
-                    if (i == 0) {
-                        existanceQuery += attributes[i] + " = '" + value + "'";
-                    } else {
-                        existanceQuery += " OR " + attributes[i] + " = '" + value + "'";
+                    if (types[i].equals("VARCHAR2")) {
+                        if (!setFirstValue) {
+                            setFirstValue = true;
+                            existanceQuery += attributes[i] + " = '" + value + "'";
+                        } else {
+                            existanceQuery += " OR " + attributes[i] + " = '" + value + "'";
+                        }
                     }
                 }
 
