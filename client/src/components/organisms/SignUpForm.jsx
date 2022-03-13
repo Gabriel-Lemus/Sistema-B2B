@@ -1,8 +1,193 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import $ from 'jquery';
 import { Link } from 'react-router-dom';
 import helpers from '../../helpers/helpers';
 
 function SignUpForm() {
+  // State
+  const [userType, setUserType] = useState('');
+  const [clientType, setClientType] = useState('');
+  const [clientName, setClientName] = useState('');
+  const [clientNIT, setClientNIT] = useState('');
+  const [clientPhone, setClientPhone] = useState('');
+  const [clientComPat, setClientComPat] = useState(new Blob());
+  const [clientCardHolder, setClientCardHolder] = useState('');
+  const [clientCardExpiration, setClientCardExpiration] = useState('');
+  const [clientCardSecurityNumber, setClientCardSecurityNumber] = useState('');
+  const [sellerName, setSellerName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
+
+  // Use effect
+  useEffect(() => {
+    $('#usertype-dropdown-menu-options').children().eq(0).tooltip({
+      placement: 'right',
+      trigger: 'hover',
+      title:
+        'Permite realizar compras de los dispositivos electrónicos que ofrecen los vendedores.',
+    });
+    $('#usertype-dropdown-menu-options').children().eq(1).tooltip({
+      placement: 'right',
+      trigger: 'hover',
+      title: 'Permite el registro de dispositivos electrónicos para su venta.',
+    });
+  }, []);
+
+  useEffect(() => {
+    if (userType === 'vendedor') {
+      setClientType('');
+    } else {
+      $('#clienttype-dropdown-menu-options').children().eq(0).tooltip({
+        placement: 'right',
+        trigger: 'hover',
+        title:
+          'Permite la compra de productos sin necesidad de pagar una suscripción, pero no recibe descuentos.',
+      });
+      $('#clienttype-dropdown-menu-options').children().eq(1).tooltip({
+        placement: 'right',
+        trigger: 'hover',
+        title:
+          'Recibe un descuento del 5% en cada compra al pagar una suscripción anual.',
+      });
+      $('#clienttype-dropdown-menu-options').children().eq(2).tooltip({
+        placement: 'right',
+        trigger: 'hover',
+        title:
+          'Pagando una suscripción anual permite obtener un descuento del 15% en cada compra, realizar compras al crédito y pedidos a futuro.',
+      });
+    }
+  }, [userType]);
+
+  // Handlers
+  /**
+   * Handle the validation and submission of the credentials when the sign up button is clicked.
+   */
+  const handleCredentialsSubmission = async () => {
+    if (
+      // Seller check
+      (userType !== '' &&
+        sellerName !== '' &&
+        email !== '' &&
+        password !== '' &&
+        passwordConfirmation !== '') ||
+      // Individual client check
+      (userType !== '' &&
+        clientType !== '' &&
+        clientName !== '' &&
+        email !== '' &&
+        password !== '' &&
+        passwordConfirmation !== '') ||
+      // Large customer or distributor check
+      (userType !== '' &&
+        clientType !== '' &&
+        clientName !== '' &&
+        clientNIT !== '' &&
+        email !== '' &&
+        clientPhone !== '' &&
+        clientComPat !== new Blob() &&
+        clientCardHolder !== '' &&
+        clientCardExpiration !== '' &&
+        clientCardSecurityNumber !== '' &&
+        password !== '' &&
+        passwordConfirmation !== '')
+    ) {
+      if (password === passwordConfirmation) {
+        if (
+          userType !== '' &&
+          sellerName !== '' &&
+          email !== '' &&
+          password !== '' &&
+          passwordConfirmation !== ''
+        ) {
+          // Seller check
+          // Check if the email is already registered
+          let emailCheck = await axios.get(
+            `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${email}`
+          );
+
+          if (emailCheck.data.success) {
+            if (!emailCheck.data.exists) {
+              // Attempt to register the user
+              // let sellerRegistration = await axios.post(
+              //   `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?vendedor=${sellerName}`
+              // );
+
+              // if (sellerRegistration.data.success) {
+              let salt = helpers.getCryptoSalt(32);
+              let userCredentialsTableData = {
+                id_cliente: null,
+                id_vendedor: null,
+                tipo_usuario: 'vendedor',
+                email: email,
+                salt: salt,
+                hash: helpers.getHashedPassword(password, salt),
+              };
+
+              let userCredentialsRegistration = await axios.post(
+                `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios`,
+                userCredentialsTableData
+              );
+
+              if (userCredentialsRegistration.data.success) {
+                // Redirect to the login page
+                // window.location.href = '/login';
+
+                helpers.showModal(
+                  'Registro exitoso',
+                  '¡Bienvenido a la tienda! Enseguida será redirigido a su página de tienda.'
+                );
+              } else {
+                helpers.showModal(
+                  'Ocurrió un error',
+                  'Hubo un error al registrar sus datos. Por favor, inténtelo de nuevo.'
+                );
+              }
+              // } else {
+              //   helpers.showModal(
+              //     'Hubo un error',
+              //     'No se pudo registrar el vendedor. Por favor, inténtelo de nuevo.'
+              //   );
+              // }
+            } else {
+              helpers.showModal(
+                'Correo electrónico ya registrado',
+                'El correo provisto ya se encuentra registrado. Por favor, ingrese otro correo electrónico.'
+              );
+            }
+          } else {
+            helpers.showModal(
+              'Ocurrió un error',
+              'Hubo un error al verificar sus datos. Por favor inténtelo de nuevo'
+            );
+          }
+        } else if (
+          userType !== '' &&
+          clientType !== '' &&
+          clientName !== '' &&
+          email !== '' &&
+          password !== '' &&
+          passwordConfirmation !== ''
+        ) {
+          // Individual client check
+        } else {
+          // Large customer or distributor check
+        }
+      } else {
+        helpers.showModal(
+          'Error',
+          'Las contraseñas no coinciden. Por favor, ingréselas nuevamente.'
+        );
+      }
+    } else {
+      helpers.showModal(
+        'Error',
+        'Por favor, asegúrese de ingresar todos los datos solicitados.'
+      );
+    }
+  };
+
   return (
     <form className="sign-in-form">
       <div className="container text-center">
@@ -14,99 +199,576 @@ function SignUpForm() {
           height="72"
         />
       </div>
-      <h1 className="h3 mb-3 font-weight-normal text-center">Sign Up</h1>
-      <section className="input-row">
-        <section className="input-column">
-          <label htmlFor="nameInput">Name</label>
-          <input
-            type="text"
-            id="nameInput"
-            className="form-control text-input"
-            placeholder="Name"
-            required
-            autoFocus
-            onInvalid={(e) => {
-              e.target.setCustomValidity('Please enter your name.');
-            }}
+      <h1 className="h3 mb-3 font-weight-normal text-center">
+        Crear una Cuenta
+      </h1>
+      <label className="text">Tipo de Usuario</label>
+      <section
+        className="center"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <div
+          className="dropdown"
+          style={{
+            width: '100%',
+          }}
+        >
+          <button
+            id="userTypeDropdown"
+            className="btn btn-primary dropdown-toggle"
+            type="button"
+            data-toggle="dropdown"
+            aria-expanded="false"
             style={{
-              backgroundColor: helpers.PALETTE.lightestGreen,
+              backgroundColor: helpers.PALETTE.green,
+              borderColor: helpers.PALETTE.green,
+              width: '100%',
             }}
-          />
-        </section>
-        <section className="input-column-2">
-          <label htmlFor="lastNameInput">Last name</label>
-          <input
-            type="text"
-            id="lastNameInput"
-            className="form-control text-input"
-            placeholder="Last name"
-            required
-            onInvalid={(e) => {
-              e.target.setCustomValidity('Please enter your last name.');
-            }}
+          >
+            Tipo de Usuario
+          </button>
+          <div
             style={{
-              backgroundColor: helpers.PALETTE.lightestGreen,
+              height: '15px',
             }}
-          />
-        </section>
+          ></div>
+          <div
+            id="usertype-dropdown-menu-options"
+            className="dropdown-menu"
+            aria-labelledby="userTypeDropdown"
+          >
+            <a
+              className="dropdown-item"
+              onClick={() => {
+                setUserType('cliente');
+                $('#userTypeDropdown').text('Cliente');
+                $('#usertype-dropdown-menu-options')
+                  .children()
+                  .removeClass('active');
+                $('#usertype-dropdown-menu-options')
+                  .children()
+                  .eq(0)
+                  .addClass('active');
+              }}
+            >
+              Cliente
+            </a>
+            <a
+              className="dropdown-item"
+              onClick={() => {
+                setUserType('vendedor');
+                $('#userTypeDropdown').text('Vendedor');
+                $('#usertype-dropdown-menu-options')
+                  .children()
+                  .removeClass('active');
+                $('#usertype-dropdown-menu-options')
+                  .children()
+                  .eq(1)
+                  .addClass('active');
+              }}
+            >
+              Vendedor
+            </a>
+          </div>
+        </div>
       </section>
-      <label htmlFor="inputEmail">Email address</label>
-      <input
-        type="email"
-        id="inputEmail"
-        className="form-control email-input"
-        placeholder="Email address"
-        required
-        onInvalid={(e) => {
-          e.target.setCustomValidity('Please enter your email address.');
-        }}
-        style={{
-          backgroundColor: helpers.PALETTE.lightestGreen,
-        }}
-      />
-      <label htmlFor="inputPassword">Password</label>
-      <input
-        type="password"
-        id="inputPassword"
-        className="form-control text-input"
-        placeholder="Password"
-        required
-        onInvalid={(e) => {
-          e.target.setCustomValidity('Please enter your password.');
-        }}
-        style={{
-          backgroundColor: helpers.PALETTE.lightestGreen,
-        }}
-      />
-      <label htmlFor="passwordConfirmation">Password Confirmation</label>
-      <input
-        type="password"
-        id="passwordConfirmation"
-        className="form-control"
-        placeholder="Password Confirmation"
-        required
-        onInvalid={(e) => {
-          e.target.setCustomValidity('Please enter your password again.');
-        }}
-        style={{
-          backgroundColor: helpers.PALETTE.lightestGreen,
-        }}
-      />
+      {userType !== '' ? (
+        userType === 'cliente' ? (
+          <>
+            <section
+              className="center"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <div
+                className="dropdown"
+                style={{
+                  width: '100%',
+                }}
+              >
+                <button
+                  id="clientTypeDropdown"
+                  className="btn btn-primary dropdown-toggle"
+                  type="button"
+                  data-toggle="dropdown"
+                  aria-expanded="false"
+                  style={{
+                    backgroundColor: helpers.PALETTE.green,
+                    borderColor: helpers.PALETTE.green,
+                    width: '100%',
+                  }}
+                >
+                  Tipo de Cliente
+                </button>
+                <div
+                  style={{
+                    height: '15px',
+                  }}
+                ></div>
+                <div
+                  id="clienttype-dropdown-menu-options"
+                  className="dropdown-menu"
+                  aria-labelledby="clientTypeDropdown"
+                >
+                  <a
+                    className="dropdown-item"
+                    onClick={() => {
+                      setClientType('individual');
+                      $('#clientTypeDropdown').text('Cliente Individual');
+                      $('#clienttype-dropdown-menu-options')
+                        .children()
+                        .removeClass('active');
+                      $('#clienttype-dropdown-menu-options')
+                        .children()
+                        .eq(0)
+                        .addClass('active');
+                    }}
+                  >
+                    Cliente Individual
+                  </a>
+                  <a
+                    className="dropdown-item"
+                    onClick={() => {
+                      setClientType('grande');
+                      $('#clientTypeDropdown').text('Gran Cliente');
+                      $('#clienttype-dropdown-menu-options')
+                        .children()
+                        .removeClass('active');
+                      $('#clienttype-dropdown-menu-options')
+                        .children()
+                        .eq(1)
+                        .addClass('active');
+                    }}
+                  >
+                    Gran Cliente
+                  </a>
+                  <a
+                    className="dropdown-item"
+                    onClick={() => {
+                      setClientType('distribuidor');
+                      $('#clientTypeDropdown').text('Distribuidor Mayorista');
+                      $('#clienttype-dropdown-menu-options')
+                        .children()
+                        .removeClass('active');
+                      $('#clienttype-dropdown-menu-options')
+                        .children()
+                        .eq(2)
+                        .addClass('active');
+                    }}
+                  >
+                    Distribuidor Mayorista
+                  </a>
+                </div>
+              </div>
+            </section>
+            {clientType !== '' ? (
+              clientType === 'individual' ? (
+                <>
+                  <label htmlFor="clientName">Nombre</label>
+                  <input
+                    type="text"
+                    id="clientName"
+                    className="form-control text-input"
+                    placeholder="Nombre"
+                    required
+                    onInvalid={(e) => {
+                      e.target.setCustomValidity(
+                        'Por favor, ingrese su nombre.'
+                      );
+                    }}
+                    onChange={(e) => {
+                      setClientName(e.target.value);
+                    }}
+                    style={{
+                      backgroundColor: helpers.PALETTE.lightGray,
+                    }}
+                  />
+                  <label htmlFor="clientEmail">Correo Electrónico</label>
+                  <input
+                    type="email"
+                    id="clientEmail"
+                    className="form-control email-input"
+                    placeholder="Correo Electrónico"
+                    required
+                    onInvalid={(e) => {
+                      e.target.setCustomValidity(
+                        'Por favor, ingrese su correo electrónico.'
+                      );
+                    }}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                    }}
+                    style={{
+                      backgroundColor: helpers.PALETTE.lightGray,
+                    }}
+                  />
+                  <label htmlFor="clientPassword">Contraseña</label>
+                  <input
+                    type="password"
+                    id="clientPassword"
+                    className="form-control text-input"
+                    placeholder="Contraseña"
+                    required
+                    onInvalid={(e) => {
+                      e.target.setCustomValidity(
+                        'Por favor, ingrese su contraseña.'
+                      );
+                    }}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                    }}
+                    style={{
+                      backgroundColor: helpers.PALETTE.lightGray,
+                    }}
+                  />
+                  <label htmlFor="clientPasswordConfirmation">
+                    Confirmación de Contraseña
+                  </label>
+                  <input
+                    type="password"
+                    id="clientPasswordConfirmation"
+                    className="form-control text-input"
+                    placeholder="Confirmación de Contraseña"
+                    required
+                    onInvalid={(e) => {
+                      e.target.setCustomValidity(
+                        'Por favor, ingrese su contraseña nuevamente.'
+                      );
+                    }}
+                    onChange={(e) => {
+                      setPasswordConfirmation(e.target.value);
+                    }}
+                    style={{
+                      backgroundColor: helpers.PALETTE.lightGray,
+                    }}
+                  />
+                </>
+              ) : (
+                <>
+                  <label htmlFor="clientName">Nombre</label>
+                  <input
+                    type="text"
+                    id="clientName"
+                    className="form-control text-input"
+                    placeholder="Nombre"
+                    required
+                    onInvalid={(e) => {
+                      e.target.setCustomValidity(
+                        'Por favor, ingrese su nombre.'
+                      );
+                    }}
+                    onChange={(e) => {
+                      setClientName(e.target.value);
+                    }}
+                    style={{
+                      backgroundColor: helpers.PALETTE.lightGray,
+                    }}
+                  />
+                  <label htmlFor="clientNIT">NIT</label>
+                  <input
+                    type="text"
+                    id="clientNIT"
+                    className="form-control text-input"
+                    placeholder="NIT"
+                    required
+                    onInvalid={(e) => {
+                      e.target.setCustomValidity('Por favor, ingrese su NIT.');
+                    }}
+                    onChange={(e) => {
+                      setClientNIT(e.target.value);
+                    }}
+                    style={{
+                      backgroundColor: helpers.PALETTE.lightGray,
+                    }}
+                  />
+                  <label htmlFor="clientEmail">Correo Electrónico</label>
+                  <input
+                    type="email"
+                    id="clientEmail"
+                    className="form-control email-input"
+                    placeholder="Correo Electrónico"
+                    required
+                    onInvalid={(e) => {
+                      e.target.setCustomValidity(
+                        'Por favor, ingrese su correo electrónico.'
+                      );
+                    }}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                    }}
+                    style={{
+                      backgroundColor: helpers.PALETTE.lightGray,
+                    }}
+                  />
+                  <label htmlFor="clientPhone">Teléfono</label>
+                  <input
+                    type="tel"
+                    id="clientPhone"
+                    className="form-control text-input"
+                    placeholder="Teléfono"
+                    required
+                    onInvalid={(e) => {
+                      e.target.setCustomValidity(
+                        'Por favor, ingrese su número de teléfono.'
+                      );
+                    }}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 8) {
+                        setClientPhone(e.target.value);
+                      } else {
+                        e.target.value = e.target.value.slice(0, 8);
+                      }
+                    }}
+                    style={{
+                      backgroundColor: helpers.PALETTE.lightGray,
+                    }}
+                  />
+                  <label htmlFor="clientComercePatent">
+                    Patente de Comercio
+                  </label>
+                  <input
+                    type="file"
+                    id="clientComercePatent"
+                    className="form-control text-input"
+                    placeholder="Patente de Comercio"
+                    required
+                    onInvalid={(e) => {
+                      e.target.setCustomValidity(
+                        'Por favor, ingrese su patente de comercio.'
+                      );
+                    }}
+                    onChange={(e) => {
+                      setClientComPat(e.target.files[0]);
+                    }}
+                    style={{
+                      backgroundColor: helpers.PALETTE.lightGray,
+                    }}
+                  />
+                  <div className="payment-title">
+                    <p>Información de Pago</p>
+                  </div>
+                  <label htmlFor="cardHolderName">
+                    Nombre del Titular de la Tarjeta
+                  </label>
+                  <input
+                    className="form-control text-input"
+                    id="cardHolderName"
+                    maxLength="20"
+                    type="text"
+                    placeholder="Nombre del Titular de la Tarjeta"
+                    required
+                    onInvalid={(e) => {
+                      e.target.setCustomValidity(
+                        'Por favor, ingrese el nombre del titular de la tarjeta.'
+                      );
+                    }}
+                    onChange={(e) => {
+                      setClientCardHolder(e.target.value);
+                    }}
+                    style={{
+                      backgroundColor: helpers.PALETTE.lightGray,
+                    }}
+                  />
+                  <label htmlFor="expirationDate">
+                    Fecha de Expiración (mm/aa)
+                  </label>
+                  <input
+                    className="form-control text-input"
+                    id="expirationDate"
+                    type="text"
+                    pattern="[0-9]*"
+                    inputMode="numeric"
+                    placeholder="Fecha de Expiración"
+                    required
+                    onInvalid={(e) => {
+                      e.target.setCustomValidity(
+                        'Por favor, ingrese la fecha de expiración de la tarjeta.'
+                      );
+                    }}
+                    onChange={(e) => {
+                      setClientCardExpiration(e.target.value);
+                    }}
+                    style={{
+                      backgroundColor: helpers.PALETTE.lightGray,
+                    }}
+                  />
+                  <label htmlFor="securityCode">Código de Seguridad</label>
+                  <input
+                    className="form-control text-input"
+                    id="securityCode"
+                    type="text"
+                    pattern="[0-9]*"
+                    inputMode="numeric"
+                    placeholder="Código de Seguridad"
+                    required
+                    onInvalid={(e) => {
+                      e.target.setCustomValidity(
+                        'Por favor, ingrese el código de seguridad de la tarjeta.'
+                      );
+                    }}
+                    onChange={(e) => {
+                      setClientCardSecurityNumber(e.target.value);
+                    }}
+                    style={{
+                      backgroundColor: helpers.PALETTE.lightGray,
+                    }}
+                  />
+                  <label htmlFor="clientPassword">Contraseña</label>
+                  <input
+                    type="password"
+                    id="clientPassword"
+                    className="form-control text-input"
+                    placeholder="Contraseña"
+                    required
+                    onInvalid={(e) => {
+                      e.target.setCustomValidity(
+                        'Por favor, ingrese su contraseña.'
+                      );
+                    }}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                    }}
+                    style={{
+                      backgroundColor: helpers.PALETTE.lightGray,
+                    }}
+                  />
+                  <label htmlFor="clientPasswordConfirmation">
+                    Confirmación de Contraseña
+                  </label>
+                  <input
+                    type="password"
+                    id="clientPasswordConfirmation"
+                    className="form-control text-input"
+                    placeholder="Confirmación de Contraseña"
+                    required
+                    onInvalid={(e) => {
+                      e.target.setCustomValidity(
+                        'Por favor, ingrese su contraseña nuevamente.'
+                      );
+                    }}
+                    onChange={(e) => {
+                      setPasswordConfirmation(e.target.value);
+                    }}
+                    style={{
+                      backgroundColor: helpers.PALETTE.lightGray,
+                    }}
+                  />
+                </>
+              )
+            ) : (
+              <></>
+            )}
+          </>
+        ) : (
+          <>
+            <label htmlFor="sellerName">Nombre Comercial</label>
+            <input
+              type="text"
+              id="sellerName"
+              className="form-control text-input"
+              placeholder="Nombre Comercial"
+              required
+              onInvalid={(e) => {
+                e.target.setCustomValidity(
+                  'Por favor, ingrese su nombre comercial.'
+                );
+              }}
+              onChange={(e) => {
+                setSellerName(e.target.value);
+              }}
+              style={{
+                backgroundColor: helpers.PALETTE.lightGray,
+              }}
+            />
+            <label htmlFor="sellerEmail">Correo Electrónico</label>
+            <input
+              type="email"
+              id="sellerEmail"
+              className="form-control email-input"
+              placeholder="Correo Electrónico"
+              required
+              onInvalid={(e) => {
+                e.target.setCustomValidity(
+                  'Por favor, ingrese su correo electrónico.'
+                );
+              }}
+              onChange={(e) => {
+                setEmail(e.target.value);
+              }}
+              style={{
+                backgroundColor: helpers.PALETTE.lightGray,
+              }}
+            />
+            <label htmlFor="sellerPassword">Contraseña</label>
+            <input
+              type="password"
+              id="sellerPassword"
+              className="form-control text-input"
+              placeholder="Contraseña"
+              required
+              onInvalid={(e) => {
+                e.target.setCustomValidity('Por favor, ingrese su contraseña.');
+              }}
+              onChange={(e) => {
+                setPassword(e.target.value);
+              }}
+              style={{
+                backgroundColor: helpers.PALETTE.lightGray,
+              }}
+            />
+            <label htmlFor="sellerPasswordConfirmation">
+              Confirmación de Contraseña
+            </label>
+            <input
+              type="password"
+              id="sellerPasswordConfirmation"
+              className="form-control text-input"
+              placeholder="Confirmación de Contraseña"
+              required
+              onInvalid={(e) => {
+                e.target.setCustomValidity(
+                  'Por favor, ingrese su contraseña nuevamente.'
+                );
+              }}
+              onChange={(e) => {
+                setPasswordConfirmation(e.target.value);
+              }}
+              style={{
+                backgroundColor: helpers.PALETTE.lightGray,
+              }}
+            />
+          </>
+        )
+      ) : (
+        <></>
+      )}
       <button
         className="btn btn-lg btn-primary btn-block sign-in-btn"
-        type="submit"
+        onClick={(e) => {
+          e.preventDefault();
+          handleCredentialsSubmission();
+        }}
         style={{
           backgroundColor: helpers.PALETTE.darkGreen,
           borderColor: helpers.PALETTE.darkGreen,
         }}
       >
-        Sign in
+        Crear Cuenta
       </button>
       <section className="login-bottom-text">
         <p className="mt-3 mb-3 text-muted text-center">
-          <b>{"Already have an accout?"}</b>
+          <b>{'¿Ya tienes una cuenta?'}</b>
           &nbsp;
-          <Link to="/login">Login</Link>
+          <Link to="/login">Iniciar Sesión</Link>
         </p>
       </section>
     </form>
