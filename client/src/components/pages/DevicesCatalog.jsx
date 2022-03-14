@@ -28,7 +28,7 @@ function DevicesCatalog() {
           let deviceData = await axios.get(
             `http://localhost:8080/sales-system/sellers?dispositivos=true&dispositivo=${devices[i].id_dispositivo}&vendedor=${devices[i].vendedor}`
           );
-          if (deviceData.data.success) {
+          if (deviceData.data.data[0].fotos) {
             images.push(deviceData.data.data[0].fotos[0]);
           } else {
             images.push(null);
