@@ -12,18 +12,26 @@ function DevicesCatalog(props) {
             <img
               className="product-image"
               src={
-                props.images[index] !== null && props.images[index] !== undefined
-                  ? `data:image/png;base64,${props.images[index]}`
+                props.images[index] !== null &&
+                props.images[index] !== undefined
+                  ? props.images[index].substring(0, 22) !==
+                    'data:image/png;base64,'
+                    ? `data:image/png;base64,${props.images[index]}`
+                    : props.image
                   : 'https://us.123rf.com/450wm/pavelstasevich/pavelstasevich1811/pavelstasevich181101028/112815904-no-image-available-icon-flat-vector-illustration.jpg?ver=6'
               }
               alt="Imagen del dispositivo"
             />
             <p className="card-text">
-              {device.descripcion.length < 25 ? device.descripcion : `${device.descripcion.substring(0, 25)}...`}
+              {device.descripcion.length < 25
+                ? device.descripcion
+                : `${device.descripcion.substring(0, 25)}...`}
               <br />
               {helpers.getFormattedCurrency('Q. ', device.precio)}
             </p>
-            <Link to={`/datos-dispositivo/${device.vendedor}/${device.id_dispositivo}`}>
+            <Link
+              to={`/datos-dispositivo/${device.vendedor}/${device.id_dispositivo}`}
+            >
               <button className="btn btn-primary">Ver más</button>
             </Link>
           </div>

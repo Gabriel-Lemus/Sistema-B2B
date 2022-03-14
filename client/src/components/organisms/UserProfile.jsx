@@ -158,7 +158,8 @@ function UserProfile() {
                   let potentialUserData = JSON.parse(
                     JSON.stringify(newUserData)
                   );
-                  potentialUserData.nit = e.target.value !== '' ? e.target.value : null;
+                  potentialUserData.nit =
+                    e.target.value !== '' ? e.target.value : null;
                   setNewUserData(potentialUserData);
                 }}
               />
@@ -167,10 +168,22 @@ function UserProfile() {
           <tr>
             <th scope="row">Pat. de Com.</th>
             <td>
-              {userData.pat_comercial !== null &&
-              userData.pat_comercial !== undefined ? (
+              {userData.patente_comercio !== null &&
+              userData.patente_comercio !== undefined ? (
                 <img
-                  src={`data:image/png;base64,${userData.patente_comercio}`}
+                  src={
+                    userData.patente_comercio.substring(0, 22) !==
+                    'data:image/png;base64,'
+                      ? `data:image/png;base64,${userData.patente_comercio}`
+                      : userData.patente_comercio
+                  }
+                  style={{
+                    // Center the image
+                    display: 'block',
+                    marginLeft: 'auto',
+                    marginRight: 'auto',
+                    // width: '100%',
+                  }}
                   alt="Patente de Comercio"
                 />
               ) : (
