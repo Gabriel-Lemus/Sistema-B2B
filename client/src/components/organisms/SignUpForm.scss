@@ -1,0 +1,47 @@
+@import '../../../public/sass/utilities/variables';
+
+.sign-in-form {
+  width: 500px;
+  max-width: 90vw;
+  padding: 25px;
+  margin: 50px auto;
+  background-color: $white;
+  border-radius: 10px;
+}
+
+.email-input,
+.text-input {
+  margin-bottom: 15px;
+}
+
+.sign-in-btn {
+  margin-top: 30px;
+  margin-bottom: 10px;
+  background-color: $darkGreen;
+  border-color: $darkGreen;
+}
+
+.input-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: stretch;
+  align-items: center;
+  width: 100%;
+}
+
+.input-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+  margin-right: 20px;
+  width: 100%;
+}
+
+.input-column-2 {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+  width: 100%;
+}
