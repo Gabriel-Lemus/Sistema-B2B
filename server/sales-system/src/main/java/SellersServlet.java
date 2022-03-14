@@ -674,7 +674,7 @@ public class SellersServlet extends HttpServlet {
                     int queryCount = helper.getQueryRowCount(con, devicesQuery);
                     Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                             ResultSet.CONCUR_READ_ONLY);
-                    
+
                     if (queryCount == 0) {
                         ResultSet rs = stmt.executeQuery(devicesQueryAlt);
                         String deviceStr = "{\"success\":" + true + ",\"data\":[";
