@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import helpers from '../../helpers/helpers';
 
 function DevicesCatalog(props) {
   return (
@@ -18,9 +19,9 @@ function DevicesCatalog(props) {
               alt="Imagen del dispositivo"
             />
             <p className="card-text">
-              {device.descripcion}
+              {device.descripcion.length < 25 ? device.descripcion : `${device.descripcion.substring(0, 25)}...`}
               <br />
-              {device.precio}
+              {helpers.getFormattedCurrency('Q. ', device.precio)}
             </p>
             <Link to={`/datos-dispositivo/${device.vendedor}/${device.id_dispositivo}`}>
               <button className="btn btn-primary">Ver más</button>

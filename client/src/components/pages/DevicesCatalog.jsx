@@ -12,6 +12,7 @@ import { FiBook } from 'react-icons/fi';
 function DevicesCatalog() {
   // State
   const [devices, setDevices] = useState([]);
+  const [devicesImages, setdevicesImages] = useState([]);
 
   // Effects
   useEffect(() => {
@@ -22,6 +23,23 @@ function DevicesCatalog() {
       setDevices(devicesData.data.data);
     })();
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      if (devices.length !== 0) {
+        let images = [];
+
+        for (let i = 0; i < devices.length; i++) {
+          let deviceData = await axios.get(
+            `http://localhost:8080/sales-system/sellers?dispositivos=true&dispositivo=${devices[i].id_dispositivo}&vendedor=${devices[i].vendedor}`
+          );
+          images.push(deviceData.data.data[0].fotos[0]);
+        }
+
+        setdevicesImages(images);
+      }
+    })();
+  }, [devices]);
 
   // Check if the devices is an empty array
   return (
@@ -54,7 +72,7 @@ function DevicesCatalog() {
         </>
       ) : (
         <>
-          <DevicesCards devices={devices} />
+          <DevicesCards devices={devices} images={devicesImages} />
         </>
       )}
     </DashboardTemplate>
