@@ -26,6 +26,7 @@ router.post('/devices/new-device', async (req, res) => {
     else {
         const newDevice = new Device({title,description});
         await newDevice.save();
+        req.flash('success_msg', 'Device added successfully');
         res.redirect('/devices');
     }
 });
@@ -43,11 +44,13 @@ router.get('/devices/edit/:id', async (req, res) => {
 router.put('/devices/edit-device/:id', async (req, res) => {
     const {title,description} = req.body;
     await Device.findByIdAndUpdate(req.params.id,{title,description});
+    req.flash('success_msg', 'Device updated successfully');
     res.redirect('/devices');
 });
 
 router.delete('/devices/delete/:id', async (req, res) => {
     await Device.findByIdAndDelete(req.params.id);
+    req.flash('success_msg', 'Device deleted successfully');
     res.redirect('/devices');
 });
 
