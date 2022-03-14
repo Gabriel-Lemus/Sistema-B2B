@@ -30,8 +30,9 @@ router.post('/devices/new-device', async (req, res) => {
     }
 });
 
-router.get('/devices', (req, res) => {
-    res.send('Devices from DataBase');
+router.get('/devices', async (req, res) => {
+    const devices = await Device.find().lean().sort({date: 'desc'});
+    res.render('devices/all-devices', {devices});
 });
 
 module.exports = router;
