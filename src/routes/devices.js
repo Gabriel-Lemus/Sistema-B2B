@@ -8,7 +8,7 @@ router.get('/devices/add', (req, res) => {
 });
 
 router.post('/devices/new-device', async (req, res) => {
-    const {title, description} = req.body;
+    const {title, description, model_code, category, kind, brand, color, warranty_time, shipping_time, price } = req.body;
     const errors = [];
     if(!title){
         errors.push({text: 'Please write a title'});
@@ -19,12 +19,20 @@ router.post('/devices/new-device', async (req, res) => {
     if(errors.length > 0){
         res.render('devices/new-device', {
             errors,
-            title,
-            description
+            title, 
+            description, 
+            model_code, 
+            category, 
+            kind, 
+            brand, 
+            color, 
+            warranty_time, 
+            shipping_time, 
+            price
         });
     }
     else {
-        const newDevice = new Device({title,description});
+        const newDevice = new Device({title, description, model_code, category, kind, brand, color, warranty_time, shipping_time, price});
         await newDevice.save();
         req.flash('success_msg', 'Device added successfully');
         res.redirect('/devices');
@@ -42,8 +50,8 @@ router.get('/devices/edit/:id', async (req, res) => {
 });
 
 router.put('/devices/edit-device/:id', async (req, res) => {
-    const {title,description} = req.body;
-    await Device.findByIdAndUpdate(req.params.id,{title,description});
+    const {title, description, model_code, category, kind, brand, color, warranty_time, shipping_time, price } = req.body;
+    await Device.findByIdAndUpdate(req.params.id,{title, description, model_code, category, kind, brand, color, warranty_time, shipping_time, price });
     req.flash('success_msg', 'Device updated successfully');
     res.redirect('/devices');
 });
