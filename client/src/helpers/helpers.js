@@ -175,13 +175,36 @@ const getHashedPassword = (password, salt) => {
  * @return {string} The formatted currency.
  */
 const getFormattedCurrency = (sign, value) => {
-  let formattedCurrency =`${sign}${getThousandSeparators(value)}`
-  
+  let formattedCurrency = `${sign}${getThousandSeparators(value)}`;
+
   if (value % 1 === 0) {
     formattedCurrency += '.00';
   }
-  
+
   return formattedCurrency;
+};
+
+/**
+ * Compare if two objects have the same keys and values.
+ * @param {object} obj1 The first object.
+ * @param {object} obj2 The second object.
+ * @return {boolean} True if the objects have the same keys and values.
+ */
+const compareObjects = (obj1, obj2) => {
+  let keys1 = Object.keys(obj1);
+  let keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  for (let i = 0; i < keys1.length; i++) {
+    if (obj1[keys1[i]] !== obj2[keys1[i]] || keys1[i] !== keys2[i]) {
+      return false;
+    }
+  }
+
+  return true;
 };
 
 /**
@@ -210,6 +233,7 @@ const helpers = {
   getCryptoSalt,
   getHashedPassword,
   getFormattedCurrency,
+  compareObjects,
 };
 
 export default helpers;
