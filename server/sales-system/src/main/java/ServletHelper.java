@@ -1,5 +1,6 @@
 import java.sql.*;
 import java.util.Base64;
+
 import java.io.PrintWriter;
 
 import org.json.JSONObject;
@@ -45,7 +46,7 @@ public class ServletHelper {
             case "FLOAT":
                 return "'" + json.getDouble(attributes[index]) + "'";
             case "BLOB":
-                return "'" + Base64.getEncoder().encodeToString(json.getString(attributes[index]).getBytes()) + "'";
+                return "'" + new String(Base64.getEncoder().encode(json.getString(attributes[index]).getBytes())) + "'";
             case "DATE":
                 if (isDateWithTime(json.getString(attributes[index]))) {
                     return "TO_DATE('" + json.getString(attributes[index]) + "', 'YYYY-MM-DD HH24:MI:SS')";
@@ -94,13 +95,6 @@ public class ServletHelper {
                     break;
                 case "BOOLEAN":
                     out.print(rs.getBoolean(attributes[index]));
-                    break;
-                case "BLOB":
-                    out.print("\"" + Base64.getEncoder().encodeToString(rs.getBytes(attributes[index])) + "\"");
-                    // out.print("\"" +
-                    // Base64.getEncoder().encodeToString(rs.getBytes(attributes[index])).substring(0,
-                    // 25)
-                    // + "...\"");
                     break;
                 default:
                     out.print("\"" + rs.getString(attributes[index]) + "\"");
