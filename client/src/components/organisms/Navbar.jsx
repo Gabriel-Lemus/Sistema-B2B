@@ -12,7 +12,7 @@ function Navbar(props) {
           className="d-inline-block align-top navbar-img"
           alt="Sistema B2B logo"
         />
-        {"Sistema B2B"}
+        {'Sistema B2B'}
       </a>
       <button
         className="navbar-toggler"
@@ -36,6 +36,18 @@ function Navbar(props) {
             <Link className="nav-link" to="/">
               Inicio{' '}
               {props.activePageIdx === 0 ? (
+                <span className="sr-only">(current)</span>
+              ) : (
+                <></>
+              )}
+            </Link>
+          </li>
+          <li
+            className={`nav-item${props.activePageIdx === 1 ? ' active' : ''}`}
+          >
+            <Link className="nav-link" to="/catalogo-dispositivos">
+              Catálogo{' '}
+              {props.activePageIdx === 1 ? (
                 <span className="sr-only">(current)</span>
               ) : (
                 <></>
