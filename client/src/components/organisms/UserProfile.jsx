@@ -13,7 +13,7 @@ function UserProfile() {
       let userData = await axios.get(
         `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${userId}`
       );
-      console.log(userData.data.data);
+      // console.log(userData.data.data);
       let oldUserData = JSON.parse(JSON.stringify(userData.data.data));
       setUserData(userData.data.data);
       setNewUserData(oldUserData);
@@ -21,7 +21,7 @@ function UserProfile() {
   }, []);
 
   useEffect(() => {
-    console.log(newUserData);
+    // console.log(newUserData);
   }, [newUserData]);
 
   const handleSaveChanges = async () => {
@@ -31,7 +31,7 @@ function UserProfile() {
         `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${userId}`,
         newUserData
       );
-      console.log(updateUserData.data);
+      // console.log(updateUserData.data);
 
       if (updateUserData.data.success) {
         setUserData(newUserData);
