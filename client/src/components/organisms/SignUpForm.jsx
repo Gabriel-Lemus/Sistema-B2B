@@ -273,7 +273,6 @@ function SignUpForm() {
                     '", "YYYY-MM-DD HH24:MI:SS")',
                 }
               );
-              console.log(clientRegistration.data);
 
               if (clientRegistration.data.success) {
                 let salt = helpers.getCryptoSalt(32);
@@ -289,7 +288,6 @@ function SignUpForm() {
                   `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios`,
                   userCredentialsTableData
                 );
-                console.log(userCredentialsRegistration.data);
 
                 if (userCredentialsRegistration.data.success) {
                   // Redirect to the login page
