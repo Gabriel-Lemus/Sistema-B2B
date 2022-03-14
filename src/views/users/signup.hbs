@@ -1,1 +1,36 @@
-<h1>Registrar</h1>
+<div class="row">
+    <div class="col-md-4 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h3>Account Register</h3>
+            </div>
+            <div class="card-body">
+                <form class="needs-validation" novalidate action="/users/signup" method="POST">
+                    <div class="input-group mb-3">
+                        <label for="validationUserName" class="form-label"></label>
+                        <input type="text" name="name" class="form-control" id="validationUserName" placeholder="Name" value="{{name}}" autofocus required>
+                        <div class="invalid-feedback">Please provide a name.</div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <label for="validationUserEmail" class="form-label"></label>
+                        <input type="email" name="email" class="form-control" id="validationUserEmail" placeholder="Email" value="{{email}}" required>
+                        <div class="invalid-feedback">Please provide an email.</div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <label for="validationUserPass" class="form-label"></label>
+                        <input type="password" name="password" class="form-control" id="validationUserPass" placeholder="Password" value="{{password}}" required>
+                        <div class="invalid-feedback">Please provide a password.</div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <label for="validationUserCPass" class="form-label"></label>
+                        <input type="password" name="confirm_password" class="form-control" id="validationUserCPass" placeholder="Confirm Password" value="{{confirm_password}}" required>
+                        <div class="invalid-feedback">Please confirm your password.</div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <button class="btn btn-primary w-100" type="submit">SignUp</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
