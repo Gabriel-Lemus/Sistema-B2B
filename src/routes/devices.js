@@ -35,4 +35,15 @@ router.get('/devices', async (req, res) => {
     res.render('devices/all-devices', {devices});
 });
 
+router.get('/devices/edit/:id', async (req, res) => {
+    const device = await Device.findById(req.params.id).lean();
+    res.render('devices/edit-device', {device});
+});
+
+router.put('/devices/edit-device/:id', async (req, res) => {
+    const {title,description} = req.body;
+    await Device.findByIdAndUpdate(req.params.id,{title,description});
+    res.redirect('/devices');
+});
+
 module.exports = router;

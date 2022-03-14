@@ -1,0 +1,25 @@
+<div class="col-md-4 mx-auto">
+    <div class="card">
+        <div class="card-header">
+            <h3>Edit Device</h3>
+        </div>
+        <div class="card-body">
+            <form class="needs-validation" novalidate action="/devices/edit-device/{{device._id}}?_method=PUT" method="POST">
+                <input type="hidden" name="_method" value="PUT">
+                <div class="input-group mb-3">
+                    <label for="validationDeviceTitle" class="form-label"></label>
+                    <input type="text" name="title" class="form-control" id="validationDeviceTitle" placeholder="Title" value="{{device.title}}" autofocus required>
+                    <div class="invalid-feedback">Please provide a title.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationDescription" class="form-label"></label>
+                    <textarea name="description" class="form-control" id="validationDescription" placeholder="Description" required>{{device.description}}</textarea>
+                    <div class="invalid-feedback">Please provide a description.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <button class="btn btn-primary w-100" type="submit">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
