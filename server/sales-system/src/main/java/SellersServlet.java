@@ -50,7 +50,8 @@ public class SellersServlet extends HttpServlet {
                         { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
                                 "VARCHAR2", "VARCHAR2", "INTEGER" },
                         { "INTEGER", "INTEGER", "BLOB" },
-                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
+                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT",
+                                "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "INTEGER" },
@@ -743,7 +744,7 @@ public class SellersServlet extends HttpServlet {
             // Chedk if the seller parameter is valid
             if (seller.length() > 0) {
                 user = seller + "_SELLER";
-                password = seller + "_ADMIN_SALES";
+                password = user + "_ADMIN_SALES";
 
                 // Check if the seller exists
                 try {
@@ -799,7 +800,7 @@ public class SellersServlet extends HttpServlet {
             // Chedk if the seller parameter is valid
             if (seller.length() > 0) {
                 user = seller + "_SELLER";
-                password = seller + "_ADMIN_SALES";
+                password = user + "_ADMIN_SALES";
 
                 // Check if the seller exists
                 try {
