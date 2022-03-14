@@ -208,6 +208,25 @@ const compareObjects = (obj1, obj2) => {
 };
 
 /**
+ * Get the base64 representation of a file.
+ * @param {File} file The file to be converted.
+ * @return {Promise<string>} The base64 representation of the file.
+ */
+const getBase64 = (file) => {
+  let reader = new FileReader();
+  reader.readAsDataURL(file);
+
+  return new Promise((resolve, reject) => {
+    reader.onload = () => {
+      resolve(reader.result);
+    };
+    reader.onerror = (error) => {
+      reject(error);
+    };
+  });
+};
+
+/**
  * Localhost IP address.
  */
 const LOCALHOST_IP = 'localhost';
@@ -234,6 +253,7 @@ const helpers = {
   getHashedPassword,
   getFormattedCurrency,
   compareObjects,
+  getBase64,
 };
 
 export default helpers;
