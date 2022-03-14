@@ -607,7 +607,8 @@ public class SqlTableCrud {
                 oldData.put(attributes[i], (types[i] == "INTEGER" ? rs.getInt(attributes[i])
                         : types[i] == "FLOAT" ? rs.getFloat(attributes[i])
                                 : types[i] == "BOOLEAN" ? rs.getBoolean(attributes[i])
-                                        : rs.getString(attributes[i])));
+                                        : types[i] == "BLOB" ? rs.getBlob(attributes[i])
+                                                : rs.getString(attributes[i])));
             }
 
             // Get the request body and parse it to a JSON object
