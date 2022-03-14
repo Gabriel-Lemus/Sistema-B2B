@@ -138,6 +138,16 @@ const getHashedPassword = (password, salt) => {
 };
 
 /**
+ * Display the formatted currency with the given sign.
+ * @param {number} value The value to be displayed.
+ * @param {string} sign The currency sign.
+ * @return {string} The formatted currency.
+ */
+const getFormattedCurrency = (sign, value) => {
+  return `${sign}${getThousandSeparators(value)}`;
+};
+
+/**
  * Localhost IP address.
  */
 const LOCALHOST_IP = 'localhost';
@@ -161,6 +171,7 @@ const helpers = {
   TOMCAT_PORT,
   getCryptoSalt,
   getHashedPassword,
+  getFormattedCurrency,
 };
 
 export default helpers;
