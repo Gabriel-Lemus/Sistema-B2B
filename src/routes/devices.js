@@ -46,4 +46,9 @@ router.put('/devices/edit-device/:id', async (req, res) => {
     res.redirect('/devices');
 });
 
+router.delete('/devices/delete/:id', async (req, res) => {
+    await Device.findByIdAndDelete(req.params.id);
+    res.redirect('/devices');
+});
+
 module.exports = router;

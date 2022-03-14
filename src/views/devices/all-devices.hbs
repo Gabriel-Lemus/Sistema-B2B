@@ -7,7 +7,10 @@
                         {{title}} <a href="/devices/edit/{{_id}}"><i class="fas fa-edit"></i></a>
                     </h4>
                     <p>{{description}}</p>
-                    <button class="btn btn-danger w-100 btn-sm">Delete</button>
+                    <form action="/devices/delete/{{_id}}?_method=DELETE" method="POST">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button class="btn btn-danger w-100 btn-sm" type="submit">Delete</button>
+                    </form>
                 </div>
             </div>
         </div>
