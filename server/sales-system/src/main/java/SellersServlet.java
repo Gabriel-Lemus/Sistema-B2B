@@ -656,60 +656,123 @@ public class SellersServlet extends HttpServlet {
                             + ".dispositivos.id_dispositivo = " + seller
                             + ".fotos_dispositivos.id_dispositivo) SELECT s.* FROM s WHERE s.id_dispositivo = "
                             + deviceId;
+                    String devicesQueryAlt = "SELECT " + seller
+                            + ".dispositivos.ID_DISPOSITIVO ID_DISPOSITIVO, " + seller
+                            + ".dispositivos.NOMBRE NOMBRE, " + seller
+                            + ".dispositivos.DESCRIPCION DESCRIPCION, " + seller
+                            + ".dispositivos.EXISTENCIAS EXISTENCIAS, " + seller
+                            + ".dispositivos.PRECIO PRECIO, " + seller
+                            + ".dispositivos.CODIGO_MODELO CODIGO_MODELO, " + seller
+                            + ".dispositivos.COLOR COLOR, " + seller
+                            + ".dispositivos.CATEGORIA CATEGORIA, " + seller
+                            + ".dispositivos.TIEMPO_GARANTIA TIEMPO_GARANTIA FROM "
+                            + seller + ".dispositivos WHERE id_dispositivo = "
+                            + deviceId;
 
                     Class.forName("oracle.jdbc.driver.OracleDriver");
                     Connection con = DriverManager.getConnection(connectionUrl, "Sales", "adminsales");
+                    int queryCount = helper.getQueryRowCount(con, devicesQuery);
                     Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                             ResultSet.CONCUR_READ_ONLY);
-                    ResultSet rs = stmt.executeQuery(devicesQuery);
-                    String deviceStr = "{\"success\":" + true + ",\"data\":[";
-                    String[] attributes = new String[] { "id_dispositivo", "nombre", "descripcion", "existencias",
-                            "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia", "foto" };
-                    String[] types = new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
-                            "VARCHAR2", "VARCHAR2", "VARCHAR2", "BLOB" };
+                    
+                    if (queryCount == 0) {
+                        ResultSet rs = stmt.executeQuery(devicesQueryAlt);
+                        String deviceStr = "{\"success\":" + true + ",\"data\":[";
+                        String[] attributes = new String[] { "id_dispositivo", "nombre", "descripcion", "existencias",
+                                "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia" };
+                        String[] types = new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT",
+                                "VARCHAR2",
+                                "VARCHAR2", "VARCHAR2", "VARCHAR2" };
 
-                    while (rs.next()) {
-                        deviceStr += ("{");
+                        while (rs.next()) {
+                            deviceStr += ("{");
 
-                        for (int i = 1; i < attributes.length; i++) {
-                            deviceStr += ("\"" + attributes[i] + "\":");
+                            for (int i = 1; i < attributes.length; i++) {
+                                deviceStr += ("\"" + attributes[i] + "\":");
 
-                            switch (types[i]) {
-                                case "INTEGER":
-                                    deviceStr += (rs.getInt(attributes[i]));
-                                    break;
-                                case "FLOAT":
-                                    deviceStr += (rs.getFloat(attributes[i]));
-                                    break;
-                                case "BOOLEAN":
-                                    deviceStr += (rs.getBoolean(attributes[i]));
-                                    break;
-                                case "BLOB":
-                                    deviceStr += ("\"" +
-                                            Base64.getEncoder().encodeToString(rs.getBytes(attributes[i]))
-                                            + "\"");
-                                    break;
-                                default:
-                                    deviceStr += ("\"" + rs.getString(attributes[i]) + "\"");
-                                    break;
+                                switch (types[i]) {
+                                    case "INTEGER":
+                                        deviceStr += (rs.getInt(attributes[i]));
+                                        break;
+                                    case "FLOAT":
+                                        deviceStr += (rs.getFloat(attributes[i]));
+                                        break;
+                                    case "BOOLEAN":
+                                        deviceStr += (rs.getBoolean(attributes[i]));
+                                        break;
+                                    default:
+                                        deviceStr += ("\"" + rs.getString(attributes[i]) + "\"");
+                                        break;
+                                }
+
+                                if (i < attributes.length - 1) {
+                                    deviceStr += (",");
+                                }
                             }
 
-                            if (i < attributes.length - 1) {
+                            deviceStr += ("}");
+
+                            if (rs.isLast()) {
+                                deviceStr += ("]}");
+                            } else {
                                 deviceStr += (",");
                             }
                         }
 
-                        deviceStr += ("}");
+                        out.print(deviceStr);
+                        // out.print(concatenateDeviceInfo(deviceStr));
+                    } else {
+                        ResultSet rs = stmt.executeQuery(devicesQuery);
+                        String deviceStr = "{\"success\":" + true + ",\"data\":[";
+                        String[] attributes = new String[] { "id_dispositivo", "nombre", "descripcion", "existencias",
+                                "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia", "foto" };
+                        String[] types = new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT",
+                                "VARCHAR2",
+                                "VARCHAR2", "VARCHAR2", "VARCHAR2", "BLOB" };
 
-                        if (rs.isLast()) {
-                            deviceStr += ("]}");
-                        } else {
-                            deviceStr += (",");
+                        while (rs.next()) {
+                            deviceStr += ("{");
+
+                            for (int i = 1; i < attributes.length; i++) {
+                                deviceStr += ("\"" + attributes[i] + "\":");
+
+                                switch (types[i]) {
+                                    case "INTEGER":
+                                        deviceStr += (rs.getInt(attributes[i]));
+                                        break;
+                                    case "FLOAT":
+                                        deviceStr += (rs.getFloat(attributes[i]));
+                                        break;
+                                    case "BOOLEAN":
+                                        deviceStr += (rs.getBoolean(attributes[i]));
+                                        break;
+                                    case "BLOB":
+                                        deviceStr += ("\"" +
+                                                Base64.getEncoder().encodeToString(rs.getBytes(attributes[i]))
+                                                + "\"");
+                                        break;
+                                    default:
+                                        deviceStr += ("\"" + rs.getString(attributes[i]) + "\"");
+                                        break;
+                                }
+
+                                if (i < attributes.length - 1) {
+                                    deviceStr += (",");
+                                }
+                            }
+
+                            deviceStr += ("}");
+
+                            if (rs.isLast()) {
+                                deviceStr += ("]}");
+                            } else {
+                                deviceStr += (",");
+                            }
                         }
-                    }
 
-                    // out.print(deviceStr);
-                    out.print(concatenateDeviceInfo(deviceStr));
+                        // out.print(deviceStr);
+                        out.print(concatenateDeviceInfo(deviceStr));
+                    }
                 } catch (Exception e) {
                     helper.printErrorMessage(out, e);
                 }
