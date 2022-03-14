@@ -4,7 +4,7 @@ import $ from 'jquery';
 import CryptoJS from 'crypto-js';
 
 // React icons
-import { AiOutlineUser } from 'react-icons/ai';
+import { AiOutlineUser, AiOutlineShoppingCart } from 'react-icons/ai';
 import { BiPurchaseTagAlt } from 'react-icons/bi';
 import { FiBook } from 'react-icons/fi';
 
@@ -37,6 +37,11 @@ const CLIENT_PAGES = [
     icon: <BiPurchaseTagAlt />,
     title: 'Compras',
     reference: '/compras',
+  },
+  {
+    icon: <AiOutlineShoppingCart />,
+    title: 'Carrito de Compras',
+    reference: '/carrito-compras',
   },
   {
     icon: <AiOutlineUser />,
