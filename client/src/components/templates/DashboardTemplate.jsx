@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function DashboardTemplate(props) {
+  const navigate = useNavigate();
+  const [searchParam, setSearchParam] = useState('');
+
   return (
     <>
       <nav className="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
@@ -8,25 +12,35 @@ function DashboardTemplate(props) {
           Sistema B2B
         </a>
         {props.displaySearchBar ? (
-          <>
-            <button
-              className="navbar-toggler position-absolute d-md-none collapsed"
-              type="button"
-              data-toggle="collapse"
-              data-target="#sidebarMenu"
-              aria-controls="sidebarMenu"
-              aria-expanded="false"
-              aria-label="Toggle navigation"
-            >
-              <span className="navbar-toggler-icon"></span>
-            </button>
+          <div className="input-group mb-2 mt-2">
             <input
-              className="form-control form-control-dark w-100"
               type="text"
-              placeholder="Search"
-              aria-label="Search"
+              className="form-control"
+              placeholder="Búsqueda de dispositivos"
+              aria-label="Búsqueda de dispositivos"
+              aria-describedby="button-addon"
+              onChange={(e) => setSearchParam(e.target.value)}
             />
-          </>
+            <div className="input-group-append">
+              <button
+                className="btn btn-primary"
+                type="button"
+                id="button-addon2"
+                onClick={() => {
+                  if (searchParam !== '') {
+                    navigate('/');
+                    setTimeout(() => {
+                      navigate(
+                        `/catalogo-dispositivos-busqueda/${searchParam}`
+                      );
+                    }, 1);
+                  }
+                }}
+              >
+                Buscar
+              </button>
+            </div>
+          </div>
         ) : (
           <></>
         )}
