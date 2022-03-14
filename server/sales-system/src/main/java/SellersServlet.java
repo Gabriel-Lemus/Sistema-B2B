@@ -38,7 +38,7 @@ public class SellersServlet extends HttpServlet {
                         { "id_dispositivo", "id_vendedor", "id_marca", "nombre", "descripcion", "existencias", "precio",
                                 "codigo_modelo", "color", "categoria", "tiempo_garantia" },
                         { "id_foto", "id_dispositivo", "foto" },
-                        { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precio_venta",
+                        { "id_venta", "id_cliente", "id_vendedor", "id_dispositivo", "fecha_venta", "precio_venta",
                                 "cantidad_dispositivos", "impuestos", "descuentos", "total_venta" },
                         { "id_pago", "id_venta", "id_cliente", "id_vendedor", "fecha_pago", "total" },
                         { "id_pedido", "id_cliente", "id_vendedor", "fecha_pedido", "precio_pedido",
@@ -50,7 +50,7 @@ public class SellersServlet extends HttpServlet {
                         { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
                                 "VARCHAR2", "VARCHAR2", "INTEGER" },
                         { "INTEGER", "INTEGER", "BLOB" },
-                        { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
+                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "INTEGER" },
@@ -59,7 +59,7 @@ public class SellersServlet extends HttpServlet {
                 new boolean[][] {
                         { false, false, false, false, false, false, false, false, false, false, false },
                         { false, false, false },
-                        { false, false, false, false, false, false, false, false, false },
+                        { false, false, false, false, false, false, false, false, false, false },
                         { false, false, false, false, false, false },
                         { false, false, false, false, false, false },
                         { false, false, false, false },
@@ -227,7 +227,7 @@ public class SellersServlet extends HttpServlet {
                                             + " does not exist.");
                         }
                     } catch (Exception e) {
-                        out.print("Hubo un error abada");
+                        out.print("Hubo un error");
                         helper.printErrorMessage(out, e);
                     }
                 } else {
@@ -511,7 +511,7 @@ public class SellersServlet extends HttpServlet {
                                         + " does not exist.");
                     }
                 } catch (Exception e) {
-                    out.print("Hubo un error abada");
+                    out.print("Hubo un error");
                     helper.printErrorMessage(out, e);
                 }
             } else {
