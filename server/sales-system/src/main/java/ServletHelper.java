@@ -46,7 +46,7 @@ public class ServletHelper {
             case "FLOAT":
                 return "'" + json.getDouble(attributes[index]) + "'";
             case "BLOB":
-                return "'" + new String(Base64.getEncoder().encode(json.getString(attributes[index]).getBytes())) + "'";
+                return "utl_raw.cast_to_raw('" + new String(Base64.getEncoder().encode(json.getString(attributes[index]).getBytes())) + "')";
             case "DATE":
                 if (isDateWithTime(json.getString(attributes[index]))) {
                     return "TO_DATE('" + json.getString(attributes[index]) + "', 'YYYY-MM-DD HH24:MI:SS')";
@@ -95,6 +95,9 @@ public class ServletHelper {
                     break;
                 case "BOOLEAN":
                     out.print(rs.getBoolean(attributes[index]));
+                    break;
+                case "BLOB":
+                    out.print("\"" + new String(Base64.getDecoder().decode(rs.getBytes(attributes[index]))) + "\"");
                     break;
                 default:
                     out.print("\"" + rs.getString(attributes[index]) + "\"");
