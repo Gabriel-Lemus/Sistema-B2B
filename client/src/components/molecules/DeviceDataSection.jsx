@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import $ from 'jquery';
 import helpers from '../../helpers/helpers';
 
@@ -6,27 +6,31 @@ function DeviceDataSection(props) {
   return (
     <section className="device-information-section">
       <section className="device-images">
-        {props.device.fotos.map((foto, index) => {
-          return (
-            <img
-              key={index}
-              src={
-                foto.substring(0, 22) !== 'data:image/png;base64,'
-                  ? `data:image/png;base64,${foto}`
-                  : foto
-              }
-              alt={`Imagen ${index}`}
-              className={'device-image' + (index === 0 ? '-active' : '')}
-              onClick={() => {
-                $('.device-image-active').addClass('device-image');
-                $('.device-image-active').removeClass('device-image-active');
-                $('.device-image').eq(index).addClass('device-image-active');
-                $('.device-image').eq(index).removeClass('device-image');
-                props.setCurrentImage(foto);
-              }}
-            />
-          );
-        })}
+        {Object.prototype.hasOwnProperty.call(props.device, 'fotos') ? (
+          props.device.fotos.map((foto, index) => {
+            return (
+              <img
+                key={index}
+                src={
+                  foto.substring(0, 22) !== 'data:image/png;base64,'
+                    ? `data:image/png;base64,${foto}`
+                    : foto
+                }
+                alt={`Imagen ${index}`}
+                className={'device-image' + (index === 0 ? '-active' : '')}
+                onClick={() => {
+                  $('.device-image-active').addClass('device-image');
+                  $('.device-image-active').removeClass('device-image-active');
+                  $('.device-image').eq(index).addClass('device-image-active');
+                  $('.device-image').eq(index).removeClass('device-image');
+                  props.setCurrentImage(foto);
+                }}
+              />
+            );
+          })
+        ) : (
+          <></>
+        )}
       </section>
       <section className="main-image">
         <img
@@ -56,7 +60,7 @@ function DeviceDataSection(props) {
                 <b>Precio:</b>
               </td>
               <td>
-                {helpers.getFormattedCurrency('Q. ', props.device.precio)}
+                {helpers.getFormattedCurrency('Q. ', Object.prototype.hasOwnProperty.call(props.device, 'precio') ? props.device.precio : 0)}
               </td>
             </tr>
             <tr>
