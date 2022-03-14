@@ -11,6 +11,7 @@ import DeviceData from './components/pages/DeviceData';
 import ShoppingCart from './components/pages/ShoppingCart';
 import UserProfile from './components/pages/UserProfile';
 import SalesCatalog from './components/pages/SalesCatalog';
+import Sales from './components/pages/Sales';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/Carrito-Compras" element={<ShoppingCart />} />
           <Route path="/Perfil" element={<UserProfile />} />
           <Route path="/Catalogo-Ventas/:seller" element={<SalesCatalog />} />
+          <Route path="/Compras" element={<Sales />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
