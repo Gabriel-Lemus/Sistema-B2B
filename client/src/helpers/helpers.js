@@ -3,6 +3,11 @@ import ReactDOMServer from 'react-dom/server';
 import $ from 'jquery';
 import CryptoJS from 'crypto-js';
 
+// React icons
+import { AiOutlineUser } from 'react-icons/ai';
+import { BiPurchaseTagAlt } from 'react-icons/bi';
+import { FiBook } from 'react-icons/fi';
+
 /**
  * Color palette
  */
@@ -18,6 +23,27 @@ const PALETTE = {
   lightBlue: '#3fd0c9',
   lightestBlue: '#d1f6ed',
 };
+
+/**
+ * Client pages
+ */
+const CLIENT_PAGES = [
+  {
+    icon: <FiBook />,
+    title: 'Catálogo de dispositivos',
+    reference: '/catalogo-dispositivos',
+  },
+  {
+    icon: <BiPurchaseTagAlt />,
+    title: 'Compras',
+    reference: '/compras',
+  },
+  {
+    icon: <AiOutlineUser />,
+    title: 'Perfil',
+    reference: '/perfil',
+  },
+];
 
 /**
  * Get the copyright text with the current year.
@@ -162,6 +188,7 @@ const TOMCAT_PORT = '8080';
  */
 const helpers = {
   PALETTE,
+  CLIENT_PAGES,
   getCopyrightText,
   getAuthors,
   getThousandSeparators,

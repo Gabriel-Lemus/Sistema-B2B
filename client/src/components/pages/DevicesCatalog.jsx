@@ -4,11 +4,6 @@ import helpers from '../../helpers/helpers';
 import DashboardTemplate from '../templates/DashboardTemplate';
 import DevicesCards from '../molecules/DevicesCards';
 
-// React icons
-import { AiOutlineUser } from 'react-icons/ai';
-import { BiPurchaseTagAlt } from 'react-icons/bi';
-import { FiBook } from 'react-icons/fi';
-
 function DevicesCatalog() {
   // State
   const [devices, setDevices] = useState([]);
@@ -45,23 +40,7 @@ function DevicesCatalog() {
   return (
     <DashboardTemplate
       displaySearchBar={true}
-      sideBarItems={[
-        {
-          icon: <FiBook />,
-          title: 'Catálogo de dispositivos',
-          reference: '/catalogo-dispositivos',
-        },
-        {
-          icon: <BiPurchaseTagAlt />,
-          title: 'Compras',
-          reference: '/compras',
-        },
-        {
-          icon: <AiOutlineUser />,
-          title: 'Perfil',
-          reference: '/perfil',
-        },
-      ]}
+      sideBarItems={helpers.CLIENT_PAGES}
       pageTitle="Catálogo de dispositivos"
     >
       {devices.length === 0 ? (
