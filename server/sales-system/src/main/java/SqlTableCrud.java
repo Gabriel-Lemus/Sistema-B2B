@@ -276,7 +276,7 @@ public class SqlTableCrud {
                 int recordId = Integer.parseInt(id);
 
                 // Get the body of the request and make all the attributes lowercase
-                String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur).toLowerCase();
+                String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
 
                 // Check if the body is empty
                 if (body.length() > 0) {
@@ -305,7 +305,7 @@ public class SqlTableCrud {
             }
         } else {
             // Get the body of the request and make all the attributes lowercase
-            String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur).toLowerCase();
+            String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
 
             // Check if the body is empty
             if (body.length() > 0) {
@@ -546,6 +546,41 @@ public class SqlTableCrud {
                     helper.printJsonMessage(out, false, "error",
                             "The id you set is empty. Please provide one.");
                 }
+            } else if (request.getParameterMap().containsKey("exists")) {
+                String value = request.getParameter("exists");
+                String existanceQuery = "SELECT COUNT(*) FROM " + tableName + " WHERE ";
+                boolean setFirstValue = false;
+
+                for (int i = 0; i < attributes.length; i++) {
+                    if (types[i].equals("VARCHAR2")) {
+                        if (!setFirstValue) {
+                            setFirstValue = true;
+                            existanceQuery += attributes[i] + " = '" + value + "'";
+                        } else {
+                            existanceQuery += " OR " + attributes[i] + " = '" + value + "'";
+                        }
+                    }
+                }
+
+                try {
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    Connection con = DriverManager.getConnection(conUrl, user, password);
+                    Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    ResultSet rs = stmt.executeQuery(existanceQuery);
+
+                    // Check if the count is greater than 0
+                    rs.next();
+                    if (rs.getInt(1) > 0) {
+                        // The value exists
+                        out.print("{\"success\":" + true + ",\"exists\":" + true + "}");
+                    } else {
+                        // The value does not exist
+                        out.print("{\"success\":" + true + ",\"exists\":" + false + "}");
+                    }
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                }
             } else {
                 // Incorrect parameter set
                 helper.printJsonMessage(out, false, "error",
@@ -572,7 +607,8 @@ public class SqlTableCrud {
                 oldData.put(attributes[i], (types[i] == "INTEGER" ? rs.getInt(attributes[i])
                         : types[i] == "FLOAT" ? rs.getFloat(attributes[i])
                                 : types[i] == "BOOLEAN" ? rs.getBoolean(attributes[i])
-                                        : rs.getString(attributes[i])));
+                                        : types[i] == "BLOB" ? rs.getBlob(attributes[i])
+                                                : rs.getString(attributes[i])));
             }
 
             // Get the request body and parse it to a JSON object
@@ -604,7 +640,7 @@ public class SqlTableCrud {
 
             out.print(
                     "{\"success\":" + true + ",\"message\":\"The data of the record with id " + recordId
-                            + " has been updated.\",\"dataModified:\"" + body.toString() + "}");
+                            + " has been updated.\",\"dataModified\":" + body.toString() + "}");
         } else {
             helper.printJsonMessage(out, false, "error",
                     "The record with the id " + recordId + " does not exist.");

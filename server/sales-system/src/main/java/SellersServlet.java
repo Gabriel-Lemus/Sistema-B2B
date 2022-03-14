@@ -29,37 +29,44 @@ public class SellersServlet extends HttpServlet {
     // ========================= Helper Methods =========================
     private void setSchema(String user, String password, String localhostIp, String schName) {
         sqlSchema = new SqlSchema("jdbc:oracle:thin:@localhost:1521/XEPDB1", user, password, localhostIp, schName,
-            new String[] { "dispositivos", "fotos_dispositivos", "ventas", "pagos", "pedidos_futuros", "dispositivos_x_ventas", "dispositivos_x_pedidos_futuros" },
-            new String[] { "id_dispositivo", "id_foto", "id_venta", "id_pago", "id_pedido", "id_dispositivo_x_venta", "id_dispositivo_x_pedido" },
-            new String[] { null, null, null, null, null, null, null },
-            new String[][] {
-                    { "id_dispositivo", "id_vendedor", "id_marca", "nombre", "descripcion", "existencias", "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia" },
-                    { "id_foto", "id_dispositivo", "foto" },
-                    { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precio_venta", "cantidad_dispositivos", "impuestos", "descuentos", "total_venta" },
-                    { "id_pago", "id_venta", "id_cliente", "id_vendedor", "fecha_pago", "total" },
-                    { "id_pedido", "id_cliente", "id_vendedor", "fecha_pedido", "precio_pedido", "cantidad_dispositivos", "impuestos", "descuentos", "total_pedido" },
-                    { "id_dispositivo_x_venta", "id_venta", "id_dispositivo", "cantidad_dispositivos" },
-                    { "id_dispositivo_x_pedido", "id_pedido", "id_dispositivo", "cantidad_dispositivos" },
-            },
-            new String[][] {
-                    { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER" },
-                    { "INTEGER", "INTEGER", "BLOB" },
-                    { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
-                    { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT" },
-                    { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
-                    { "INTEGER", "INTEGER", "INTEGER", "INTEGER" },
-                    { "INTEGER", "INTEGER", "INTEGER", "INTEGER" },
-            },
-            new boolean[][] {
-                    { false, false, false, false, false, false, false, false, false, false, false },
-                    { false, false, false },
-                    { false, false, false, false, false, false, false, false, false },
-                    { false, false, false, false, false, false },
-                    { false, false, false, false, false, false },
-                    { false, false, false, false },
-                    { false, false, false, false },
-            },
-            new int[] { 100, 100, 100, 100, 100, 100, 100 });
+                new String[] { "dispositivos", "fotos_dispositivos", "ventas", "pagos", "pedidos_futuros",
+                        "dispositivos_x_ventas", "dispositivos_x_pedidos_futuros" },
+                new String[] { "id_dispositivo", "id_foto", "id_venta", "id_pago", "id_pedido",
+                        "id_dispositivo_x_venta", "id_dispositivo_x_pedido" },
+                new String[] { null, null, null, null, null, null, null },
+                new String[][] {
+                        { "id_dispositivo", "id_vendedor", "id_marca", "nombre", "descripcion", "existencias", "precio",
+                                "codigo_modelo", "color", "categoria", "tiempo_garantia" },
+                        { "id_foto", "id_dispositivo", "foto" },
+                        { "id_venta", "id_cliente", "id_vendedor", "id_dispositivo", "fecha_venta", "precio_venta",
+                                "cantidad_dispositivos", "impuestos", "descuentos", "total_venta" },
+                        { "id_pago", "id_venta", "id_cliente", "id_vendedor", "fecha_pago", "total" },
+                        { "id_pedido", "id_cliente", "id_vendedor", "fecha_pedido", "precio_pedido",
+                                "cantidad_dispositivos", "impuestos", "descuentos", "total_pedido" },
+                        { "id_dispositivo_x_venta", "id_venta", "id_dispositivo", "cantidad_dispositivos" },
+                        { "id_dispositivo_x_pedido", "id_pedido", "id_dispositivo", "cantidad_dispositivos" },
+                },
+                new String[][] {
+                        { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
+                                "VARCHAR2", "VARCHAR2", "INTEGER" },
+                        { "INTEGER", "INTEGER", "BLOB" },
+                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT",
+                                "FLOAT" },
+                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT" },
+                        { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
+                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER" },
+                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER" },
+                },
+                new boolean[][] {
+                        { false, false, false, false, false, false, false, false, false, false, false },
+                        { false, false, false },
+                        { false, false, false, false, false, false, false, false, false, false },
+                        { false, false, false, false, false, false },
+                        { false, false, false, false, false, false },
+                        { false, false, false, false },
+                        { false, false, false, false },
+                },
+                new int[] { 100, 100, 100, 100, 100, 100, 100 });
     }
 
     /**
@@ -221,7 +228,7 @@ public class SellersServlet extends HttpServlet {
                                             + " does not exist.");
                         }
                     } catch (Exception e) {
-                        out.print("Hubo un error abada");
+                        out.print("Hubo un error");
                         helper.printErrorMessage(out, e);
                     }
                 } else {
@@ -440,9 +447,8 @@ public class SellersServlet extends HttpServlet {
                         // Commit the transaction
                         con.commit();
 
-                        helper.printJsonMessage(out, true, "message",
-                                "The seller " + seller
-                                        + " has been successfully created");
+                        out.print("{\"success\":" + true + ",\"message\": \"The seller " + seller
+                                + " has been successfully created\", \"seller_id\":" + newId + "}");
                     } catch (Exception e) {
                         // Rollback the transaction
                         con.rollback();
@@ -506,7 +512,7 @@ public class SellersServlet extends HttpServlet {
                                         + " does not exist.");
                     }
                 } catch (Exception e) {
-                    out.print("Hubo un error abada");
+                    out.print("Hubo un error");
                     helper.printErrorMessage(out, e);
                 }
             } else {
@@ -519,8 +525,125 @@ public class SellersServlet extends HttpServlet {
             if (request.getParameterMap().containsKey("page")) {
                 String possiblePage = request.getParameter("page");
 
-                if (helper.isNumeric(possiblePage)) {
+                if (!request.getParameterMap().containsKey("search")) {
+                    if (helper.isNumeric(possiblePage)) {
+                        int page = Integer.parseInt(possiblePage);
+
+                        if (page > 0) {
+                            try {
+                                Class.forName("oracle.jdbc.driver.OracleDriver");
+                                Connection con = DriverManager.getConnection(connectionUrl, "Sales", "adminsales");
+                                Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                        ResultSet.CONCUR_READ_ONLY);
+                                String allSellersQuery = "SELECT username FROM all_users WHERE username LIKE '%_SELLER'";
+
+                                // Start transaction
+                                con.setAutoCommit(false);
+
+                                // Get all the sellers
+                                ResultSet rs = stmt.executeQuery(allSellersQuery);
+
+                                // Save the sellers in an array
+                                ArrayList<String> sellers = new ArrayList<String>();
+                                String devicesQuery = "";
+
+                                while (rs.next()) {
+                                    sellers.add(rs.getString("username"));
+                                }
+
+                                // Build the devices query from all the sellers
+                                if (sellers.size() > 0) {
+                                    devicesQuery += "WITH s AS (";
+
+                                    if (sellers.size() > 1) {
+                                        for (int i = 0; i < sellers.size(); i++) {
+                                            devicesQuery += "SELECT * FROM " + sellers.get(i)
+                                                    + ".dispositivos";
+
+                                            if (i < sellers.size() - 1) {
+                                                devicesQuery += " UNION ALL ";
+                                            }
+                                        }
+
+                                        devicesQuery += ") SELECT s.id_dispositivo, s.nombre as dispositivo, descripcion, existencias, precio, codigo_modelo, color, categoria, tiempo_garantia, vendedores.nombre AS vendedor, marcas.nombre AS marca FROM s INNER JOIN VENDEDORES ON s.ID_VENDEDOR = VENDEDORES.ID_VENDEDOR INNER JOIN MARCAS ON s.ID_MARCA = MARCAS.ID_MARCA OFFSET "
+                                                + (page - 1) * maxDevices + " ROWS FETCH NEXT " + maxDevices
+                                                + " ROWS ONLY";
+                                    } else {
+                                        devicesQuery = "SELECT * FROM " + sellers.get(0)
+                                                + ".dispositivos OFFSET " + (page - 1) * maxDevices
+                                                + " ROWS FETCH NEXT "
+                                                + maxDevices + " ROWS ONLY";
+                                    }
+
+                                    // Get the row count and execute the query
+                                    int rowCount = helper.getQueryRowCount(con, devicesQuery);
+                                    String maxCountQuery = devicesQuery.substring(0, devicesQuery.indexOf("OFFSET"));
+                                    int maxRowCount = helper.getQueryRowCount(con, maxCountQuery);
+                                    ResultSet rs2 = stmt.executeQuery(devicesQuery);
+
+                                    out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
+
+                                    // Check if there are any devices
+                                    if (rs2.next()) {
+                                        // Return the first device
+                                        rs2.beforeFirst();
+
+                                        // There are records; print them
+                                        while (rs2.next()) {
+                                            helper.printRow(rs2, out,
+                                                    new String[] { "id_dispositivo", "dispositivo", "descripcion",
+                                                            "existencias", "precio", "codigo_modelo", "color",
+                                                            "categoria",
+                                                            "tiempo_garantia", "vendedor", "marca" },
+                                                    new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER",
+                                                            "FLOAT",
+                                                            "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2",
+                                                            "VARCAHR2" });
+
+                                            if (rs2.isLast()) {
+                                                if (page == getMaxNumberOfPages(maxRowCount, maxDevices) && page != 1) {
+                                                    out.print("],\"previousPage\":" + getNextPageUrl(request, page - 2)
+                                                            + "}");
+                                                } else if (page != 1) {
+                                                    out.print(
+                                                            "],\"previousPage\":" + getNextPageUrl(request, page - 2)
+                                                                    + ",\"nextPage\":"
+                                                                    + getNextPageUrl(request, page) + "}");
+                                                } else if (page == 1 && rowCount != maxRowCount) {
+                                                    out.print("],\"nextPage\":" + getNextPageUrl(request, page) + "}");
+                                                } else {
+                                                    out.print("]}");
+                                                }
+                                            } else {
+                                                out.print(",");
+                                            }
+                                        }
+                                    } else {
+                                        out.print("]}");
+                                    }
+                                } else {
+                                    out.print("{\"success\":" + true + ",\"rowCount\":" + 0 + ",\"data\":[]}");
+                                }
+
+                                // Commit the transaction
+                                con.commit();
+
+                                // Close the connection
+                                con.close();
+                            } catch (Exception e) {
+                                helper.printErrorMessage(out, e);
+                            }
+                        } else {
+                            helper.printJsonMessage(out, false, "error",
+                                    "The page number is invalid. Please provide a positive, non-zero number.");
+                        }
+                    } else {
+                        helper.printJsonMessage(out, false, "error",
+                                "The page parameter you set is not a number. Please provide a valid page parameter.");
+                    }
+                } else {
                     int page = Integer.parseInt(possiblePage);
+                    String search = request.getParameter("search");
 
                     if (page > 0) {
                         try {
@@ -550,8 +673,20 @@ public class SellersServlet extends HttpServlet {
 
                                 if (sellers.size() > 1) {
                                     for (int i = 0; i < sellers.size(); i++) {
-                                        devicesQuery += "SELECT * FROM " + sellers.get(i)
-                                                + ".dispositivos";
+                                        devicesQuery += "SELECT * FROM " + sellers.get(i) + ".dispositivos WHERE"
+                                                + " LOWER(" + sellers.get(i) + ".dispositivos.nombre) LIKE '%"
+                                                + search.toLowerCase() + "%' OR LOWER(" + sellers.get(i)
+                                                + ".dispositivos.descripcion) LIKE '%" + search.toLowerCase() + "%' OR "
+                                                + "LOWER(" + sellers.get(i) + ".dispositivos.existencias) LIKE '%"
+                                                + search.toLowerCase() + "%' OR LOWER(" + sellers.get(i)
+                                                + ".dispositivos.precio) LIKE '%" + search.toLowerCase() + "%' OR "
+                                                + "LOWER(" + sellers.get(i) + ".dispositivos.codigo_modelo) LIKE '%"
+                                                + search.toLowerCase() + "%' OR LOWER(" + sellers.get(i)
+                                                + ".dispositivos.color) LIKE '%" + search.toLowerCase() + "%' OR "
+                                                + "LOWER(" + sellers.get(i) + ".dispositivos.categoria) LIKE '%"
+                                                + search.toLowerCase() + "%' OR LOWER(" + sellers.get(i)
+                                                + ".dispositivos.tiempo_garantia) LIKE '%" + search.toLowerCase()
+                                                + "%'";
 
                                         if (i < sellers.size() - 1) {
                                             devicesQuery += " UNION ALL ";
@@ -559,10 +694,12 @@ public class SellersServlet extends HttpServlet {
                                     }
 
                                     devicesQuery += ") SELECT s.id_dispositivo, s.nombre as dispositivo, descripcion, existencias, precio, codigo_modelo, color, categoria, tiempo_garantia, vendedores.nombre AS vendedor, marcas.nombre AS marca FROM s INNER JOIN VENDEDORES ON s.ID_VENDEDOR = VENDEDORES.ID_VENDEDOR INNER JOIN MARCAS ON s.ID_MARCA = MARCAS.ID_MARCA OFFSET "
-                                            + (page - 1) * maxDevices + " ROWS FETCH NEXT " + maxDevices + " ROWS ONLY";
+                                            + (page - 1) * maxDevices + " ROWS FETCH NEXT " + maxDevices
+                                            + " ROWS ONLY";
                                 } else {
                                     devicesQuery = "SELECT * FROM " + sellers.get(0)
-                                            + ".dispositivos OFFSET " + (page - 1) * maxDevices + " ROWS FETCH NEXT "
+                                            + ".dispositivos OFFSET " + (page - 1) * maxDevices
+                                            + " ROWS FETCH NEXT "
                                             + maxDevices + " ROWS ONLY";
                                 }
 
@@ -582,8 +719,14 @@ public class SellersServlet extends HttpServlet {
                                     // There are records; print them
                                     while (rs2.next()) {
                                         helper.printRow(rs2, out,
-                                                new String[] { "id_dispositivo", "dispositivo", "descripcion", "existencias", "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia", "vendedor", "marca" },
-                                                new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCAHR2" });
+                                                new String[] { "id_dispositivo", "dispositivo", "descripcion",
+                                                        "existencias", "precio", "codigo_modelo", "color",
+                                                        "categoria",
+                                                        "tiempo_garantia", "vendedor", "marca" },
+                                                new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER",
+                                                        "FLOAT",
+                                                        "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2",
+                                                        "VARCAHR2" });
 
                                         if (rs2.isLast()) {
                                             if (page == getMaxNumberOfPages(maxRowCount, maxDevices) && page != 1) {
@@ -622,9 +765,6 @@ public class SellersServlet extends HttpServlet {
                         helper.printJsonMessage(out, false, "error",
                                 "The page number is invalid. Please provide a positive, non-zero number.");
                     }
-                } else {
-                    helper.printJsonMessage(out, false, "error",
-                            "The page parameter you set is not a number. Please provide a valid page parameter.");
                 }
             } else if (request.getParameterMap().containsKey("dispositivo")) {
                 int deviceId = Integer.parseInt(request.getParameter("dispositivo"));
@@ -646,60 +786,123 @@ public class SellersServlet extends HttpServlet {
                             + ".dispositivos.id_dispositivo = " + seller
                             + ".fotos_dispositivos.id_dispositivo) SELECT s.* FROM s WHERE s.id_dispositivo = "
                             + deviceId;
+                    String devicesQueryAlt = "SELECT " + seller
+                            + ".dispositivos.ID_DISPOSITIVO ID_DISPOSITIVO, " + seller
+                            + ".dispositivos.NOMBRE NOMBRE, " + seller
+                            + ".dispositivos.DESCRIPCION DESCRIPCION, " + seller
+                            + ".dispositivos.EXISTENCIAS EXISTENCIAS, " + seller
+                            + ".dispositivos.PRECIO PRECIO, " + seller
+                            + ".dispositivos.CODIGO_MODELO CODIGO_MODELO, " + seller
+                            + ".dispositivos.COLOR COLOR, " + seller
+                            + ".dispositivos.CATEGORIA CATEGORIA, " + seller
+                            + ".dispositivos.TIEMPO_GARANTIA TIEMPO_GARANTIA FROM "
+                            + seller + ".dispositivos WHERE id_dispositivo = "
+                            + deviceId;
 
                     Class.forName("oracle.jdbc.driver.OracleDriver");
                     Connection con = DriverManager.getConnection(connectionUrl, "Sales", "adminsales");
+                    int queryCount = helper.getQueryRowCount(con, devicesQuery);
                     Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                             ResultSet.CONCUR_READ_ONLY);
-                    ResultSet rs = stmt.executeQuery(devicesQuery);
-                    String deviceStr = "{\"success\":" + true + ",\"data\":[";
-                    String[] attributes = new String[] { "id_dispositivo", "nombre", "descripcion", "existencias",
-                            "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia", "foto" };
-                    String[] types = new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
-                            "VARCHAR2", "VARCHAR2", "VARCHAR2", "BLOB" };
 
-                    while (rs.next()) {
-                        deviceStr += ("{");
+                    if (queryCount == 0) {
+                        ResultSet rs = stmt.executeQuery(devicesQueryAlt);
+                        String deviceStr = "{\"success\":" + true + ",\"data\":[";
+                        String[] attributes = new String[] { "id_dispositivo", "nombre", "descripcion", "existencias",
+                                "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia" };
+                        String[] types = new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT",
+                                "VARCHAR2",
+                                "VARCHAR2", "VARCHAR2", "VARCHAR2" };
 
-                        for (int i = 1; i < attributes.length; i++) {
-                            deviceStr += ("\"" + attributes[i] + "\":");
+                        while (rs.next()) {
+                            deviceStr += ("{");
 
-                            switch (types[i]) {
-                                case "INTEGER":
-                                    deviceStr += (rs.getInt(attributes[i]));
-                                    break;
-                                case "FLOAT":
-                                    deviceStr += (rs.getFloat(attributes[i]));
-                                    break;
-                                case "BOOLEAN":
-                                    deviceStr += (rs.getBoolean(attributes[i]));
-                                    break;
-                                case "BLOB":
-                                    deviceStr += ("\"" +
-                                            Base64.getEncoder().encodeToString(rs.getBytes(attributes[i]))
-                                            + "\"");
-                                    break;
-                                default:
-                                    deviceStr += ("\"" + rs.getString(attributes[i]) + "\"");
-                                    break;
+                            for (int i = 1; i < attributes.length; i++) {
+                                deviceStr += ("\"" + attributes[i] + "\":");
+
+                                switch (types[i]) {
+                                    case "INTEGER":
+                                        deviceStr += (rs.getInt(attributes[i]));
+                                        break;
+                                    case "FLOAT":
+                                        deviceStr += (rs.getFloat(attributes[i]));
+                                        break;
+                                    case "BOOLEAN":
+                                        deviceStr += (rs.getBoolean(attributes[i]));
+                                        break;
+                                    default:
+                                        deviceStr += ("\"" + rs.getString(attributes[i]) + "\"");
+                                        break;
+                                }
+
+                                if (i < attributes.length - 1) {
+                                    deviceStr += (",");
+                                }
                             }
 
-                            if (i < attributes.length - 1) {
+                            deviceStr += ("}");
+
+                            if (rs.isLast()) {
+                                deviceStr += ("]}");
+                            } else {
                                 deviceStr += (",");
                             }
                         }
 
-                        deviceStr += ("}");
+                        out.print(deviceStr);
+                        // out.print(concatenateDeviceInfo(deviceStr));
+                    } else {
+                        ResultSet rs = stmt.executeQuery(devicesQuery);
+                        String deviceStr = "{\"success\":" + true + ",\"data\":[";
+                        String[] attributes = new String[] { "id_dispositivo", "nombre", "descripcion", "existencias",
+                                "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia", "foto" };
+                        String[] types = new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT",
+                                "VARCHAR2",
+                                "VARCHAR2", "VARCHAR2", "VARCHAR2", "BLOB" };
 
-                        if (rs.isLast()) {
-                            deviceStr += ("]}");
-                        } else {
-                            deviceStr += (",");
+                        while (rs.next()) {
+                            deviceStr += ("{");
+
+                            for (int i = 1; i < attributes.length; i++) {
+                                deviceStr += ("\"" + attributes[i] + "\":");
+
+                                switch (types[i]) {
+                                    case "INTEGER":
+                                        deviceStr += (rs.getInt(attributes[i]));
+                                        break;
+                                    case "FLOAT":
+                                        deviceStr += (rs.getFloat(attributes[i]));
+                                        break;
+                                    case "BOOLEAN":
+                                        deviceStr += (rs.getBoolean(attributes[i]));
+                                        break;
+                                    case "BLOB":
+                                        deviceStr += ("\"" +
+                                                Base64.getEncoder().encodeToString(rs.getBytes(attributes[i]))
+                                                + "\"");
+                                        break;
+                                    default:
+                                        deviceStr += ("\"" + rs.getString(attributes[i]) + "\"");
+                                        break;
+                                }
+
+                                if (i < attributes.length - 1) {
+                                    deviceStr += (",");
+                                }
+                            }
+
+                            deviceStr += ("}");
+
+                            if (rs.isLast()) {
+                                deviceStr += ("]}");
+                            } else {
+                                deviceStr += (",");
+                            }
                         }
-                    }
 
-                    // out.print(deviceStr);
-                    out.print(concatenateDeviceInfo(deviceStr));
+                        // out.print(deviceStr);
+                        out.print(concatenateDeviceInfo(deviceStr));
+                    }
                 } catch (Exception e) {
                     helper.printErrorMessage(out, e);
                 }
@@ -734,7 +937,7 @@ public class SellersServlet extends HttpServlet {
             // Chedk if the seller parameter is valid
             if (seller.length() > 0) {
                 user = seller + "_SELLER";
-                password = seller + "_ADMIN_SALES";
+                password = user + "_ADMIN_SALES";
 
                 // Check if the seller exists
                 try {
@@ -790,7 +993,7 @@ public class SellersServlet extends HttpServlet {
             // Chedk if the seller parameter is valid
             if (seller.length() > 0) {
                 user = seller + "_SELLER";
-                password = seller + "_ADMIN_SALES";
+                password = user + "_ADMIN_SALES";
 
                 // Check if the seller exists
                 try {

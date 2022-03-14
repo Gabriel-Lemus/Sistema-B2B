@@ -25,19 +25,19 @@ public class SalesServlet extends HttpServlet {
                 new String[] { "email", null, "nombre", "nombre" },
                 new String[][] {
                     { "id_credencial", "id_cliente", "id_vendedor", "tipo_usuario", "email", "salt", "hash" },
-                    { "id_cliente", "nombre", "nit", "email", "telefono", "tipo_cliente", "tiene_suscripcion", "vencimiento_suscripcion" },
+                    { "id_cliente", "nombre", "nit", "email", "telefono", "patente_comercio", "tipo_cliente", "tiene_suscripcion", "vencimiento_suscripcion" },
                     { "id_vendedor", "nombre" },
                     { "id_marca", "nombre" },
                 },
                 new String[][] {
                     { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2" },
-                    { "INTEGER", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2", "BOOLEAN", "VARCHAR2" },
+                    { "INTEGER", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "BLOB", "VARCHAR2", "VARCHAR2", "DATE" },
                     { "INTEGER", "VARCHAR2" },
                     { "INTEGER", "VARCHAR2" },
                 },
                 new boolean[][] {
                     { false, true, true, false, false, false, false },
-                    { false, false, true, true, true, true, false, true },
+                    { false, false, true, true, true, true, true, false, true },
                     { false, false },
                     { false, false },
                 },

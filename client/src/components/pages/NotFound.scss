@@ -1,0 +1,21 @@
+@import '../../../public/sass/utilities/variables';
+
+.centered-container {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  z-index: 10;
+  padding: auto;
+}
+
+.big-title {
+  font-size: 7rem;
+  font-weight: 500;
+  margin-top: 50px;
+}
+
+.separator {
+  height: 75px;
+}
