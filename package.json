@@ -1,0 +1,23 @@
+{
+  "name": "proyecto-adfs-db2",
+  "version": "1.0.0",
+  "description": "Repositorio del sistema B2B proyecto interdisciplinario de Análisis, Diseño y Fabricación de Sistemas y Bases de Datos 2.",
+  "main": "index.js",
+  "scripts": {
+    "startReact": "cd ./client && npm start",
+    "deploySalesServlets": "cd ./server/sales-system/.helper-scripts && ./deploy-servlets.sh",
+    "startFrontEnd": "cd ./client && npm start",
+    "deployFrontEnd": "cd ./client/.helper-scripts && ./deploy-front-end.sh",
+    "sass": "cd ./client && node-sass ./public/sass/styles.scss ./public/css/styles.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gabriel-Lemus/Sistema-B2B.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gabriel-Lemus/Sistema-B2B/issues"
+  },
+  "homepage": "https://github.com/Gabriel-Lemus/Sistema-B2B#readme"
+}
