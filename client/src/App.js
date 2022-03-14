@@ -9,6 +9,7 @@ import NotFound from './components/pages/NotFound';
 import DevicesCatalog from './components/pages/DevicesCatalog';
 import DeviceData from './components/pages/DeviceData';
 import ShoppingCart from './components/pages/ShoppingCart';
+import UserProfile from './components/pages/UserProfile';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
           <Route path="/Datos-Dispositivo/:seller/:id" element={<DeviceData />} />
           <Route path="/Carrito-Compras" element={<ShoppingCart />} />
+          <Route path="/Perfil" element={<UserProfile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
