@@ -1,0 +1,47 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">Factory System</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll"
+            aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarScroll">
+            <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/about">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/users/signin">SignIn</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/users/signup">SignUp</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/users/logout">LogOut</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        Devices
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                        <li><a class="dropdown-item" href="/devices/add">Add</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="/devices">All</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <form class="d-flex">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+        </div>
+    </div>
+    </div>
+</nav>
