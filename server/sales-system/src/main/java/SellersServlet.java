@@ -525,8 +525,125 @@ public class SellersServlet extends HttpServlet {
             if (request.getParameterMap().containsKey("page")) {
                 String possiblePage = request.getParameter("page");
 
-                if (helper.isNumeric(possiblePage)) {
+                if (!request.getParameterMap().containsKey("search")) {
+                    if (helper.isNumeric(possiblePage)) {
+                        int page = Integer.parseInt(possiblePage);
+
+                        if (page > 0) {
+                            try {
+                                Class.forName("oracle.jdbc.driver.OracleDriver");
+                                Connection con = DriverManager.getConnection(connectionUrl, "Sales", "adminsales");
+                                Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                        ResultSet.CONCUR_READ_ONLY);
+                                String allSellersQuery = "SELECT username FROM all_users WHERE username LIKE '%_SELLER'";
+
+                                // Start transaction
+                                con.setAutoCommit(false);
+
+                                // Get all the sellers
+                                ResultSet rs = stmt.executeQuery(allSellersQuery);
+
+                                // Save the sellers in an array
+                                ArrayList<String> sellers = new ArrayList<String>();
+                                String devicesQuery = "";
+
+                                while (rs.next()) {
+                                    sellers.add(rs.getString("username"));
+                                }
+
+                                // Build the devices query from all the sellers
+                                if (sellers.size() > 0) {
+                                    devicesQuery += "WITH s AS (";
+
+                                    if (sellers.size() > 1) {
+                                        for (int i = 0; i < sellers.size(); i++) {
+                                            devicesQuery += "SELECT * FROM " + sellers.get(i)
+                                                    + ".dispositivos";
+
+                                            if (i < sellers.size() - 1) {
+                                                devicesQuery += " UNION ALL ";
+                                            }
+                                        }
+
+                                        devicesQuery += ") SELECT s.id_dispositivo, s.nombre as dispositivo, descripcion, existencias, precio, codigo_modelo, color, categoria, tiempo_garantia, vendedores.nombre AS vendedor, marcas.nombre AS marca FROM s INNER JOIN VENDEDORES ON s.ID_VENDEDOR = VENDEDORES.ID_VENDEDOR INNER JOIN MARCAS ON s.ID_MARCA = MARCAS.ID_MARCA OFFSET "
+                                                + (page - 1) * maxDevices + " ROWS FETCH NEXT " + maxDevices
+                                                + " ROWS ONLY";
+                                    } else {
+                                        devicesQuery = "SELECT * FROM " + sellers.get(0)
+                                                + ".dispositivos OFFSET " + (page - 1) * maxDevices
+                                                + " ROWS FETCH NEXT "
+                                                + maxDevices + " ROWS ONLY";
+                                    }
+
+                                    // Get the row count and execute the query
+                                    int rowCount = helper.getQueryRowCount(con, devicesQuery);
+                                    String maxCountQuery = devicesQuery.substring(0, devicesQuery.indexOf("OFFSET"));
+                                    int maxRowCount = helper.getQueryRowCount(con, maxCountQuery);
+                                    ResultSet rs2 = stmt.executeQuery(devicesQuery);
+
+                                    out.print("{\"success\":" + true + ",\"rowCount\":" + rowCount + ",\"data\":[");
+
+                                    // Check if there are any devices
+                                    if (rs2.next()) {
+                                        // Return the first device
+                                        rs2.beforeFirst();
+
+                                        // There are records; print them
+                                        while (rs2.next()) {
+                                            helper.printRow(rs2, out,
+                                                    new String[] { "id_dispositivo", "dispositivo", "descripcion",
+                                                            "existencias", "precio", "codigo_modelo", "color",
+                                                            "categoria",
+                                                            "tiempo_garantia", "vendedor", "marca" },
+                                                    new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER",
+                                                            "FLOAT",
+                                                            "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2",
+                                                            "VARCAHR2" });
+
+                                            if (rs2.isLast()) {
+                                                if (page == getMaxNumberOfPages(maxRowCount, maxDevices) && page != 1) {
+                                                    out.print("],\"previousPage\":" + getNextPageUrl(request, page - 2)
+                                                            + "}");
+                                                } else if (page != 1) {
+                                                    out.print(
+                                                            "],\"previousPage\":" + getNextPageUrl(request, page - 2)
+                                                                    + ",\"nextPage\":"
+                                                                    + getNextPageUrl(request, page) + "}");
+                                                } else if (page == 1 && rowCount != maxRowCount) {
+                                                    out.print("],\"nextPage\":" + getNextPageUrl(request, page) + "}");
+                                                } else {
+                                                    out.print("]}");
+                                                }
+                                            } else {
+                                                out.print(",");
+                                            }
+                                        }
+                                    } else {
+                                        out.print("]}");
+                                    }
+                                } else {
+                                    out.print("{\"success\":" + true + ",\"rowCount\":" + 0 + ",\"data\":[]}");
+                                }
+
+                                // Commit the transaction
+                                con.commit();
+
+                                // Close the connection
+                                con.close();
+                            } catch (Exception e) {
+                                helper.printErrorMessage(out, e);
+                            }
+                        } else {
+                            helper.printJsonMessage(out, false, "error",
+                                    "The page number is invalid. Please provide a positive, non-zero number.");
+                        }
+                    } else {
+                        helper.printJsonMessage(out, false, "error",
+                                "The page parameter you set is not a number. Please provide a valid page parameter.");
+                    }
+                } else {
                     int page = Integer.parseInt(possiblePage);
+                    String search = request.getParameter("search");
 
                     if (page > 0) {
                         try {
@@ -556,8 +673,20 @@ public class SellersServlet extends HttpServlet {
 
                                 if (sellers.size() > 1) {
                                     for (int i = 0; i < sellers.size(); i++) {
-                                        devicesQuery += "SELECT * FROM " + sellers.get(i)
-                                                + ".dispositivos";
+                                        devicesQuery += "SELECT * FROM " + sellers.get(i) + ".dispositivos WHERE"
+                                                + " LOWER(" + sellers.get(i) + ".dispositivos.nombre) LIKE '%"
+                                                + search.toLowerCase() + "%' OR LOWER(" + sellers.get(i)
+                                                + ".dispositivos.descripcion) LIKE '%" + search.toLowerCase() + "%' OR "
+                                                + "LOWER(" + sellers.get(i) + ".dispositivos.existencias) LIKE '%"
+                                                + search.toLowerCase() + "%' OR LOWER(" + sellers.get(i)
+                                                + ".dispositivos.precio) LIKE '%" + search.toLowerCase() + "%' OR "
+                                                + "LOWER(" + sellers.get(i) + ".dispositivos.codigo_modelo) LIKE '%"
+                                                + search.toLowerCase() + "%' OR LOWER(" + sellers.get(i)
+                                                + ".dispositivos.color) LIKE '%" + search.toLowerCase() + "%' OR "
+                                                + "LOWER(" + sellers.get(i) + ".dispositivos.categoria) LIKE '%"
+                                                + search.toLowerCase() + "%' OR LOWER(" + sellers.get(i)
+                                                + ".dispositivos.tiempo_garantia) LIKE '%" + search.toLowerCase()
+                                                + "%'";
 
                                         if (i < sellers.size() - 1) {
                                             devicesQuery += " UNION ALL ";
@@ -565,10 +694,12 @@ public class SellersServlet extends HttpServlet {
                                     }
 
                                     devicesQuery += ") SELECT s.id_dispositivo, s.nombre as dispositivo, descripcion, existencias, precio, codigo_modelo, color, categoria, tiempo_garantia, vendedores.nombre AS vendedor, marcas.nombre AS marca FROM s INNER JOIN VENDEDORES ON s.ID_VENDEDOR = VENDEDORES.ID_VENDEDOR INNER JOIN MARCAS ON s.ID_MARCA = MARCAS.ID_MARCA OFFSET "
-                                            + (page - 1) * maxDevices + " ROWS FETCH NEXT " + maxDevices + " ROWS ONLY";
+                                            + (page - 1) * maxDevices + " ROWS FETCH NEXT " + maxDevices
+                                            + " ROWS ONLY";
                                 } else {
                                     devicesQuery = "SELECT * FROM " + sellers.get(0)
-                                            + ".dispositivos OFFSET " + (page - 1) * maxDevices + " ROWS FETCH NEXT "
+                                            + ".dispositivos OFFSET " + (page - 1) * maxDevices
+                                            + " ROWS FETCH NEXT "
                                             + maxDevices + " ROWS ONLY";
                                 }
 
@@ -589,9 +720,11 @@ public class SellersServlet extends HttpServlet {
                                     while (rs2.next()) {
                                         helper.printRow(rs2, out,
                                                 new String[] { "id_dispositivo", "dispositivo", "descripcion",
-                                                        "existencias", "precio", "codigo_modelo", "color", "categoria",
+                                                        "existencias", "precio", "codigo_modelo", "color",
+                                                        "categoria",
                                                         "tiempo_garantia", "vendedor", "marca" },
-                                                new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT",
+                                                new String[] { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER",
+                                                        "FLOAT",
                                                         "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2",
                                                         "VARCAHR2" });
 
@@ -632,9 +765,6 @@ public class SellersServlet extends HttpServlet {
                         helper.printJsonMessage(out, false, "error",
                                 "The page number is invalid. Please provide a positive, non-zero number.");
                     }
-                } else {
-                    helper.printJsonMessage(out, false, "error",
-                            "The page parameter you set is not a number. Please provide a valid page parameter.");
                 }
             } else if (request.getParameterMap().containsKey("dispositivo")) {
                 int deviceId = Integer.parseInt(request.getParameter("dispositivo"));
