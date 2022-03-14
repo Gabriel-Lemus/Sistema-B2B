@@ -639,7 +639,7 @@ public class SqlTableCrud {
 
             out.print(
                     "{\"success\":" + true + ",\"message\":\"The data of the record with id " + recordId
-                            + " has been updated.\",\"dataModified:\"" + body.toString() + "}");
+                            + " has been updated.\",\"dataModified\":" + body.toString() + "}");
         } else {
             helper.printJsonMessage(out, false, "error",
                     "The record with the id " + recordId + " does not exist.");
