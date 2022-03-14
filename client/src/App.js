@@ -10,6 +10,7 @@ import DevicesCatalog from './components/pages/DevicesCatalog';
 import DeviceData from './components/pages/DeviceData';
 import ShoppingCart from './components/pages/ShoppingCart';
 import UserProfile from './components/pages/UserProfile';
+import SalesCatalog from './components/pages/SalesCatalog';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/Datos-Dispositivo/:seller/:id" element={<DeviceData />} />
           <Route path="/Carrito-Compras" element={<ShoppingCart />} />
           <Route path="/Perfil" element={<UserProfile />} />
+          <Route path="/Catalogo-Ventas/:seller" element={<SalesCatalog />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
