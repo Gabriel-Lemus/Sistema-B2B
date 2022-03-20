@@ -200,34 +200,75 @@ public class SellersServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
 
-        if (helper.requestContainsParameter(request, "verVendedor")) {
-            String vendedor = request.getParameter("verVendedor");
-            setSchema(vendedor);
-            sqlSchema.handleGet(request, response);
-        } else if (helper.requestContainsParameter(request, "verDispositivo")) {
-            String dispositivoId = request.getParameter("id");
-            String vendedor = request.getParameter("vendedor");
+        if (helper.requestContainsParameter(request, "get")) {
+            if (helper.requestContainsParameter(request, "verVendedor")) {
+                String vendedor = request.getParameter("verVendedor");
+                setSchema(vendedor);
+                sqlSchema.handleGet(request, response);
+            } else if (helper.requestContainsParameter(request, "verDispositivo")) {
+                String dispositivoId = request.getParameter("id");
+                String vendedor = request.getParameter("vendedor");
 
-            try {
-                Class.forName("oracle.jdbc.driver.OracleDriver");
-                Connection con = DriverManager.getConnection(conUrl, user, password);
-                Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-                        ResultSet.CONCUR_READ_ONLY);
-                String deviceQuery = "SELECT df.id_dispositivo, df.nombre, df.descripcion, df.existencias, df.precio, df.codigo_modelo, df.color, df.categoria, df.tiempo_garantia, v.nombre vendedor, m.nombre marca, df.foto from ("
-                        + "SELECT d.id_dispositivo, d.id_vendedor, d.id_marca, d.nombre, d.descripcion, d.existencias, d.precio, d.codigo_modelo, d.color, d.categoria, d.tiempo_garantia, f.foto from "
-                        + schema + "." + vendedor
-                        + "_dispositivos d, "
-                        + schema + "." + vendedor
-                        + "_fotos_dispositivos f WHERE d.id_dispositivo = f.id_dispositivo AND d.id_dispositivo = "
-                        + dispositivoId + ") df "
-                        + "INNER JOIN vendedores v ON df.id_vendedor = v.id_vendedor INNER JOIN marcas m on df.id_marca = m.id_marca";
-                ResultSet rs = stmt.executeQuery(deviceQuery);
+                try {
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    Connection con = DriverManager.getConnection(conUrl, user, password);
+                    Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    String deviceQuery = "SELECT df.id_dispositivo, df.nombre, df.descripcion, df.existencias, df.precio, df.codigo_modelo, df.color, df.categoria, df.tiempo_garantia, v.nombre vendedor, m.nombre marca, df.foto from ("
+                            + "SELECT d.id_dispositivo, d.id_vendedor, d.id_marca, d.nombre, d.descripcion, d.existencias, d.precio, d.codigo_modelo, d.color, d.categoria, d.tiempo_garantia, f.foto from "
+                            + schema + "." + vendedor
+                            + "_dispositivos d, "
+                            + schema + "." + vendedor
+                            + "_fotos_dispositivos f WHERE d.id_dispositivo = f.id_dispositivo AND d.id_dispositivo = "
+                            + dispositivoId + ") df "
+                            + "INNER JOIN vendedores v ON df.id_vendedor = v.id_vendedor INNER JOIN marcas m on df.id_marca = m.id_marca";
+                    ResultSet rs = stmt.executeQuery(deviceQuery);
 
-                if (rs.next()) {
-                    rs.previous();
+                    if (rs.next()) {
+                        rs.previous();
 
-                    String[] devicesAttrs = { "id_dispositivo", "nombre", "descripcion", "existencias", "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia", "vendedor", "marca", "foto" };
-                    String[] devicesTypes = { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2" };
+                        String[] devicesAttrs = { "id_dispositivo", "nombre", "descripcion", "existencias", "precio",
+                                "codigo_modelo", "color", "categoria", "tiempo_garantia", "vendedor", "marca", "foto" };
+                        String[] devicesTypes = { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
+                                "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2" };
+                        String jsonResponse = "";
+
+                        jsonResponse += "{\"success\":" + true + ",\"dispositivos\":[";
+
+                        while (rs.next()) {
+                            jsonResponse += helper.getRow(rs, out, devicesAttrs, devicesTypes);
+
+                            if (rs.isLast()) {
+                                jsonResponse += "]}";
+                            } else {
+                                jsonResponse += ",";
+                            }
+                        }
+
+                        out.print(formatDevices(jsonResponse));
+                        // out.print(jsonResponse);
+                        con.close();
+                    } else {
+                        helper.printJsonMessage(out, false, "error",
+                                "The device with the given id does not exist.");
+                    }
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                }
+            } else if (helper.requestContainsParameter(request, "dispositivos")) {
+                try {
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    Connection con = DriverManager.getConnection(conUrl, user, password);
+                    Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    CallableStatement cs = con.prepareCall("{CALL " + schema + ".GET_ALL_DEVICES()}");
+                    cs.execute();
+                    String getDevicesQuery = "SELECT * FROM " + schema + ".all_devices";
+                    ResultSet rs = stmt.executeQuery(getDevicesQuery);
+                    String[] devicesAttrs = { "id_dispositivo", "nombre", "descripcion", "existencias", "precio",
+                            "codigo_modelo", "color", "categoria", "tiempo_garantia", "vendedor", "marca", "foto" };
+                    String[] devicesTypes = { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
+                            "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2" };
                     String jsonResponse = "";
 
                     jsonResponse += "{\"success\":" + true + ",\"dispositivos\":[";
@@ -245,48 +286,19 @@ public class SellersServlet extends HttpServlet {
                     out.print(formatDevices(jsonResponse));
                     // out.print(jsonResponse);
                     con.close();
-                } else {
-                    helper.printJsonMessage(out, false, "error",
-                            "The device with the given id does not exist.");
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
                 }
-            } catch (Exception e) {
-                helper.printErrorMessage(out, e);
+            } else {
+                helper.printJsonMessage(out, false, "error",
+                        "The request does not contain the required parameters.");
             }
-        } else if (helper.requestContainsParameter(request, "dispositivos")) {
-            try {
-                Class.forName("oracle.jdbc.driver.OracleDriver");
-                Connection con = DriverManager.getConnection(conUrl, user, password);
-                Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-                        ResultSet.CONCUR_READ_ONLY);
-                CallableStatement cs = con.prepareCall("{CALL " + schema + ".GET_ALL_DEVICES()}");
-                cs.execute();
-                String getDevicesQuery = "SELECT * FROM " + schema + ".all_devices";
-                ResultSet rs = stmt.executeQuery(getDevicesQuery);
-                String[] devicesAttrs = { "id_dispositivo", "nombre", "descripcion", "existencias", "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia", "vendedor", "marca", "foto" };
-                String[] devicesTypes = { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2" };
-                String jsonResponse = "";
-
-                jsonResponse += "{\"success\":" + true + ",\"dispositivos\":[";
-
-                while (rs.next()) {
-                    jsonResponse += helper.getRow(rs, out, devicesAttrs, devicesTypes);
-
-                    if (rs.isLast()) {
-                        jsonResponse += "]}";
-                    } else {
-                        jsonResponse += ",";
-                    }
-                }
-
-                out.print(formatDevices(jsonResponse));
-                // out.print(jsonResponse);
-                con.close();
-            } catch (Exception e) {
-                helper.printErrorMessage(out, e);
-            }
+        } else if (helper.requestContainsParameter(request, "post")) {
+            doPost(request, response);
+        } else if (helper.requestContainsParameter(request, "put")) {
+            doPut(request, response);
         } else {
-            helper.printJsonMessage(out, false, "error",
-                    "The request does not contain the required parameters.");
+            doDelete(request, response);
         }
     }
 
