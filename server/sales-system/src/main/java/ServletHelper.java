@@ -1,6 +1,8 @@
 import java.sql.*;
 import java.util.Base64;
 
+import javax.servlet.http.HttpServletRequest;
+
 import java.io.PrintWriter;
 
 import org.json.JSONObject;
@@ -46,7 +48,8 @@ public class ServletHelper {
             case "FLOAT":
                 return "'" + json.getDouble(attributes[index]) + "'";
             case "BLOB":
-                return "utl_raw.cast_to_raw('" + new String(Base64.getEncoder().encode(json.getString(attributes[index]).getBytes())) + "')";
+                return "utl_raw.cast_to_raw('"
+                        + new String(Base64.getEncoder().encode(json.getString(attributes[index]).getBytes())) + "')";
             case "DATE":
                 if (isDateWithTime(json.getString(attributes[index]))) {
                     return "TO_DATE('" + json.getString(attributes[index]) + "', 'YYYY-MM-DD HH24:MI:SS')";
@@ -67,7 +70,7 @@ public class ServletHelper {
      */
     public void printErrorMessage(PrintWriter out, Exception e) {
         out.print("{\"success\":" + false + ",\"error\":" + "\""
-                + e.getMessage().replace("\n", "").replace("\r", "") + "\"}");
+                + e.getMessage().replace("\n", "").replace("\r", "").replace("\"", "'") + "\"}");
     }
 
     /**
@@ -107,6 +110,46 @@ public class ServletHelper {
     }
 
     /**
+     * Get the values from the result set matching the correct data type
+     * 
+     * @param rs    The result set from which to print the value.
+     * @param index The index of the value to print.
+     * @param out   The print writer to print the value to.
+     * @throws SQLException If there is an error while printing the value.
+     * @return The string representation of the value.
+     */
+    private String getAttributeValue(ResultSet rs, Integer index, String[] attributes, String[] types, PrintWriter out)
+            throws SQLException {
+        String jsonString = "";
+
+        if (rs.getObject(attributes[index]) == null) {
+            // Null attribute
+            jsonString += "" + null + "";
+        } else {
+            // Non-null attribute
+            switch (types[index]) {
+                case "INTEGER":
+                    jsonString += rs.getInt(attributes[index]);
+                    break;
+                case "FLOAT":
+                    jsonString += rs.getFloat(attributes[index]);
+                    break;
+                case "BOOLEAN":
+                    jsonString += rs.getBoolean(attributes[index]);
+                    break;
+                case "BLOB":
+                    jsonString += "\"" + new String(Base64.getDecoder().decode(rs.getBytes(attributes[index]))) + "\"";
+                    break;
+                default:
+                    jsonString += "\"" + rs.getString(attributes[index]) + "\"";
+                    break;
+            }
+        }
+
+        return jsonString;
+    }
+
+    /**
      * Prints a JSON message to the print writer with the with the successful
      * attribute and string provided.
      * 
@@ -142,6 +185,34 @@ public class ServletHelper {
         }
 
         out.print("}");
+    }
+
+    /**
+     * Get the record of the result set as a string
+     * 
+     * @param rs         The result set to get the record from.
+     * @param out        The print writer to print the record to.
+     * @param attributes The array of attributes to print.
+     * @param types      The array of types to print.
+     * @throws SQLException If the result set is null.
+     * @return The string representation of the record.
+     */
+    public String getRow(ResultSet rs, PrintWriter out, String[] attributes, String[] types) throws SQLException {
+        String jsonString = "";
+        jsonString += "{";
+
+        for (int i = 0; i < attributes.length; i++) {
+            jsonString += "\"" + attributes[i] + "\":";
+            jsonString += getAttributeValue(rs, i, attributes, types, out);
+
+            if (i < attributes.length - 1) {
+                jsonString += ",";
+            }
+        }
+
+        jsonString += "}";
+
+        return jsonString;
     }
 
     // ================== Regular Expression Helper Methods ==================
@@ -228,5 +299,16 @@ public class ServletHelper {
      */
     public String getNeccessaryComma(int index, int length) {
         return index < length - 1 ? ", " : "";
+    }
+
+    /**
+     * Check if the request contains the provided parameter
+     * 
+     * @param request The request to check.
+     * @param param   The parameter to check for.
+     * @return True if the parameter is present, false otherwise.
+     */
+    public boolean requestContainsParameter(HttpServletRequest request, String param) {
+        return request.getParameterMap().containsKey(param);
     }
 }
