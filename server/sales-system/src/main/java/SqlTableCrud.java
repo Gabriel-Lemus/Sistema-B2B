@@ -476,7 +476,7 @@ public class SqlTableCrud {
         int paramCount = request.getParameterMap().size();
         boolean isTableParamSet = request.getParameterMap().containsKey("table")
                 || request.getParameterMap().containsKey("tableName");
-        boolean isSellerParamSet = request.getParameterMap().containsKey("seller");
+        boolean isSellerParamSet = request.getParameterMap().containsKey("verVendedor");
         boolean isPageParamSet = request.getParameterMap().containsKey("page");
         boolean isIdParamSet = request.getParameterMap().containsKey("id");
 
