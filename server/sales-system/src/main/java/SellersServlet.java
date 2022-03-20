@@ -155,7 +155,19 @@ public class SellersServlet extends HttpServlet {
                         CallableStatement cs = con.prepareCall("{CALL " + schema + ".CREATE_SELLER_TABLES(?)}");
                         cs.setString(1, vendedor);
                         cs.execute();
-                        helper.printJsonMessage(out, true, "success", "Seller created successfully.");
+
+                        int sellerId = -1;
+                        String getSellerIdQuery = "SELECT id_vendedor FROM " + schema
+                                + ".vendedores WHERE UPPER(nombre) = UPPER('"
+                                + vendedor + "')";
+                        rs = stmt.executeQuery(getSellerIdQuery);
+
+                        if (rs.next()) {
+                            sellerId = rs.getInt("id_vendedor");
+                        }
+
+                        out.print("{\"success\":" + true + ",\"sellerId\":" + sellerId
+                                + ",\"message\":\"Seller created successfully.\"}");
                     }
                 } catch (Exception e) {
                     helper.printErrorMessage(out, e);
