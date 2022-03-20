@@ -45,18 +45,6 @@ function Navbar(props) {
           <li
             className={`nav-item${props.activePageIdx === 1 ? ' active' : ''}`}
           >
-            <Link className="nav-link" to="/catalogo-dispositivos">
-              Catálogo{' '}
-              {props.activePageIdx === 1 ? (
-                <span className="sr-only">(current)</span>
-              ) : (
-                <></>
-              )}
-            </Link>
-          </li>
-          <li
-            className={`nav-item${props.activePageIdx === 1 ? ' active' : ''}`}
-          >
             <Link className="nav-link" to="/login">
               Iniciar Sesión{' '}
               {props.activePageIdx === 1 ? (
