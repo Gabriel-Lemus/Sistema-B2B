@@ -7,7 +7,6 @@ import { css } from '@emotion/react';
 import DotLoader from 'react-spinners/DotLoader';
 import { useNavigate } from 'react-router-dom';
 
-// Make the loader appear in the center of the page
 const override = css`
   position: absolute;
   top: 35%;
@@ -256,7 +255,6 @@ function SignUpForm() {
                       'Registro exitoso',
                       '¡Bienvenido a la tienda! Enseguida será redirigido a su página de tienda.',
                       () => {
-                        console.log('redirecting to catalogo');
                         navigate('/Catalogo-Dispositivos');
                       }
                     );
