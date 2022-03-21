@@ -1,8 +1,15 @@
-require('dotenv').config();
+require("dotenv").config();
 
 const express = require("express");
 const multer = require("multer");
+const cors = require("cors");
+
 const app = express();
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 let date;
 
 // Make the images folder accessible to the server
@@ -53,7 +60,13 @@ app.post(
   (req, res) => {
     res.send({
       success: true,
-      imgURL: `http://${process.env.PUBLIC_IP}:3001/images/product-images/${date}-${req.file.originalname}`,
+      imgURL: `http://${
+        process.env.PUBLIC_IP
+      }:3001/images/product-images/${date}-${
+        req.body.fileName !== undefined
+          ? req.body.fileName
+          : req.file.originalname
+      }`,
       message: "Image uploaded successfully",
     });
   }
@@ -65,7 +78,13 @@ app.post(
   (req, res) => {
     res.send({
       success: true,
-      imgURL: `http://${process.env.PUBLIC_IP}:3001/images/commerce-patents/${date}-${req.file.originalname}`,
+      imgURL: `http://${
+        process.env.PUBLIC_IP
+      }:3001/images/commerce-patents/${date}-${
+        req.body.fileName !== undefined
+          ? req.body.fileName
+          : req.file.originalname
+      }`,
       message: "Image uploaded successfully",
     });
   }
