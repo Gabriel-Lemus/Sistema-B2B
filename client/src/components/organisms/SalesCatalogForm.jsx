@@ -19,7 +19,6 @@ function SalesCatalogForm(props) {
       );
       setDevices(sellerDevices.data.data);
       setNewDevices(sellerDevices.data.data);
-      // console.log(sellerDevices.data.data);
     })();
   }, []);
 
@@ -46,7 +45,6 @@ function SalesCatalogForm(props) {
         `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?seller=${props.seller}&table=dispositivos&id=${newDevices[i].id_dispositivo}`,
         newDevices[i]
       );
-      // console.log(deviceUpdate.data);
 
       if (!deviceUpdate.data.success) {
         couldUpdateAllDevices = false;
@@ -69,10 +67,6 @@ function SalesCatalogForm(props) {
       );
     }
   };
-
-  useEffect(() => {
-    // console.log(newDevicesToAdd);
-  }, [newDevicesToAdd]);
 
   const handleAddNewDeviceRow = () => {
     setNewDevicesToAdd([
@@ -102,7 +96,6 @@ function SalesCatalogForm(props) {
     let devicesToAdd = [];
 
     for (let i = 0; i < newDevicesToAdd.length; i++) {
-      // console.log(newDevicesToAdd[i]);
       if (
         newDevicesToAdd[i].nombre !== '' &&
         newDevicesToAdd[i].descripcion !== '' &&
@@ -123,7 +116,6 @@ function SalesCatalogForm(props) {
           `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?seller=${props.seller}&table=dispositivos`,
           devicesToAdd[i]
         );
-        // console.log(postDevice.data);
 
         if (!postDevice.data.success) {
           helpers.showModal(

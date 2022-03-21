@@ -64,7 +64,6 @@ function ShoppingCartForm() {
           distinctSellers[index].products += devices[i].cantidad;
         }
       }
-      // console.log(distinctSellers);
 
       // Attempt to register the sales
       for (let i = 0; i < distinctSellers.length; i++) {
@@ -89,7 +88,6 @@ function ShoppingCartForm() {
             total_venta: getTotal() - discounts,
           }
         );
-        // console.log(response.data);
 
         if (!response.data.success) {
           break;
@@ -102,8 +100,6 @@ function ShoppingCartForm() {
         let oldDeviceData = await axios.get(
           `http://localhost:8080/sales-system/sellers?seller=${devices[i].vendedor}&table=dispositivos&id=${devices[i].id}`
         );
-        // console.log(oldDeviceData.data.data);
-        // console.log(devices[i].cantidad);
 
         let newDeviceData = {
           id_dispositivo: oldDeviceData.data.data.id_dispositivo,
@@ -124,7 +120,6 @@ function ShoppingCartForm() {
           `http://localhost:8080/sales-system/sellers?seller=${devices[i].vendedor}&table=dispositivos&id=${devices[i].id}`,
           newDeviceData
         );
-        // console.log(couldUpdateDevice.data);
 
         if (!couldUpdateDevice.data.success) {
           break;

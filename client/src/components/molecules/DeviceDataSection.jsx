@@ -44,13 +44,10 @@ function DeviceDataSection(props) {
       existencias:
         newDeviceExistance !== 0 ? newDeviceExistance : device.existencias,
     };
-    console.log(potentialNewDevice);
-
     let deviceUpdate = await axios.put(
       `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?seller=${props.seller}&table=dispositivos&id=${props.deviceId}`,
       potentialNewDevice
     );
-    console.log(deviceUpdate.data);
     if (deviceUpdate.data.success) {
       setChangedDevice(false);
       helpers.showModal(
