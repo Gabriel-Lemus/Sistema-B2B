@@ -102,6 +102,14 @@
   align-items: start;
   width: 100%; }
 
+.background-div {
+  background-color: #02353c7a;
+  height: 100vh;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0; }
+
 .product-image {
   height: 150px;
   width: auto;
@@ -196,13 +204,13 @@
   cursor: pointer; }
 
 .sidebar-link {
-  color: #2f39f8 !important; }
+  color: #228722 !important; }
 
 .sidebar-link:hover {
-  color: #0713ff !important; }
+  color: #0a380a !important; }
 
 #sidebarMenu {
-  height: 95vh; }
+  height: calc(100vh - $navbarHeight); }
 
 .centered-container {
   position: fixed;
