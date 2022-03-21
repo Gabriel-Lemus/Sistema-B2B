@@ -31,7 +31,7 @@ public class SalesServlet extends HttpServlet {
                 },
                 new String[][] {
                     { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2" },
-                    { "INTEGER", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "BLOB", "VARCHAR2", "VARCHAR2", "DATE" },
+                    { "INTEGER", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2", "DATE" },
                     { "INTEGER", "VARCHAR2" },
                     { "INTEGER", "VARCHAR2" },
                 },
