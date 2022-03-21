@@ -37,8 +37,8 @@ const commercePatentStorage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     let fileName = req.body.fileName;
+    date = Date.now();
     if (!fileName) {
-      date = Date.now();
       fileName = date + "-" + file.originalname;
     }
     cb(null, fileName);
@@ -60,12 +60,10 @@ app.post(
   (req, res) => {
     res.send({
       success: true,
-      imgURL: `http://${
-        process.env.PUBLIC_IP
-      }:3001/images/product-images/${date}-${
+      imgURL: `http://${process.env.PUBLIC_IP}:3001/images/product-images/${
         req.body.fileName !== undefined
           ? req.body.fileName
-          : req.file.originalname
+          : date + "-" + req.file.originalname
       }`,
       message: "Image uploaded successfully",
     });
@@ -78,12 +76,10 @@ app.post(
   (req, res) => {
     res.send({
       success: true,
-      imgURL: `http://${
-        process.env.PUBLIC_IP
-      }:3001/images/commerce-patents/${date}-${
+      imgURL: `http://${process.env.PUBLIC_IP}:3001/images/commerce-patents/${
         req.body.fileName !== undefined
           ? req.body.fileName
-          : req.file.originalname
+          : date + "-" + req.file.originalname
       }`,
       message: "Image uploaded successfully",
     });
