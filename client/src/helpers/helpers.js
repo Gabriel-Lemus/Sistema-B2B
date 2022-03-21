@@ -22,6 +22,7 @@ const PALETTE = {
   lightGreen: '#2eaf7d',
   lightBlue: '#3fd0c9',
   lightestBlue: '#d1f6ed',
+  blue: '#0583d2',
 };
 
 /**
