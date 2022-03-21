@@ -67,11 +67,7 @@ function DeviceDataSection(props) {
             return (
               <img
                 key={index}
-                src={
-                  foto.substring(0, 22) !== 'data:image/png;base64,'
-                    ? `data:image/png;base64,${foto}`
-                    : foto
-                }
+                src={foto}
                 alt={`Imagen ${index}`}
                 className={'device-image' + (index === 0 ? '-active' : '')}
                 onClick={() => {
@@ -91,13 +87,7 @@ function DeviceDataSection(props) {
       <section className="main-image">
         <img
           className="main-device-image"
-          src={
-            props.currentImage !== ''
-              ? props.currentImage.substring(0, 22) !== 'data:image/png;base64,'
-                ? `data:image/png;base64,${props.currentImage}`
-                : props.currentImage
-              : ''
-          }
+          src={props.currentImage}
           alt={props.device.nombre}
         />
       </section>
