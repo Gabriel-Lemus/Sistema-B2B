@@ -11,15 +11,7 @@ function DevicesCatalog(props) {
             <h5 className="card-title">{device.dispositivo}</h5>
             <img
               className="product-image"
-              src={
-                props.images[index] !== null &&
-                props.images[index] !== undefined
-                  ? props.images[index].substring(0, 22) !==
-                    'data:image/png;base64,'
-                    ? `data:image/png;base64,${props.images[index]}`
-                    : props.image
-                  : 'https://us.123rf.com/450wm/pavelstasevich/pavelstasevich1811/pavelstasevich181101028/112815904-no-image-available-icon-flat-vector-illustration.jpg?ver=6'
-              }
+              src={device.fotos[0]}
               alt="Imagen del dispositivo"
             />
             <p className="card-text">
@@ -32,7 +24,7 @@ function DevicesCatalog(props) {
             <Link
               to={`/datos-dispositivo/${device.vendedor}/${device.id_dispositivo}`}
             >
-              <button className="btn btn-primary">Ver más</button>
+              <button className="btn btn-primary">Conocer más</button>
             </Link>
           </div>
         </div>
