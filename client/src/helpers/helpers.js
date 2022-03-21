@@ -227,6 +227,16 @@ const getBase64 = (file) => {
 };
 
 /**
+ * Replace white spaces with the given character.
+ * @param {string} str The string to be replaced.
+ * @param {string} char The character to be used.
+ * @return {string} The string with the replaced white spaces.
+ */
+const replaceWhiteSpaces = (str, char) => {
+  return str.replace(/\s/g, char);
+};
+
+/**
  * Localhost IP address.
  */
 const LOCALHOST_IP = 'localhost';
@@ -254,6 +264,7 @@ const helpers = {
   getFormattedCurrency,
   compareObjects,
   getBase64,
+  replaceWhiteSpaces,
 };
 
 export default helpers;
