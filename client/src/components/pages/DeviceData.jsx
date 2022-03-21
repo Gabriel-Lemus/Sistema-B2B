@@ -6,6 +6,7 @@ import helpers from '../../helpers/helpers';
 import DeviceDataSection from '../molecules/DeviceDataSection';
 import { css } from '@emotion/react';
 import DotLoader from 'react-spinners/DotLoader';
+import $ from 'jquery';
 
 const override = css`
   position: absolute;
@@ -28,6 +29,8 @@ function DeviceData() {
 
   // Get device data
   useEffect(() => {
+    $('.background-div').css('height', $(document).height());
+    $('#sidebarMenu').css('height', $(document).height());
     (async () => {
       let deviceData = await axios.get(
         `http://localhost:8080/sales-system/sellers?get=true&verDispositivo=true&id=${id}&vendedor=${seller}`
@@ -39,6 +42,7 @@ function DeviceData() {
         setLoading(false);
       } else {
         setDataSuccess(false);
+        setLoading(false);
       }
     })();
   }, []);
