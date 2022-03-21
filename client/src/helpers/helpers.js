@@ -144,6 +144,76 @@ const showModal = (title, message) => {
 };
 
 /**
+ * Display a Bootstrap modal with a message.
+ * @param {string} title The modal title.
+ * @param {string} message The modal message.
+ * @param {() => void} callback The callback to be executed when the modal is closed.
+ * @return {JSX.Element} The modal to be displayed.
+ */
+const getOptionModal = (title, message, callback) => {
+  return (
+    <div id="pageModal" className="modal" tabIndex="-1">
+      <div className="modal-dialog">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title">{title}</h5>
+            <button
+              type="button"
+              className="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div className="modal-body">
+            <p>{message}</p>
+          </div>
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-secondary close-btn"
+              data-dismiss="modal"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary confirm-btn"
+              data-dismiss="modal"
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Add a modal to the DOM and display it.
+ * @param {string} title The modal title.
+ * @param {string} message The modal message.
+ * @param {() => void} callback The callback to be executed when the modal is closed.
+ */
+const showOptionModal = (title, message, callback) => {
+  let modal = getOptionModal(title, message, callback);
+  $('#pageModal').remove();
+  $('body').append(ReactDOMServer.renderToString(modal));
+  $('#pageModal').modal('show');
+  $('#pageModal .close-btn').on('click', () => {
+    $('#pageModal').modal('hide');
+    $('#pageModal').remove();
+    $('.modal-backdrop').remove();
+    callback();
+  });
+  $('.confirm-btn').on('click', () => {
+    callback();
+  });
+};
+
+/**
  * Generate cryptographic salt.
  * @param {length} The length of the salt.
  * @return {string} The salt.
@@ -257,6 +327,7 @@ const helpers = {
   getThousandSeparators,
   isValidEmail,
   showModal,
+  showOptionModal,
   LOCALHOST_IP,
   TOMCAT_PORT,
   getCryptoSalt,
