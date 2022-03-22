@@ -594,8 +594,8 @@ public class SqlTableCrud {
                     if (rs.next()) {
                         // rs.previous();
                         helper.printRow(rs, out,
-                                new String[] { "id_credencial", "id_cliente", "id_vendedor", "email", "salt", "hash" },
-                                new String[] { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2" });
+                                new String[] { "id_credencial", "id_cliente", "id_vendedor", "tipo_usuario", "email", "salt", "hash" },
+                                new String[] { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2" });
                     } else {
                         helper.printJsonMessage(out, false, "message", "The email is not registered.");
                     }
