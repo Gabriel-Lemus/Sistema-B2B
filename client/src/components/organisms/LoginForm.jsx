@@ -26,20 +26,11 @@ function LoginForm() {
         let checkEmailExists = await axios.get(
           `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${email}`
         );
-        console.log(checkEmailExists.data);
         if (checkEmailExists.data.success) {
           if (helpers.isValidEmail(email)) {
             if (checkEmailExists.data.exists) {
               let credentials = await axios.get(
                 `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&getEmail=${email}`
-              );
-              console.log(credentials.data);
-              console.log(
-                helpers.isValidPassword(
-                  password,
-                  credentials.data.salt,
-                  credentials.data.hash
-                )
               );
               if (
                 helpers.isValidPassword(
@@ -52,7 +43,6 @@ function LoginForm() {
                   let client = await axios.get(
                     `http://localhost:8080/sales-system/sales?table=clientes&id=${credentials.data.id_cliente}`
                   );
-                  console.log(client.data.data);
                   helpers.setLoginUserAttributes(
                     client.data.data.tipo_cliente,
                     client.data.data.id_cliente
