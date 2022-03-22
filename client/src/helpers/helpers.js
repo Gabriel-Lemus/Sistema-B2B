@@ -336,6 +336,17 @@ const isLoggedIn = () => {
 };
 
 /**
+ * Check if the password is valid based on the salt and the hashed password.
+ * @param {string} password The password.
+ * @param {string} salt The cryptographic salt.
+ * @param {string} hashedPassword The hashed password.
+ * @return {boolean} True if the password is valid.
+ */
+const isValidPassword = (password, salt, hashedPassword) => {
+  return getHashedPassword(password, salt) === hashedPassword;
+};
+
+/**
  * Localhost IP address.
  */
 const LOCALHOST_IP = 'localhost';
@@ -368,6 +379,7 @@ const helpers = {
   setLoginUserAttributes,
   removeLoginUserAttributes,
   isLoggedIn,
+  isValidPassword,
 };
 
 export default helpers;
