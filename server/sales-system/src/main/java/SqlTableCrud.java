@@ -581,6 +581,27 @@ public class SqlTableCrud {
                 } catch (Exception e) {
                     helper.printErrorMessage(out, e);
                 }
+            } else if (helper.requestContainsParameter(request, "getEmail")) {
+                try {
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    Connection con = DriverManager.getConnection(conUrl, user, password);
+                    Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    ResultSet rs = stmt.executeQuery("SELECT * FROM CREDENCIALES_USUARIOS WHERE EMAIL = '"
+                            + request.getParameter("getEmail") + "'");
+
+                    // Check if the count is greater than 0
+                    if (rs.next()) {
+                        // rs.previous();
+                        helper.printRow(rs, out,
+                                new String[] { "id_credencial", "id_cliente", "id_vendedor", "email", "salt", "hash" },
+                                new String[] { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2" });
+                    } else {
+                        helper.printJsonMessage(out, false, "message", "The email is not registered.");
+                    }
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                }
             } else {
                 // Incorrect parameter set
                 helper.printJsonMessage(out, false, "error",
