@@ -414,12 +414,12 @@ function SignUpForm() {
     <>
       <form className="sign-in-form">
         <div className="container text-center">
-          <img
+        <img
             className="mb-4"
             src="/logo192.png"
             alt=""
-            width="72"
-            height="72"
+            width="195"
+            height="195"
           />
         </div>
         <h1 className="h3 mb-3 font-weight-normal text-center">
