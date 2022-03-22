@@ -210,7 +210,10 @@
   color: #0a380a !important; }
 
 #sidebarMenu {
-  height: calc(100vh - $navbarHeight); }
+  height: 100vh; }
+
+.nav-item:hover {
+  cursor: pointer; }
 
 .centered-container {
   position: fixed;
