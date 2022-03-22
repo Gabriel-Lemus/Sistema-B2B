@@ -3,17 +3,8 @@ import axios from 'axios';
 import $ from 'jquery';
 import { Link } from 'react-router-dom';
 import helpers from '../../helpers/helpers';
-import { css } from '@emotion/react';
-import DotLoader from 'react-spinners/DotLoader';
 import { useNavigate } from 'react-router-dom';
-
-const override = css`
-  position: absolute;
-  top: 35%;
-  left: 45%;
-  margin-top: -50px;
-  margin-left: -50px;
-`;
+import Loader from '../molecules/Loader';
 
 function SignUpForm() {
   // State
@@ -35,7 +26,6 @@ function SignUpForm() {
 
   // Use effect
   useEffect(() => {
-    $('.background-div').css('height', $(document).height());
     $('#usertype-dropdown-menu-options').children().eq(0).tooltip({
       placement: 'right',
       trigger: 'hover',
@@ -1007,18 +997,7 @@ function SignUpForm() {
           </p>
         </section>
       </form>
-      {loading ? (
-        <div className="background-div">
-          <DotLoader
-            color={helpers.PALETTE.blue}
-            loading={loading}
-            css={override}
-            size={275}
-          />
-        </div>
-      ) : (
-        <></>
-      )}
+      {loading ? <Loader loading={loading} /> : <></>}
     </>
   );
 }

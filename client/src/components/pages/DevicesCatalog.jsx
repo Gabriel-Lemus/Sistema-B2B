@@ -3,16 +3,7 @@ import React, { useState, useEffect } from 'react';
 import helpers from '../../helpers/helpers';
 import DashboardTemplate from '../templates/DashboardTemplate';
 import DevicesCards from '../molecules/DevicesCards';
-import { css } from '@emotion/react';
-import DotLoader from 'react-spinners/DotLoader';
-
-const override = css`
-  position: absolute;
-  top: 35%;
-  left: 45%;
-  margin-top: -50px;
-  margin-left: -50px;
-`;
+import Loader from '../molecules/Loader';
 
 function DevicesCatalog() {
   // State
@@ -51,18 +42,7 @@ function DevicesCatalog() {
           </>
         )}
       </DashboardTemplate>
-      {loading ? (
-        <div className="background-div">
-          <DotLoader
-            color={helpers.PALETTE.blue}
-            loading={loading}
-            css={override}
-            size={275}
-          />
-        </div>
-      ) : (
-        <></>
-      )}
+      {loading ? <Loader loading={loading} /> : <></>}
     </>
   );
 }

@@ -4,17 +4,8 @@ import { useParams } from 'react-router-dom';
 import DashboardTemplate from '../templates/DashboardTemplate';
 import helpers from '../../helpers/helpers';
 import DeviceDataSection from '../molecules/DeviceDataSection';
-import { css } from '@emotion/react';
-import DotLoader from 'react-spinners/DotLoader';
 import $ from 'jquery';
-
-const override = css`
-  position: absolute;
-  top: 35%;
-  left: 45%;
-  margin-top: -50px;
-  margin-left: -50px;
-`;
+import Loader from '../molecules/Loader';
 
 function DeviceData() {
   // Page parameters
@@ -30,7 +21,7 @@ function DeviceData() {
   // Get device data
   useEffect(() => {
     $('.background-div').css('height', $(document).height());
-    $('#sidebarMenu').css('height', $(document).height());
+    $('#sidebarMenu').css('height', $(document.body).height());
     (async () => {
       let deviceData = await axios.get(
         `http://localhost:8080/sales-system/sellers?get=true&verDispositivo=true&id=${id}&vendedor=${seller}`
@@ -154,18 +145,7 @@ function DeviceData() {
           />
         )}
       </DashboardTemplate>
-      {loading ? (
-        <div className="background-div">
-          <DotLoader
-            color={helpers.PALETTE.blue}
-            loading={loading}
-            css={override}
-            size={275}
-          />
-        </div>
-      ) : (
-        <></>
-      )}
+      {loading ? <Loader loading={loading} /> : <></>}
     </>
   );
 }
