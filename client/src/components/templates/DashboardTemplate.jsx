@@ -1,9 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import $ from 'jquery';
 
 function DashboardTemplate(props) {
+  // State
   const navigate = useNavigate();
   const [searchParam, setSearchParam] = useState('');
+
+  // Effects
+  useEffect(() => {
+    setTimeout(() => {
+      $('#sidebarMenu').css('height', $(document).height());
+    }, 600);
+  }, []);
 
   return (
     <>
