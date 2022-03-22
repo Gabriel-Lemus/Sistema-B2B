@@ -308,6 +308,34 @@ const replaceWhiteSpaces = (str, char) => {
 };
 
 /**
+ * Set user attributes to the local storage.
+ * @param {string} userType The user type.
+ * @param {Number} userId The user id.
+ */
+const setLoginUserAttributes = (userType, userId) => {
+  localStorage.setItem('loggedIn', true);
+  localStorage.setItem('userType', userType);
+  localStorage.setItem('userId', userId);
+};
+
+/**
+ * Remove user attributes from the local storage.
+ */
+const removeLoginUserAttributes = () => {
+  localStorage.removeItem('loggedIn');
+  localStorage.removeItem('userType');
+  localStorage.removeItem('userId');
+};
+
+/**
+ * Check if the user is logged in based on the local storage.
+ * @return {boolean} True if the user is logged in.
+ */
+const isLoggedIn = () => {
+  return localStorage.getItem('loggedIn') === 'true';
+};
+
+/**
  * Localhost IP address.
  */
 const LOCALHOST_IP = 'localhost';
@@ -337,6 +365,9 @@ const helpers = {
   compareObjects,
   getBase64,
   replaceWhiteSpaces,
+  setLoginUserAttributes,
+  removeLoginUserAttributes,
+  isLoggedIn,
 };
 
 export default helpers;
