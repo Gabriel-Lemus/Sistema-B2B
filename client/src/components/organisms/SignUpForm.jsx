@@ -26,6 +26,11 @@ function SignUpForm() {
 
   // Use effect
   useEffect(() => {
+    // Check if user is logged in
+    if (helpers.isLoggedIn()) {
+      navigate('/Catalogo-Dispositivos');
+    }
+
     $('#usertype-dropdown-menu-options').children().eq(0).tooltip({
       placement: 'right',
       trigger: 'hover',
