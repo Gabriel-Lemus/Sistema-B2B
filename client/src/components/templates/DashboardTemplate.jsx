@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import $ from 'jquery';
+import helpers from '../../helpers/helpers';
 
 function DashboardTemplate(props) {
   // State
@@ -17,9 +18,9 @@ function DashboardTemplate(props) {
   return (
     <>
       <nav className="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-        <a className="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="#">
+        <div className="navbar-brand col-md-3 col-lg-2 mr-0 px-3">
           Sistema B2B
-        </a>
+        </div>
         {props.displaySearchBar ? (
           <div className="input-group mb-2 mt-2">
             <input
@@ -55,7 +56,10 @@ function DashboardTemplate(props) {
         )}
         <ul className="navbar-nav px-3">
           <li className="nav-item text-nowrap">
-            <a className="nav-link" href="#">
+            <a className="nav-link" onClick={() => {
+              helpers.removeLoginUserAttributes();
+              navigate('/');
+            }}>
               Cerrar Sesión
             </a>
           </li>
