@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import helpers from '../../helpers/helpers';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,14 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Effects
+  useEffect(() => {
+    // Check if user is logged in
+    if (helpers.isLoggedIn()) {
+      navigate('/Catalogo-Dispositivos');
+    }
+  }, []);
 
   // Handlers
   const handleCredentialsSubmission = () => {
@@ -48,26 +56,14 @@ function LoginForm() {
                     client.data.data.id_cliente
                   );
                   setLoading(false);
-                  helpers.showOptionModal(
-                    'Registro exitoso',
-                    '¡Bienvenido a la tienda! Enseguida será redirigido a su página de tienda.',
-                    () => {
-                      navigate('/Catalogo-Dispositivos');
-                    }
-                  );
+                  navigate('/Catalogo-Dispositivos');
                 } else {
                   helpers.setLoginUserAttributes(
                     'vendedor',
                     credentials.data.id_vendedor
                   );
                   setLoading(false);
-                  helpers.showOptionModal(
-                    'Registro exitoso',
-                    '¡Bienvenido a la tienda! Enseguida será redirigido a su página de tienda.',
-                    () => {
-                      navigate('/Catalogo-Dispositivos');
-                    }
-                  );
+                  navigate('/Catalogo-Dispositivos');
                 }
               } else {
                 setLoading(false);
@@ -109,8 +105,8 @@ function LoginForm() {
             className="mb-4"
             src="/logo192.png"
             alt=""
-            width="72"
-            height="72"
+            width="195"
+            height="195"
           />
         </div>
         <h1 className="h3 mb-3 font-weight-normal text-center">
