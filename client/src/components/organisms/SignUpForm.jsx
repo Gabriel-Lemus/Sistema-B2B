@@ -138,11 +138,10 @@ function SignUpForm() {
                   );
 
                   if (userCredentialsRegistration.data.success) {
-                    // Redirect to the login page
-                    // window.location.href = '/login';
-
-                    // TODO: add logged in to the local storage and redirect to the home page
-
+                    helpers.setLoginUserAttributes(
+                      'vendedor',
+                      sellerRegistration.data.sellerId
+                    );
                     setLoading(false);
                     helpers.showOptionModal(
                       'Registro exitoso',
@@ -235,11 +234,10 @@ function SignUpForm() {
                   );
 
                   if (userCredentialsRegistration.data.success) {
-                    // Redirect to the login page
-                    // window.location.href = '/login';
-
-                    // TODO: add logged in to the local storage and redirect to the home page
-
+                    helpers.setLoginUserAttributes(
+                      'individual-client',
+                      clientRegistration.data.dataAdded.id_cliente
+                    );
                     setLoading(false);
                     helpers.showOptionModal(
                       'Registro exitoso',
@@ -353,11 +351,10 @@ function SignUpForm() {
                 );
 
                 if (userCredentialsRegistration.data.success) {
-                  // Redirect to the login page
-                  // window.location.href = '/login';
-
-                  // TODO: add logged in to the local storage and redirect to the home page and remove the comments!
-
+                  localStorage.setItem(
+                    clientType,
+                    clientRegistration.data.dataAdded.id_cliente
+                  );
                   setLoading(false);
                   helpers.showModal(
                     'Registro exitoso',
