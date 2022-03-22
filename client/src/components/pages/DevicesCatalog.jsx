@@ -4,21 +4,28 @@ import helpers from '../../helpers/helpers';
 import DashboardTemplate from '../templates/DashboardTemplate';
 import DevicesCards from '../molecules/DevicesCards';
 import Loader from '../molecules/Loader';
+import { useNavigate } from 'react-router-dom';
 
 function DevicesCatalog() {
   // State
+  const navigate = useNavigate();
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Effects
   useEffect(() => {
-    (async () => {
-      let devicesData = await axios.get(
-        `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&dispositivos=true`
-      );
-      setDevices(devicesData.data.dispositivos);
-      setLoading(false);
-    })();
+    // Check if user is not logged in
+    if (!helpers.isLoggedIn()) {
+      navigate('/');
+    } else {
+      (async () => {
+        let devicesData = await axios.get(
+          `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&dispositivos=true`
+        );
+        setDevices(devicesData.data.dispositivos);
+        setLoading(false);
+      })();
+    }
   }, []);
 
   return (
