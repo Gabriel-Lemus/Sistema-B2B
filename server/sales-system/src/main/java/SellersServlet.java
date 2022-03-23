@@ -136,7 +136,7 @@ public class SellersServlet extends HttpServlet {
 
         if (helper.requestContainsParameter(request, "vendedor")) {
             if (helper.requestContainsParameter(request, "crear")) {
-                String vendedor = request.getParameter("vendedor");
+                String vendedor = request.getParameter("vendedor").replace(" ", "_");
 
                 try {
                     Class.forName("oracle.jdbc.driver.OracleDriver");
@@ -177,7 +177,7 @@ public class SellersServlet extends HttpServlet {
                         "The request does not contain the required parameters.");
             }
         } else if (helper.requestContainsParameter(request, "verVendedor")) {
-            String vendedor = request.getParameter("verVendedor");
+            String vendedor = request.getParameter("seller").replace(" ", "_");
             setSchema(vendedor);
             sqlSchema.handlePost(request, response);
         } else {
@@ -202,7 +202,7 @@ public class SellersServlet extends HttpServlet {
 
         if (helper.requestContainsParameter(request, "get")) {
             if (helper.requestContainsParameter(request, "verVendedor")) {
-                String vendedor = request.getParameter("verVendedor");
+                String vendedor = request.getParameter("seller").replace(" ", "_");
                 setSchema(vendedor);
                 sqlSchema.handleGet(request, response);
             } else if (helper.requestContainsParameter(request, "verDispositivo")) {
@@ -317,9 +317,9 @@ public class SellersServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         if (helper.requestContainsParameter(request, "verVendedor")) {
-            String vendedor = request.getParameter("verVendedor");
+            String vendedor = request.getParameter("seller").replace(" ", "_");
             setSchema(vendedor);
-            sqlSchema.handleGet(request, response);
+            sqlSchema.handlePut(request, response);
         } else {
             helper.printJsonMessage(out, false, "error",
                     "The request does not contain the required parameters.");
@@ -342,7 +342,7 @@ public class SellersServlet extends HttpServlet {
 
         if (helper.requestContainsParameter(request, "vendedor")) {
             if (helper.requestContainsParameter(request, "eliminar")) {
-                String vendedor = request.getParameter("vendedor");
+                String vendedor = request.getParameter("vendedor").replace(" ", "_");
 
                 try {
                     Class.forName("oracle.jdbc.driver.OracleDriver");
@@ -371,9 +371,9 @@ public class SellersServlet extends HttpServlet {
                         "The request does not contain the required parameters.");
             }
         } else if (helper.requestContainsParameter(request, "verVendedor")) {
-            String vendedor = request.getParameter("verVendedor");
+            String vendedor = request.getParameter("seller").replace(" ", "_");
             setSchema(vendedor);
-            sqlSchema.handlePost(request, response);
+            sqlSchema.handleDelete(request, response);
         } else {
             helper.printJsonMessage(out, false, "error",
                     "The request does not contain the required parameters.");
