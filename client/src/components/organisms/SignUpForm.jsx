@@ -312,7 +312,7 @@ function SignUpForm() {
               );
               formData.append('commerce-patent', clientComPat);
               let clientCommercePatentUpload = await axios.post(
-                'http://localhost:3001/upload-commerce-patent',
+                `http://${helpers.LOCALHOST_IP}:3001/upload-commerce-patent`,
                 formData,
                 {
                   headers: {
