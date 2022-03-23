@@ -2,7 +2,7 @@ import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import helpers from '../../helpers/helpers';
 
-function UserProfile() {
+function UserProfile(props) {
   // State
   const [userData, setUserData] = useState({});
   const [newUserData, setNewUserData] = useState({});
@@ -21,10 +21,12 @@ function UserProfile() {
       let oldUserData = JSON.parse(JSON.stringify(user.data.data));
       setUserData(user.data.data);
       setNewUserData(oldUserData);
+      props.setLoading(false);
     })();
   }, []);
 
   const handleSaveChanges = async () => {
+    props.setLoading(true);
     if (newUserData.nombre !== '') {
       // Attempt to update the user's data
       let formData = new FormData();
@@ -63,6 +65,15 @@ function UserProfile() {
         let deleteOldComPat = await axios.delete(
           `http://localhost:3001/delete-commerce-patent/${commercePatentName}`
         );
+        let successfullyDeleted = deleteOldComPat.data.success;
+
+        while (!successfullyDeleted) {
+          console.log(deleteOldComPat.data);
+          deleteOldComPat = await axios.delete(
+            `http://localhost:3001/delete-commerce-patent/${commercePatentName}`
+          );
+          successfullyDeleted = deleteOldComPat.data.success;
+        }
       }
 
       let updateUserData = await axios.put(
@@ -75,6 +86,7 @@ function UserProfile() {
       );
 
       if (updateUserData.data.success && updateUserData.data.success) {
+        props.setLoading(false);
         setUserData(uploadUserData);
         setNewUserData(uploadUserData);
         helpers.showModal(
