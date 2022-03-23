@@ -42,7 +42,7 @@ public class SellersServlet extends HttpServlet {
                 new String[][] {
                         { "id_dispositivo", "id_vendedor", "id_marca", "nombre", "descripcion", "existencias", "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia" },
                         { "id_foto", "id_dispositivo", "foto" },
-                        { "id_venta", "id_cliente", "id_vendedor", "id_dispositivo", "fecha_venta", "precio_venta", "cantidad_dispositivos", "impuestos", "descuentos", "total_venta" },
+                        { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precios_venta", "cantidad_dispositivos", "impuestos", "descuentos", "total_venta" },
                         { "id_pago", "id_venta", "id_cliente", "id_vendedor", "fecha_pago", "total" },
                         { "id_pedido", "id_cliente", "id_vendedor", "fecha_pedido", "precio_pedido", "cantidad_dispositivos", "impuestos", "descuentos", "total_pedido" },
                         { "id_dispositivo_x_venta", "id_venta", "id_dispositivo", "cantidad_dispositivos" },
@@ -51,7 +51,7 @@ public class SellersServlet extends HttpServlet {
                 new String[][] {
                         { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER" },
                         { "INTEGER", "INTEGER", "BLOB" },
-                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
+                        { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "INTEGER" },
@@ -60,7 +60,7 @@ public class SellersServlet extends HttpServlet {
                 new boolean[][] {
                         { false, false, false, false, false, false, false, false, false, false, false },
                         { false, false, false },
-                        { false, false, false, false, false, false, false, false, false, false },
+                        { false, false, false, false, false, false, false, false, false },
                         { false, false, false, false, false, false },
                         { false, false, false, false, false, false },
                         { false, false, false, false },
