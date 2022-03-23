@@ -48,9 +48,6 @@ function UserProfile() {
 
       let uploadUserData = { ...newUserData };
 
-      console.log(clientComPat);
-      console.log(clientComPat === new Blob());
-
       // Check if the user uploaded a new commerce patent
       if (clientComPat.size !== 0) {
         uploadUserData = {
