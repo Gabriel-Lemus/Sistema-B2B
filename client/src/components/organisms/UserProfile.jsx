@@ -6,13 +6,18 @@ function UserProfile() {
   // State
   const [userData, setUserData] = useState({});
   const [newUserData, setNewUserData] = useState({});
+  const [clientComPat, setClientComPat] = useState(new Blob());
+  const [changedPatent, setChangedPatent] = useState(false);
 
   useEffect(() => {
     (async () => {
       let user = await axios.get(
-        `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${Number(localStorage.getItem('userId'))}`
+        `http://${helpers.LOCALHOST_IP}:${
+          helpers.TOMCAT_PORT
+        }/sales-system/sales?table=clientes&id=${Number(
+          localStorage.getItem('userId')
+        )}`
       );
-      console.log(user.data.data);
       let oldUserData = JSON.parse(JSON.stringify(user.data.data));
       setUserData(user.data.data);
       setNewUserData(oldUserData);
@@ -22,14 +27,41 @@ function UserProfile() {
   const handleSaveChanges = async () => {
     if (newUserData.nombre !== '') {
       // Attempt to update the user's data
+      let formData = new FormData();
+      formData.append(
+        'fileName',
+        `${helpers.replaceWhiteSpaces(
+          userData.nombre,
+          '-'
+        )}-${Date.now()}-commerce-patent.jpg`
+      );
+      formData.append('commerce-patent', clientComPat);
+      let clientCommercePatentUpload = await axios.post(
+        `http://${helpers.LOCALHOST_IP}:3001/upload-commerce-patent`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      let uploadUserData = {
+        ...newUserData,
+        patente_comercio:
+          ':' + clientCommercePatentUpload.data.imgURL.split(':')[2],
+      };
       let updateUserData = await axios.put(
-        `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${Number(localStorage.getItem('userId'))}`,
-        newUserData
+        `http://${helpers.LOCALHOST_IP}:${
+          helpers.TOMCAT_PORT
+        }/sales-system/sales?table=clientes&id=${Number(
+          localStorage.getItem('userId')
+        )}`,
+        uploadUserData
       );
 
       if (updateUserData.data.success) {
-        setUserData(newUserData);
-        setNewUserData(newUserData);
+        setUserData(uploadUserData);
+        setNewUserData(uploadUserData);
         helpers.showModal(
           'Operación exitosa',
           'Sus datos de usuario han sido actualizados.'
@@ -184,22 +216,8 @@ function UserProfile() {
                 className="form-control"
                 type="file"
                 onChange={(e) => {
-                  let potentialUserData = JSON.parse(
-                    JSON.stringify(newUserData)
-                  );
-                  // Check if a file was selected
-                  if (e.target.files[0]) {
-                    let file = e.target.files[0];
-                    (async () => {
-                      potentialUserData.patente_comercio =
-                        await helpers.getBase64(file);
-                      setNewUserData(potentialUserData);
-                    })();
-                  } else {
-                    potentialUserData.patente_comercio =
-                      userData.patente_comercio;
-                    setNewUserData(potentialUserData);
-                  }
+                  setClientComPat(e.target.files[0]);
+                  setChangedPatent(true);
                 }}
               />
             </td>
@@ -239,7 +257,9 @@ function UserProfile() {
                 type="date"
                 defaultValue={
                   userData.vencimiento_suscripcion !== undefined
-                    ? userData.vencimiento_suscripcion
+                    ? new Date(userData.vencimiento_suscripcion)
+                        .toISOString()
+                        .slice(0, 10)
                     : null
                 }
                 onChange={(e) => {
@@ -254,7 +274,7 @@ function UserProfile() {
           </tr>
         </tbody>
       </table>
-      {helpers.compareObjects(userData, newUserData) ? (
+      {helpers.compareObjects(userData, newUserData) && !changedPatent ? (
         <button className="btn btn-primary" disabled>
           Guardar Cambios
         </button>
