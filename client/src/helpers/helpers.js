@@ -246,11 +246,7 @@ const getHashedPassword = (password, salt) => {
  * @return {string} The formatted currency.
  */
 const getFormattedCurrency = (sign, value) => {
-  let formattedCurrency = `${sign}${getThousandSeparators(value)}`;
-
-  if (value % 1 === 0) {
-    formattedCurrency += '.00';
-  }
+  let formattedCurrency = `${sign}${value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
 
   return formattedCurrency;
 };
