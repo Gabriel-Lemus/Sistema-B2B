@@ -45,11 +45,29 @@ function UserProfile() {
           },
         }
       );
-      let uploadUserData = {
-        ...newUserData,
-        patente_comercio:
-          ':' + clientCommercePatentUpload.data.imgURL.split(':')[2],
-      };
+
+      let uploadUserData = { ...newUserData };
+
+      console.log(clientComPat);
+      console.log(clientComPat === new Blob());
+
+      // Check if the user uploaded a new commerce patent
+      if (clientComPat.size !== 0) {
+        uploadUserData = {
+          ...uploadUserData,
+          patente_comercio:
+            ':' + clientCommercePatentUpload.data.imgURL.split(':')[2],
+        };
+        const commercePatentImgURL = userData.patente_comercio;
+        const commercePatentName =
+          commercePatentImgURL.split('/')[
+            commercePatentImgURL.split('/').length - 1
+          ];
+        let deleteOldComPat = await axios.delete(
+          `http://localhost:3001/delete-commerce-patent/${commercePatentName}`
+        );
+      }
+
       let updateUserData = await axios.put(
         `http://${helpers.LOCALHOST_IP}:${
           helpers.TOMCAT_PORT
@@ -59,7 +77,7 @@ function UserProfile() {
         uploadUserData
       );
 
-      if (updateUserData.data.success) {
+      if (updateUserData.data.success && updateUserData.data.success) {
         setUserData(uploadUserData);
         setNewUserData(uploadUserData);
         helpers.showModal(
