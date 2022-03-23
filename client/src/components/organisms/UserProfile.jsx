@@ -284,6 +284,7 @@ function UserProfile(props) {
                 type="date"
                 defaultValue={
                   userData.vencimiento_suscripcion !== undefined
+                  && userData.vencimiento_suscripcion !== null
                     ? new Date(userData.vencimiento_suscripcion)
                         .toISOString()
                         .slice(0, 10)
