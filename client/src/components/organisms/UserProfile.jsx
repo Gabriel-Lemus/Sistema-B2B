@@ -6,15 +6,15 @@ function UserProfile() {
   // State
   const [userData, setUserData] = useState({});
   const [newUserData, setNewUserData] = useState({});
-  const userId = 1;
 
   useEffect(() => {
     (async () => {
-      let userData = await axios.get(
-        `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${userId}`
+      let user = await axios.get(
+        `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${Number(localStorage.getItem('userId'))}`
       );
-      let oldUserData = JSON.parse(JSON.stringify(userData.data.data));
-      setUserData(userData.data.data);
+      console.log(user.data.data);
+      let oldUserData = JSON.parse(JSON.stringify(user.data.data));
+      setUserData(user.data.data);
       setNewUserData(oldUserData);
     })();
   }, []);
@@ -23,7 +23,7 @@ function UserProfile() {
     if (newUserData.nombre !== '') {
       // Attempt to update the user's data
       let updateUserData = await axios.put(
-        `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${userId}`,
+        `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${Number(localStorage.getItem('userId'))}`,
         newUserData
       );
 
@@ -160,23 +160,20 @@ function UserProfile() {
             </td>
           </tr>
           <tr>
-            <th scope="row">Pat. de Com.</th>
+            <th scope="row">Patente de Comercio</th>
             <td>
               {userData.patente_comercio !== null &&
               userData.patente_comercio !== undefined ? (
                 <img
-                  src={
-                    userData.patente_comercio.substring(0, 22) !==
-                    'data:image/png;base64,'
-                      ? `data:image/png;base64,${userData.patente_comercio}`
-                      : userData.patente_comercio
-                  }
+                  src={`http://${helpers.LOCALHOST_IP}${userData.patente_comercio}`}
                   style={{
-                    // Center the image
                     display: 'block',
                     marginLeft: 'auto',
                     marginRight: 'auto',
-                    // width: '100%',
+                    height: '300px',
+                    width: 'auto',
+                    marginTop: '25px',
+                    marginBottom: '25px',
                   }}
                   alt="Patente de Comercio"
                 />
