@@ -53,14 +53,19 @@ function LoginForm() {
                   );
                   helpers.setLoginUserAttributes(
                     client.data.data.tipo_cliente,
-                    client.data.data.id_cliente
+                    client.data.data.id_cliente,
+                    client.data.data.nombre
                   );
                   setLoading(false);
                   navigate('/Catalogo-Dispositivos');
                 } else {
+                  let seller = await axios.get(
+                    `http://localhost:8080/sales-system/sales?table=vendedores&id=${credentials.data.id_vendedor}`
+                  );
                   helpers.setLoginUserAttributes(
                     'vendedor',
-                    credentials.data.id_vendedor
+                    credentials.data.id_vendedor,
+                    seller.data.data.nombre
                   );
                   setLoading(false);
                   navigate('/Catalogo-Dispositivos');

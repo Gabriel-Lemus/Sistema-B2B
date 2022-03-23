@@ -145,7 +145,8 @@ function SignUpForm() {
                   if (userCredentialsRegistration.data.success) {
                     helpers.setLoginUserAttributes(
                       'vendedor',
-                      sellerRegistration.data.sellerId
+                      sellerRegistration.data.sellerId,
+                      sellerName
                     );
                     setLoading(false);
                     helpers.showOptionModal(
@@ -240,8 +241,9 @@ function SignUpForm() {
 
                   if (userCredentialsRegistration.data.success) {
                     helpers.setLoginUserAttributes(
-                      'individual-client',
-                      clientRegistration.data.dataAdded.id_cliente
+                      'individual',
+                      clientRegistration.data.dataAdded.id_cliente,
+                      clientName
                     );
                     setLoading(false);
                     helpers.showOptionModal(
@@ -360,10 +362,18 @@ function SignUpForm() {
                     clientType,
                     clientRegistration.data.dataAdded.id_cliente
                   );
+                  helpers.setLoginUserAttributes(
+                    clientType,
+                    clientRegistration.data.dataAdded.id_cliente,
+                    clientName
+                  );
                   setLoading(false);
-                  helpers.showModal(
+                  helpers.showOptionModal(
                     'Registro exitoso',
-                    '¡Bienvenido a la tienda! Enseguida será redirigido a su página de tienda.'
+                    '¡Bienvenido a la tienda! Enseguida será redirigido a su página de tienda.',
+                    () => {
+                      navigate('/Catalogo-Dispositivos');
+                    }
                   );
                 } else {
                   setLoading(false);
@@ -414,7 +424,7 @@ function SignUpForm() {
     <>
       <form className="sign-in-form">
         <div className="container text-center">
-        <img
+          <img
             className="mb-4"
             src="/logo192.png"
             alt=""
