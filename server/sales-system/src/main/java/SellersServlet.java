@@ -207,7 +207,7 @@ public class SellersServlet extends HttpServlet {
                 sqlSchema.handleGet(request, response);
             } else if (helper.requestContainsParameter(request, "verDispositivo")) {
                 String dispositivoId = request.getParameter("id");
-                String vendedor = request.getParameter("vendedor");
+                String vendedor = request.getParameter("vendedor").replace(" ", "_");
 
                 try {
                     Class.forName("oracle.jdbc.driver.OracleDriver");
