@@ -312,10 +312,11 @@ const replaceWhiteSpaces = (str, char) => {
  * @param {string} userType The user type.
  * @param {Number} userId The user id.
  */
-const setLoginUserAttributes = (userType, userId) => {
+const setLoginUserAttributes = (userType, userId, userName) => {
   localStorage.setItem('loggedIn', true);
   localStorage.setItem('userType', userType);
   localStorage.setItem('userId', userId);
+  localStorage.setItem('userName', userName);
 };
 
 /**
