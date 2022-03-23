@@ -177,7 +177,7 @@ public class SellersServlet extends HttpServlet {
                         "The request does not contain the required parameters.");
             }
         } else if (helper.requestContainsParameter(request, "verVendedor")) {
-            String vendedor = request.getParameter("seller").replace(" ", "_");
+            String vendedor = request.getParameter("verVendedor").replace(" ", "_");
             setSchema(vendedor);
             sqlSchema.handlePost(request, response);
         } else {
@@ -202,7 +202,7 @@ public class SellersServlet extends HttpServlet {
 
         if (helper.requestContainsParameter(request, "get")) {
             if (helper.requestContainsParameter(request, "verVendedor")) {
-                String vendedor = request.getParameter("seller").replace(" ", "_");
+                String vendedor = request.getParameter("verVendedor").replace(" ", "_");
                 setSchema(vendedor);
                 sqlSchema.handleGet(request, response);
             } else if (helper.requestContainsParameter(request, "verDispositivo")) {
@@ -317,7 +317,7 @@ public class SellersServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         if (helper.requestContainsParameter(request, "verVendedor")) {
-            String vendedor = request.getParameter("seller").replace(" ", "_");
+            String vendedor = request.getParameter("verVendedor").replace(" ", "_");
             setSchema(vendedor);
             sqlSchema.handlePut(request, response);
         } else {
@@ -371,7 +371,7 @@ public class SellersServlet extends HttpServlet {
                         "The request does not contain the required parameters.");
             }
         } else if (helper.requestContainsParameter(request, "verVendedor")) {
-            String vendedor = request.getParameter("seller").replace(" ", "_");
+            String vendedor = request.getParameter("verVendedor").replace(" ", "_");
             setSchema(vendedor);
             sqlSchema.handleDelete(request, response);
         } else {
