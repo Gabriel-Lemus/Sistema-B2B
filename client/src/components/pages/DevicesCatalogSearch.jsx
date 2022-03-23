@@ -15,6 +15,8 @@ function DevicesCatalogSearch() {
 
   // Effects
   useEffect(() => {
+    document.title = 'Catálogo de dispositivos';
+
     (async () => {
       let devicesData = await axios.get(
         `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?dispositivos=true&page=1&search=${searchParam}`

@@ -6,6 +6,9 @@ function DevicesCatalog() {
   // State
 
   // Effects
+  useEffect(() => {
+    document.title = 'Compras';
+  }, []);
 
   return (
     <DashboardTemplate

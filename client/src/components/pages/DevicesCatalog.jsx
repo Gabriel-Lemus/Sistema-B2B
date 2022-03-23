@@ -14,6 +14,8 @@ function DevicesCatalog() {
 
   // Effects
   useEffect(() => {
+    document.title = 'Catálogo de dispositivos';
+
     // Check if user is not logged in
     if (!helpers.isLoggedIn()) {
       navigate('/');
