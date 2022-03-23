@@ -22,7 +22,7 @@ function DeviceDataSection(props) {
       Object.prototype.hasOwnProperty.call(props.device, 'nombre') &&
       props.currentImage !== ''
     ) {
-      $('#device-price').val(props.device.precio);
+      $('#device-price').val((props.device.precio * 1.9).toFixed(2));
       setDevice(props.device);
     }
   }, [props]);
@@ -45,7 +45,13 @@ function DeviceDataSection(props) {
         newDeviceExistance !== 0 ? newDeviceExistance : device.existencias,
     };
     let deviceUpdate = await axios.put(
-      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?verVendedor=true&seller=${props.seller}&table=${props.seller.replace(" ", "_")}_dispositivos&id=${props.deviceId}`,
+      `http://${helpers.LOCALHOST_IP}:${
+        helpers.TOMCAT_PORT
+      }/sales-system/sellers?verVendedor=true&seller=${
+        props.seller
+      }&table=${props.seller.replace(' ', '_')}_dispositivos&id=${
+        props.deviceId
+      }`,
       potentialNewDevice
     );
     if (deviceUpdate.data.success) {
@@ -129,7 +135,7 @@ function DeviceDataSection(props) {
             </tr>
             <tr>
               <td>
-                <b>Precio:</b>
+                <b>Precio Unitario:</b>
               </td>
               <td>
                 <input

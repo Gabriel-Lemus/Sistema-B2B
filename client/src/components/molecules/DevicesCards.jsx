@@ -19,7 +19,7 @@ function DevicesCatalog(props) {
                 ? device.descripcion
                 : `${device.descripcion.substring(0, 25)}...`}
               <br />
-              {helpers.getFormattedCurrency('Q. ', device.precio)}
+              {helpers.getFormattedCurrency('Q. ', device.precio * 1.9)}
             </p>
             <Link
               to={`/datos-dispositivo/${device.vendedor}/${device.id_dispositivo}`}

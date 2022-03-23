@@ -370,7 +370,7 @@ function ShoppingCartForm() {
               </div>
               <div className="d-flex w-100 justify-content-between">
                 <p>
-                  <b>Precio unitario:</b>
+                  <b>Precio de lista:</b>
                 </p>
                 <p>{helpers.getFormattedCurrency('Q. ', device.precio)}</p>
               </div>

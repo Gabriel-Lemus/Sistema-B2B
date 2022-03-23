@@ -46,9 +46,7 @@ function DevicesCatalog() {
             <></>
           )
         ) : (
-          <>
-            <DevicesCards devices={devices} />
-          </>
+          <DevicesCards devices={devices} />
         )}
       </DashboardTemplate>
       {loading ? <Loader loading={loading} /> : <></>}
