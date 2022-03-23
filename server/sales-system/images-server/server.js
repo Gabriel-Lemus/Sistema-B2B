@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
+const fs = require("fs");
 
 const app = express();
 app.use(
@@ -49,11 +50,13 @@ const commercePatentStorage = multer.diskStorage({
 const uploadProductImage = multer({ storage: productImageStorage });
 const uploadCommercePatent = multer({ storage: commercePatentStorage });
 
-// Routes
+// ================================= Routes =================================
+// Test get
 app.get("/upload", (req, res) => {
   res.render("upload");
 });
 
+// Post product image
 app.post(
   "/upload-product-image",
   uploadProductImage.single("product-image"),
@@ -70,6 +73,7 @@ app.post(
   }
 );
 
+// Post commerce patent
 app.post(
   "/upload-commerce-patent",
   uploadCommercePatent.single("commerce-patent"),
@@ -85,6 +89,29 @@ app.post(
     });
   }
 );
+
+// Delete old commerce patent images
+app.delete("/delete-commerce-patent/:fileName", (req, res) => {
+  try {
+    fs.unlinkSync(`./images/commerce-patents/${req.params.fileName}`);
+    res.send({
+      success: true,
+      message: "Commerce patent image deleted successfully",
+    });
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      res.send({
+        success: false,
+        message: "Commerce patent image not found",
+      });
+    } else {
+      res.send({
+        success: false,
+        message: "Error deleting commerce patent image",
+      });
+    }
+  }
+});
 
 // Listen on port 3001
 app.listen(3001, () => {
