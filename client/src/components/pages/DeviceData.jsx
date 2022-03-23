@@ -72,7 +72,10 @@ function DeviceData() {
                 vendedor: seller,
                 nombre: device.nombre,
                 precio: device.precio,
-                cantidad: newAmount,
+                cantidad:
+                  newAmount <= device.existencias
+                    ? newAmount
+                    : device.existencias,
                 foto: device.fotos[0],
               });
             } else {
@@ -89,7 +92,10 @@ function DeviceData() {
               nombre: device.nombre,
               precio: device.precio,
               vendedor: seller,
-              cantidad: Number(quantity),
+              cantidad:
+                Number(quantity) <= device.existencias
+                  ? Number(quantity)
+                  : device.existencias,
               foto: device.fotos[0],
             },
           ];
@@ -105,7 +111,10 @@ function DeviceData() {
               nombre: device.nombre,
               precio: device.precio,
               vendedor: seller,
-              cantidad: Number(quantity),
+              cantidad:
+                Number(quantity) <= device.existencias
+                  ? Number(quantity)
+                  : device.existencias,
               foto: device.fotos[0],
             },
           ])
@@ -122,6 +131,7 @@ function DeviceData() {
         'La cantidad por comprar debe ser mayor a 0 y menor o igual a la de existencias'
       );
     }
+    $('#cart-quantity').val('');
   };
 
   return (
