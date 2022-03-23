@@ -269,6 +269,7 @@ function DeviceDataSection(props) {
         </table>
         <div className="input-group mb-3">
           <input
+            id="cart-quantity"
             type="number"
             className="form-control"
             placeholder="Cantidad"
