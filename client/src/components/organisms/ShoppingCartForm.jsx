@@ -75,13 +75,12 @@ function ShoppingCartForm() {
             : 3;
         let discounts = 0;
         let response = await axios.post(
-          `http://localhost:8080/sales-system/sellers?seller=${devices[i].vendedor}&table=ventas`,
+          `http://localhost:8080/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(" ", "_")}&table=${devices[i].vendedor.replace(" ", "_")}_ventas`,
           {
-            id_cliente: 1, // TODO: Change this to the user id
+            id_cliente: Number(localStorage.getItem('userId')),
             id_vendedor: sellerId,
-            id_dispositivo: devices[i].id,
             fecha_venta: new Date().toISOString().substring(0, 10),
-            precio_venta: getTotal(),
+            precios_venta: getTotal(),
             cantidad_dispositivos: distinctSellers[i].products,
             impuestos: getTaxes(),
             descuentos: discounts,
@@ -98,7 +97,7 @@ function ShoppingCartForm() {
 
       for (let i = 0; i < devices.length; i++) {
         let oldDeviceData = await axios.get(
-          `http://localhost:8080/sales-system/sellers?seller=${devices[i].vendedor}&table=dispositivos&id=${devices[i].id}`
+          `http://localhost:8080/sales-system/sellers?get=true&verVendedor=${devices[i].vendedor.replace(" ", "_")}&table=${devices[i].vendedor.replace(" ", "_")}_dispositivos&id=${devices[i].id}`
         );
 
         let newDeviceData = {
@@ -117,7 +116,7 @@ function ShoppingCartForm() {
           tiempo_garantia: oldDeviceData.data.data.tiempo_garantia,
         };
         let couldUpdateDevice = await axios.put(
-          `http://localhost:8080/sales-system/sellers?seller=${devices[i].vendedor}&table=dispositivos&id=${devices[i].id}`,
+          `http://localhost:8080/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(" ", "_")}&table=${devices[i].vendedor.replace(" ", "_")}_dispositivos&id=${devices[i].id}`,
           newDeviceData
         );
 
