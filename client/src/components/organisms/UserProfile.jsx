@@ -68,7 +68,6 @@ function UserProfile(props) {
         let successfullyDeleted = deleteOldComPat.data.success;
 
         while (!successfullyDeleted) {
-          console.log(deleteOldComPat.data);
           deleteOldComPat = await axios.delete(
             `http://localhost:3001/delete-commerce-patent/${commercePatentName}`
           );
