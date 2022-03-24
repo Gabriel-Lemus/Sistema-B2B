@@ -9,6 +9,7 @@ function DeviceDataSection(props) {
   const [newDeviceName, setNewDeviceName] = useState('');
   const [newDeviceDescription, setNewDeviceDescription] = useState('');
   const [newDevicePrice, setNewDevicePrice] = useState(0);
+  const [newPrice, setNewPrice] = useState(0);
   const [newDeviceCategory, setNewDeviceCategory] = useState('');
   const [newDeviceModelCode, setNewDeviceModelCode] = useState('');
   const [newDeviceColor, setNewDeviceColor] = useState('');
@@ -18,22 +19,35 @@ function DeviceDataSection(props) {
 
   // Effects
   useEffect(() => {
+    $('#device-price').val(newPrice.toFixed(2));
+  }, [newPrice]);
+
+  useEffect(() => {
+    $('main h1').text(props.device.nombre);
     if (
       Object.prototype.hasOwnProperty.call(props.device, 'nombre') &&
       props.currentImage !== ''
     ) {
-      $('#device-price').val((props.device.precio * 1.9).toFixed(2));
+      if (newPrice === 0) {
+        $('#device-price').val((props.device.precio * 1.9).toFixed(2));
+      } else {
+        $('#device-price').val((newPrice).toFixed(2));
+      }
       setDevice(props.device);
     }
   }, [props]);
 
   // Functions
   const handleDeviceUpdate = async () => {
+    props.setLoading(true);
     let potentialNewDevice = {
       nombre: newDeviceName !== '' ? newDeviceName : device.nombre,
       descripcion:
         newDeviceDescription !== '' ? newDeviceDescription : device.descripcion,
-      precio: newDevicePrice !== 0 ? newDevicePrice : device.precio,
+      precio:
+        newDevicePrice !== 0
+          ? (newDevicePrice / 1.9).toFixed(2)
+          : device.precio,
       categoria:
         newDeviceCategory !== '' ? newDeviceCategory : device.categoria,
       codigo_modelo:
@@ -47,7 +61,7 @@ function DeviceDataSection(props) {
     let deviceUpdate = await axios.put(
       `http://${helpers.LOCALHOST_IP}:${
         helpers.TOMCAT_PORT
-      }/sales-system/sellers?verVendedor=true&seller=${
+      }/sales-system/sellers?verVendedor=${
         props.seller
       }&table=${props.seller.replace(' ', '_')}_dispositivos&id=${
         props.deviceId
@@ -56,11 +70,14 @@ function DeviceDataSection(props) {
     );
     if (deviceUpdate.data.success) {
       setChangedDevice(false);
+      setNewPrice(newDevicePrice);
+      props.setLoading(false);
       helpers.showModal(
         'Operación exitosa',
         'El dispositivo ha sido actualizado'
       );
     } else {
+      props.setLoading(false);
       helpers.showModal('Ocurrió un error', 'Por favor, intente de nuevo.');
     }
   };

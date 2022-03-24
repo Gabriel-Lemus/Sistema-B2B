@@ -152,6 +152,7 @@ function DeviceData() {
             seller={seller}
             setQuantity={setQuantity}
             handleAddDevices={handleAddDevices}
+            setLoading={setLoading}
           />
         )}
       </DashboardTemplate>
