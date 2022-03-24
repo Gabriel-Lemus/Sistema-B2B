@@ -289,6 +289,25 @@ public class SellersServlet extends HttpServlet {
                 } catch (Exception e) {
                     helper.printErrorMessage(out, e);
                 }
+            } else if (helper.requestContainsParameter(request, "sellerId")) {
+                try {
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    Connection con = DriverManager.getConnection(conUrl, user, password);
+                    String sellerName = request.getParameter("sellerId");
+                    Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    String sellerQuery = "SELECT GET_SELLER_ID('" + sellerName + "') FROM DUAL";
+                    ResultSet rs = stmt.executeQuery(sellerQuery);
+
+                    if (rs.next()) {
+                        out.print("{\"success\":" + true + ",\"sellerId\":" + rs.getInt(1) + "}");
+                    } else {
+                        helper.printJsonMessage(out, false, "error",
+                                "The seller with the given name does not exist.");
+                    }
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                }
             } else {
                 helper.printJsonMessage(out, false, "error",
                         "The request does not contain the required parameters.");
