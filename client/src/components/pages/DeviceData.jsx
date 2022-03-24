@@ -16,6 +16,7 @@ function DeviceData() {
   const [dataSuccess, setDataSuccess] = useState(false);
   const [currentImage, setCurrentImage] = useState('');
   const [quantity, setQuantity] = useState(0);
+  const [sellerId, setSellerId] = useState(0);
   const [loading, setLoading] = useState(true);
 
   // Get device data
@@ -26,10 +27,14 @@ function DeviceData() {
       let deviceData = await axios.get(
         `http://localhost:8080/sales-system/sellers?get=true&verDispositivo=true&id=${id}&vendedor=${seller}`
       );
+      let sellerIdNum = await axios.get(
+        `http://localhost:8080/sales-system/sellers?get=true&sellerId=${seller}`
+      );
       if (deviceData.data.success) {
         setDataSuccess(true);
         setDevice(deviceData.data.dispositivos[0]);
         setCurrentImage(deviceData.data.dispositivos[0].fotos[0]);
+        setSellerId(sellerIdNum.data.sellerId);
         setLoading(false);
       } else {
         setDataSuccess(false);
@@ -72,6 +77,7 @@ function DeviceData() {
                 vendedor: seller,
                 nombre: device.nombre,
                 precio: device.precio,
+                id_vendedor: sellerId,
                 cantidad:
                   newAmount <= device.existencias
                     ? newAmount
@@ -91,6 +97,7 @@ function DeviceData() {
               id: Number(id),
               nombre: device.nombre,
               precio: device.precio,
+              id_vendedor: sellerId,
               vendedor: seller,
               cantidad:
                 Number(quantity) <= device.existencias
@@ -110,6 +117,7 @@ function DeviceData() {
               id: Number(id),
               nombre: device.nombre,
               precio: device.precio,
+              id_vendedor: sellerId,
               vendedor: seller,
               cantidad:
                 Number(quantity) <= device.existencias
