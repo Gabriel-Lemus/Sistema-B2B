@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import helpers from '../../helpers/helpers';
-import { NavigationType, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import $ from 'jquery';
 
-function ShoppingCartForm() {
+function ShoppingCartForm(props) {
   // State
   const [isCartSet, setIsCartSet] = useState(false);
   const [devices, setDevices] = useState([]);
@@ -27,10 +28,27 @@ function ShoppingCartForm() {
       setDevices(cart);
       setIsCartSet(true);
     }
+    props.setLoading(false);
   }, []);
 
   // Handlers
+  const clearCart = () => {
+    localStorage.removeItem('cart');
+    setIsCartSet(false);
+    setDevices([]);
+    setUserName('');
+    setUserLastName('');
+    setUserNIT('');
+    setUserEmail('');
+    setUserAddress('');
+    setCardHolderName('');
+    setCardNumber(-1);
+    setCardExpiration('');
+    setCardCVV(-1);
+  };
+
   const handlePayment = async () => {
+    props.setLoading(true);
     if (
       userName !== '' &&
       userLastName !== '' &&
@@ -42,110 +60,176 @@ function ShoppingCartForm() {
       cardExpiration !== '' &&
       cardCVV !== -1
     ) {
-      let distinctSellers = [];
-      let distinctSellerIds = [];
-      let successfulPosts = 0;
-      let successfulUpdates = 0;
+      if (helpers.isValidEmail(userEmail)) {
+        if (helpers.isValidCardExpirationDate(cardExpiration)) {
+          let distinctSellers = [];
+          let distinctSellerIds = [];
+          let distinctSales = [];
+          let successfulPosts = 0;
+          let successfulUpdates = 0;
 
-      for (let i = 0; i < devices.length; i++) {
-        if (
-          !distinctSellerIds.includes(devices[i].vendedor) &&
-          devices[i].vendedor !== undefined
-        ) {
-          distinctSellers.push({
-            sellerId: devices[i].vendedor,
-            products: devices[i].cantidad,
-          });
-          distinctSellerIds.push(devices[i].vendedor);
-        } else {
-          let index = distinctSellers.findIndex(
-            (seller) => seller.sellerId === devices[i].vendedor
-          );
-          distinctSellers[index].products += devices[i].cantidad;
-        }
-      }
-
-      // Attempt to register the sales
-      for (let i = 0; i < distinctSellers.length; i++) {
-        let sellerId =
-          devices[i].vendedor === 'MAX'
-            ? 1
-            : devices[i].vendedor === 'Electtronica'
-            ? 2
-            : 3;
-        let discounts = 0;
-        let response = await axios.post(
-          `http://localhost:8080/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(" ", "_")}&table=${devices[i].vendedor.replace(" ", "_")}_ventas`,
-          {
-            id_cliente: Number(localStorage.getItem('userId')),
-            id_vendedor: sellerId,
-            fecha_venta: new Date().toISOString().substring(0, 10),
-            precios_venta: getTotal(),
-            cantidad_dispositivos: distinctSellers[i].products,
-            impuestos: getTaxes(),
-            descuentos: discounts,
-            total_venta: getTotal() - discounts,
+          for (let i = 0; i < devices.length; i++) {
+            if (
+              !distinctSellerIds.includes(devices[i].vendedor) &&
+              devices[i].vendedor !== undefined
+            ) {
+              distinctSellers.push({
+                sellerId: devices[i].vendedor,
+                products: devices[i].cantidad,
+                total: Number(
+                  (devices[i].precio * devices[i].cantidad * 1.9).toFixed(2)
+                ),
+              });
+              distinctSellerIds.push(devices[i].vendedor);
+            } else {
+              let index = distinctSellers.findIndex(
+                (seller) => seller.sellerId === devices[i].vendedor
+              );
+              distinctSellers[index].products += devices[i].cantidad;
+              distinctSellers[index].total += Number(
+                (devices[i].precio * devices[i].cantidad * 1.9).toFixed(2)
+              );
+            }
           }
-        );
 
-        if (!response.data.success) {
-          break;
+          // Attempt to register the sales
+          for (let i = 0; i < distinctSellers.length; i++) {
+            let sellerId = devices[i].id_vendedor;
+            let discounts =
+              localStorage.getItem('userType') === 'distribuidor'
+                ? 0.15
+                : localStorage.getItem('userType') === 'grande'
+                ? 0.05
+                : 0;
+            let response = await axios.post(
+              `http://localhost:8080/sales-system/sellers?verVendedor=${devices[
+                i
+              ].vendedor.replace(' ', '_')}&table=${devices[i].vendedor.replace(
+                ' ',
+                '_'
+              )}_ventas`,
+              {
+                id_cliente: Number(localStorage.getItem('userId')),
+                id_vendedor: sellerId,
+                fecha_venta: new Date(new Date().getTime() - 21600000)
+                  .toISOString()
+                  .substring(0, 10),
+                precios_venta:
+                  distinctSellers[i].total -
+                  distinctSellers[i].total * 0.5 -
+                  distinctSellers[i].total * discounts,
+                cantidad_dispositivos: distinctSellers[i].products,
+                impuestos: Number((distinctSellers[i].total * 0.5).toFixed(2)),
+                descuentos: Number(
+                  (distinctSellers[i].total * discounts).toFixed(2)
+                ),
+                total_venta: distinctSellers[i].total,
+              }
+            );
+            distinctSales.push({
+              vendedor: devices[i].vendedor,
+              id_venta: response.data.dataAdded.id_venta,
+            });
+
+            if (!response.data.success) {
+              break;
+            } else {
+              successfulPosts++;
+            }
+          }
+
+          for (let i = 0; i < devices.length; i++) {
+            let oldDeviceData = await axios.get(
+              `http://localhost:8080/sales-system/sellers?get=true&verVendedor=${devices[
+                i
+              ].vendedor.replace(' ', '_')}&table=${devices[i].vendedor.replace(
+                ' ',
+                '_'
+              )}_dispositivos&id=${devices[i].id}`
+            );
+
+            let newDeviceData = {
+              id_dispositivo: oldDeviceData.data.data.id_dispositivo,
+              id_vendedor: oldDeviceData.data.data.id_vendedor,
+              id_marca: oldDeviceData.data.data.id_marca,
+              nombre: oldDeviceData.data.data.nombre,
+              descripcion: oldDeviceData.data.data.descripcion,
+              existencias:
+                Number(oldDeviceData.data.data.existencias) -
+                Number(devices[i].cantidad),
+              precio: oldDeviceData.data.data.precio,
+              codigo_modelo: oldDeviceData.data.data.codigo_modelo,
+              color: oldDeviceData.data.data.color,
+              categoria: oldDeviceData.data.data.categoria,
+              tiempo_garantia: oldDeviceData.data.data.tiempo_garantia,
+            };
+            let couldUpdateDevice = await axios.put(
+              `http://localhost:8080/sales-system/sellers?verVendedor=${devices[
+                i
+              ].vendedor.replace(' ', '_')}&table=${devices[i].vendedor.replace(
+                ' ',
+                '_'
+              )}_dispositivos&id=${devices[i].id}`,
+              newDeviceData
+            );
+            let deviceXSale = await axios.post(
+              `http://localhost:8080/sales-system/sellers?verVendedor=${devices[
+                i
+              ].vendedor.replace(' ', '_')}&table=${devices[i].vendedor.replace(
+                ' ',
+                '_'
+              )}_dispositivos_x_ventas`,
+              {
+                id_venta: distinctSales.find(
+                  (sale) => sale.vendedor === devices[i].vendedor
+                ).id_venta,
+                id_dispositivo: devices[i].id,
+                cantidad_dispositivos: devices[i].cantidad,
+              }
+            );
+
+            if (!couldUpdateDevice.data.success && !deviceXSale.data.success) {
+              break;
+            } else {
+              successfulUpdates++;
+            }
+          }
+
+          if (
+            successfulPosts === distinctSellers.length &&
+            successfulUpdates === devices.length
+          ) {
+            props.setLoading(false);
+            helpers.showOptionModal(
+              'Operación exitosa',
+              'Su pago se ha realizado con éxito.',
+              () => clearCart()
+            );
+          } else {
+            props.setLoading(false);
+            helpers.showModal(
+              'Hubo un error',
+              'Ocurrió un error al procesar su pago. Por favor, inténtelo de nuevo.'
+            );
+          }
         } else {
-          successfulPosts++;
+          props.setLoading(false);
+          helpers.showModal(
+            'Datos inválidos',
+            'Por favor, ingrese la fecha de expiración de su tarjeta en el formato MM/AA.'
+          );
         }
-      }
-
-      for (let i = 0; i < devices.length; i++) {
-        let oldDeviceData = await axios.get(
-          `http://localhost:8080/sales-system/sellers?get=true&verVendedor=${devices[i].vendedor.replace(" ", "_")}&table=${devices[i].vendedor.replace(" ", "_")}_dispositivos&id=${devices[i].id}`
-        );
-
-        let newDeviceData = {
-          id_dispositivo: oldDeviceData.data.data.id_dispositivo,
-          id_vendedor: oldDeviceData.data.data.id_vendedor,
-          id_marca: oldDeviceData.data.data.id_marca,
-          nombre: oldDeviceData.data.data.nombre,
-          descripcion: oldDeviceData.data.data.descripcion,
-          existencias:
-            Number(oldDeviceData.data.data.existencias) -
-            Number(devices[i].cantidad),
-          precio: oldDeviceData.data.data.precio,
-          codigo_modelo: oldDeviceData.data.data.codigo_modelo,
-          color: oldDeviceData.data.data.color,
-          categoria: oldDeviceData.data.data.categoria,
-          tiempo_garantia: oldDeviceData.data.data.tiempo_garantia,
-        };
-        let couldUpdateDevice = await axios.put(
-          `http://localhost:8080/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(" ", "_")}&table=${devices[i].vendedor.replace(" ", "_")}_dispositivos&id=${devices[i].id}`,
-          newDeviceData
-        );
-
-        if (!couldUpdateDevice.data.success) {
-          break;
-        } else {
-          successfulUpdates++;
-        }
-      }
-
-      if (
-        successfulPosts === distinctSellers.length &&
-        successfulUpdates === devices.length
-      ) {
-        // Clear the cart
-        localStorage.clear();
-        helpers.showModal(
-          'Operación exitosa',
-          'Su pago se ha realizado con éxito.'
-        );
       } else {
+        props.setLoading(false);
         helpers.showModal(
-          'Hubo un error',
-          'Ocurrió un error al procesar su pago. Por favor, inténtelo de nuevo.'
+          'Datos inválidos',
+          'Por favor, ingrese un correo electrónico válido.'
         );
       }
     } else {
+      props.setLoading(false);
       helpers.showModal(
-        'Error',
+        'Datos inválidos',
         'Por favor, ingrese todos los datos solicitados.'
       );
     }
@@ -322,13 +406,14 @@ function ShoppingCartForm() {
         <section className="input-row">
           <section className="input-column">
             <label htmlFor="cardExpiration" className="input-label mt-3">
-              Fecha de Expiración (mm/aa)
+              Fecha de Expiración (MM/AA)
             </label>
             <input
               type="text"
               id="cardExpiration"
               className="form-control"
-              placeholder="Fecha de Expiración (mm/aa)"
+              placeholder="Fecha de Expiración (MM/AA)"
+              maxLength={5}
               required
               style={{
                 backgroundColor: helpers.PALETTE.lightestGreen,
@@ -349,7 +434,14 @@ function ShoppingCartForm() {
               style={{
                 backgroundColor: helpers.PALETTE.lightestGreen,
               }}
-              onChange={(e) => setCardCVV(e.target.value)}
+              onChange={(e) => {
+                // Only allow 3 digits
+                if (e.target.value.length <= 3) {
+                  setCardCVV(e.target.value);
+                } else {
+                  $('#cardSecurityNumber').val(e.target.value.substring(0, 3));
+                }
+              }}
             />
           </section>
         </section>
@@ -430,12 +522,39 @@ function ShoppingCartForm() {
             </div>
           </li>
         </ul>
-        <button
-          className="btn btn-primary btn-lg mt-5 mb-5 shopping-cart-list"
-          onClick={handlePayment}
+        <div
+          className="buttons-section"
+          style={{
+            width: '90%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
-          Pagar
-        </button>
+          <button
+            className="btn btn-primary btn-large mt-5 mb-4 shopping-cart-list"
+            onClick={handlePayment}
+          >
+            Pagar
+          </button>
+          <button
+            className="btn btn-danger btn-large mb-5 shopping-cart-list"
+            onClick={() => {
+              props.setLoading(true);
+              setTimeout(() => {
+                clearCart();
+                props.setLoading(false);
+                window.scrollTo({
+                  top: 0,
+                  behavior: 'smooth',
+                });
+              }, 750);
+            }}
+          >
+            Limpiar Carrito
+          </button>
+        </div>
       </section>
     </section>
   );
