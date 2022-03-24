@@ -246,7 +246,9 @@ const getHashedPassword = (password, salt) => {
  * @return {string} The formatted currency.
  */
 const getFormattedCurrency = (sign, value) => {
-  let formattedCurrency = `${sign}${value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+  let formattedCurrency = `${sign}${value
+    .toFixed(2)
+    .replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
 
   return formattedCurrency;
 };
@@ -344,6 +346,16 @@ const isValidPassword = (password, salt, hashedPassword) => {
 };
 
 /**
+ * Check if the string provided is a valid card expiration date (MM/YY).
+ * @param {string} date The date to be checked.
+ * @return {boolean} True if the date is valid.
+ */
+const isValidCardExpirationDate = (date) => {
+  let regex = /^(0[1-9]|1[0-2])\/[0-9]{2}$/;
+  return regex.test(date);
+};
+
+/**
  * Localhost IP address.
  */
 const LOCALHOST_IP = 'localhost';
@@ -377,6 +389,7 @@ const helpers = {
   removeLoginUserAttributes,
   isLoggedIn,
   isValidPassword,
+  isValidCardExpirationDate,
 };
 
 export default helpers;
