@@ -321,9 +321,7 @@ const setLoginUserAttributes = (userType, userId, userName) => {
  * Remove user attributes from the local storage.
  */
 const removeLoginUserAttributes = () => {
-  localStorage.removeItem('loggedIn');
-  localStorage.removeItem('userType');
-  localStorage.removeItem('userId');
+  localStorage.clear();
 };
 
 /**
