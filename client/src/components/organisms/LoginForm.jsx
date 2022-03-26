@@ -31,14 +31,15 @@ function LoginForm() {
       );
     } else {
       (async () => {
+        const parsedEmail = email.replace(/\+/g, '%2b');
         let checkEmailExists = await axios.get(
-          `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${email}`
+          `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${parsedEmail}`
         );
         if (checkEmailExists.data.success) {
           if (helpers.isValidEmail(email)) {
             if (checkEmailExists.data.exists) {
               let credentials = await axios.get(
-                `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&getEmail=${email}`
+                `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&getEmail=${parsedEmail}`
               );
               if (
                 helpers.isValidPassword(
