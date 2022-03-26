@@ -64,6 +64,17 @@ $light: #b8e9d3;
   }
 }
 
+.btn-secondary {
+  background-color: $blue !important;
+  border-color: $blue !important;
+  color: $white !important;
+  
+  &:hover {
+    background-color: $darkBlue !important;
+    border-color: $darkBlue !important;
+  }
+}
+
 // Global styles
 body {
   background-color: $body-bg;
