@@ -27,7 +27,7 @@ function App() {
           <Route path="/Datos-Dispositivo/:seller/:id" element={<DeviceData />} />
           <Route path="/Carrito-Compras" element={<ShoppingCart />} />
           <Route path="/Perfil" element={<UserProfile />} />
-          <Route path="/Catalogo-Ventas/:seller" element={<SalesCatalog />} />
+          <Route path="/Catalogo-Ventas" element={<SalesCatalog />} />
           <Route path="/Compras" element={<Sales />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
