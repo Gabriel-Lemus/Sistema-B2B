@@ -17,6 +17,8 @@ function ShoppingCartForm(props) {
   const [cardNumber, setCardNumber] = useState(-1);
   const [cardExpiration, setCardExpiration] = useState('');
   const [cardCVV, setCardCVV] = useState(-1);
+  const [userType, setuserType] = useState('');
+  const [discount, setDiscount] = useState(0);
   const navigate = useNavigate();
   let subtotal = 0;
 
@@ -28,6 +30,19 @@ function ShoppingCartForm(props) {
       setDevices(cart);
       setIsCartSet(true);
     }
+
+    setuserType(localStorage.getItem('userType'));
+    const userType = localStorage.getItem('userType');
+
+    // Check if a discount must be applied
+    if (userType !== 'individual') {
+      if (userType === 'grande') {
+        setDiscount(0.05);
+      } else {
+        setDiscount(0.15);
+      }
+    }
+
     props.setLoading(false);
   }, []);
 
@@ -199,6 +214,24 @@ function ShoppingCartForm(props) {
             successfulPosts === distinctSellers.length &&
             successfulUpdates === devices.length
           ) {
+            const parsedEmail = userEmail.replace(/\+/g, '%2b');
+            const receiptEmail = await axios.post(
+              `http://localhost:8080/sales-system/mail?sendReceipt=true&recipient=${parsedEmail}`,
+              {
+                name: userName,
+                subTotal: getSubtotal(),
+                discounts: getSubtotal() * discount,
+                taxes: getTaxes(),
+                totalPrice: getTotal(),
+                date: new Date().toISOString().substring(0, 10),
+                devices: devices.map((device) => ({
+                  name: device.nombre,
+                  quantity: device.cantidad,
+                  unitPrice: device.precio,
+                })),
+              }
+            );
+
             props.setLoading(false);
             helpers.showOptionModal(
               'Operación exitosa',
@@ -245,30 +278,60 @@ function ShoppingCartForm(props) {
     return subtotal;
   };
 
+  const getDiscountedSubtotal = (discount) => {
+    return getSubtotal() - getSubtotal() * discount;
+  };
+
   const getImport = () => {
-    return getSubtotal() * 0.15;
+    if (localStorage.getItem('userType') === 'individual') {
+      return getSubtotal() * 0.15;
+    } else {
+      return getDiscountedSubtotal(discount) * 0.15;
+    }
   };
 
   const getTaxes = () => {
-    return getSubtotal() * 0.3;
+    if (localStorage.getItem('userType') === 'individual') {
+      return getSubtotal() * 0.3;
+    } else {
+      return getDiscountedSubtotal(discount) * 0.3;
+    }
   };
 
   const getSaleCommision = () => {
-    return getSubtotal() * 0.05;
+    if (localStorage.getItem('userType') === 'individual') {
+      return getSubtotal() * 0.05;
+    } else {
+      return getDiscountedSubtotal(discount) * 0.05;
+    }
   };
 
   const getSaleProfit = () => {
-    return getSubtotal() * 0.4;
+    if (localStorage.getItem('userType') === 'individual') {
+      return getSubtotal() * 0.4;
+    } else {
+      return getDiscountedSubtotal(discount) * 0.4;
+    }
   };
 
   const getTotal = () => {
-    return (
-      getSubtotal() +
-      getImport() +
-      getTaxes() +
-      getSaleCommision() +
-      getSaleProfit()
-    );
+    if (localStorage.getItem('userType') === 'individual') {
+      return (
+        getSubtotal() +
+        getImport() +
+        getTaxes() +
+        getSaleCommision() +
+        getSaleProfit()
+      );
+    } else {
+      return (
+        getDiscountedSubtotal(discount) +
+        getImport() +
+        getTaxes() +
+        getSaleCommision() +
+        getSaleProfit()
+      );
+    }
   };
 
   const getDevicesAmount = () => {
@@ -497,6 +560,34 @@ function ShoppingCartForm(props) {
               </p>
               <p>{helpers.getFormattedCurrency('Q. ', getSubtotal())}</p>
             </div>
+            {userType !== '' ? (
+              <>
+                <div className="d-flex w-100 justify-content-between">
+                  <p>
+                    <b>Descuento:</b>
+                  </p>
+                  <p>
+                    {helpers.getFormattedCurrency(
+                      'Q. ',
+                      getSubtotal() * discount
+                    )}
+                  </p>
+                </div>
+                <div className="d-flex w-100 justify-content-between">
+                  <p>
+                    <b>Total antes de impuestos:</b>
+                  </p>
+                  <p>
+                    {helpers.getFormattedCurrency(
+                      'Q. ',
+                      getDiscountedSubtotal(discount)
+                    )}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <></>
+            )}
             <div className="d-flex w-100 justify-content-between">
               <p>
                 <b>Comisión de Ventas:</b>
@@ -504,7 +595,9 @@ function ShoppingCartForm(props) {
               <p>
                 {helpers.getFormattedCurrency(
                   'Q. ',
-                  getTotal() - getTotal() * 0.12 - getSubtotal()
+                  getTotal() -
+                    getTotal() * 0.12 -
+                    getDiscountedSubtotal(discount)
                 )}
               </p>
             </div>
@@ -538,6 +631,16 @@ function ShoppingCartForm(props) {
           >
             Pagar
           </button>
+          {userType === 'distribuidor' ? (
+            <button
+              className="btn btn-secondary btn-large mb-4 shopping-cart-list"
+              onClick={handlePayment}
+            >
+              Compra a Crédito
+            </button>
+          ) : (
+            <></>
+          )}
           <button
             className="btn btn-danger btn-large mb-5 shopping-cart-list"
             onClick={() => {
