@@ -153,7 +153,7 @@ function SignUpForm() {
                       'Registro exitoso',
                       '¡Bienvenido a la tienda! Enseguida será redirigido a su página de tienda.',
                       () => {
-                        navigate('/Catalogo-Dispositivos');
+                        navigate('/Catalogo-Ventas');
                       }
                     );
                   } else {

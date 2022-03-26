@@ -69,7 +69,7 @@ function LoginForm() {
                     seller.data.data.nombre
                   );
                   setLoading(false);
-                  navigate('/Catalogo-Dispositivos');
+                  navigate('/Catalogo-Ventas');
                 }
               } else {
                 setLoading(false);
