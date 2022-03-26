@@ -22,12 +22,8 @@ import javax.mail.internet.MimeMessage;
 @WebServlet("/mail")
 public class Mailer extends HttpServlet {
     // Attributes
-    MailSecrets secrets = new MailSecrets();
-    ServletHelper helper = new ServletHelper();
-
-    // Servlet initialization
-    public void init() throws ServletException {
-    }
+    private MailSecrets secrets = new MailSecrets();
+    private ServletHelper helper = new ServletHelper();
 
     // ========================= CRUD Methods =========================
     /**
@@ -95,6 +91,7 @@ public class Mailer extends HttpServlet {
 
                     messageBuilder.append("</table><b>Subtotal:</b> " + subTotal + "<br><b>Descuentos:</b> " + discounts
                             + "<br><b>Impuestos:</b> " + taxes + "<br><b>Total:</b> " + totalPrice);
+                    messageBuilder.append("</div></body></html>");
                     message.setContent(messageBuilder.toString(), "text/html");
                     Transport.send(message);
 
