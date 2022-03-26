@@ -235,7 +235,7 @@ public class ServletHelper {
      * @return True if the string is a date with the required format, false
      *         otherwise.
      */
-    private boolean isDateWithTime(String date) {
+    public boolean isDateWithTime(String date) {
         return date.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
     }
 
@@ -309,6 +309,6 @@ public class ServletHelper {
      * @return True if the parameter is present, false otherwise.
      */
     public boolean requestContainsParameter(HttpServletRequest request, String param) {
-        return request.getParameterMap().containsKey(param);
+        return request.getParameter(param) != null;
     }
 }
