@@ -50,7 +50,7 @@ public class SellersServlet extends HttpServlet {
                 },
                 new String[][] {
                         { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER" },
-                        { "INTEGER", "INTEGER", "BLOB" },
+                        { "INTEGER", "INTEGER", "VARCHAR" },
                         { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
@@ -284,8 +284,8 @@ public class SellersServlet extends HttpServlet {
                     setFields.add("LOWER(" + fields[i] + ") LIKE '%" + body.getString(fields[i]).toLowerCase() + "%'");
                 }
 
-                if (i == 8) {
-                    setFields.add("id_marca = " + body.getInt(fields[i]));
+                if (!body.getString(fields[i]).equals("") && i == 8) {
+                    setFields.add("id_marca = " + body.getString(fields[i]));
                 }
             }
 
