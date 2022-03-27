@@ -24,7 +24,9 @@
 
 .product-card {
   width: 250px;
+  min-width: 250px;
   height: auto;
+  min-height: 350px;
   margin: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -34,6 +36,14 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: center; }
+
+.product-card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  width: 100%; }
 
 .page-header {
   padding: 75px 0;
@@ -112,8 +122,7 @@
 
 .product-image {
   height: 150px;
-  width: auto;
-  margin: 0 0 0 10%; }
+  width: auto; }
 
 .device-information-section {
   display: flex;
