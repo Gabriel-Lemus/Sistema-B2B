@@ -31,7 +31,7 @@ function DeviceDataSection(props) {
       if (newPrice === 0) {
         $('#device-price').val((props.device.precio * 1.9).toFixed(2));
       } else {
-        $('#device-price').val((newPrice).toFixed(2));
+        $('#device-price').val(newPrice.toFixed(2));
       }
       setDevice(props.device);
     }
@@ -90,9 +90,18 @@ function DeviceDataSection(props) {
             return (
               <img
                 key={index}
-                src={foto}
+                src={
+                  foto.slice(0, 7) === 'http://' ||
+                  foto.slice(0, 8) === 'https://'
+                    ? foto
+                    : `http://${helpers.LOCALHOST_IP}${foto}`
+                }
                 alt={`Imagen ${index}`}
                 className={'device-image' + (index === 0 ? '-active' : '')}
+                style={{
+                  maxWidth: '90%',
+                  height: 'auto',
+                }}
                 onClick={() => {
                   $('.device-image-active').addClass('device-image');
                   $('.device-image-active').removeClass('device-image-active');
@@ -110,8 +119,17 @@ function DeviceDataSection(props) {
       <section className="main-image">
         <img
           className="main-device-image"
-          src={props.currentImage}
+          src={
+            props.currentImage.slice(0, 7) === 'http://' ||
+            props.currentImage.slice(0, 8) === 'https://'
+              ? props.currentImage
+              : `http://${helpers.LOCALHOST_IP}${props.currentImage}`
+          }
           alt={props.device.nombre}
+          style={{
+            maxWidth: '85%',
+            height: 'auto',
+          }}
         />
       </section>
       <section className="device-information">
