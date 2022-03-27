@@ -17,7 +17,7 @@ function DevicesCatalogSearch() {
 
     if (location.state.deviceSearch !== undefined) {
       devicesData = await axios.post(
-        'http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?busquedaEspecializada=true',
+        `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?busquedaEspecializada=true`,
         location.state.deviceSearch
       );
     } else {

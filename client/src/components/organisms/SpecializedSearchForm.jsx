@@ -21,7 +21,7 @@ function SpecializedSearchForm(props) {
   useEffect(async () => {
     // Set the available brands
     const listedBrands = await axios.get(
-      'http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=marcas'
+      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=marcas`
     );
     setavailableBrands([
       { id_marca: 0, nombre: 'Todas las marcas' },
