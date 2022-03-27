@@ -203,6 +203,26 @@
 .clickable {
   cursor: pointer; }
 
+.device-search-form {
+  max-width: 90%;
+  padding: 25px;
+  margin: 42px auto;
+  background-color: #fff;
+  border-radius: 10px; }
+
+.search-param-columns {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center; }
+
+.search-param-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+  width: 48%; }
+
 .sidebar-link {
   color: #228722 !important; }
 
