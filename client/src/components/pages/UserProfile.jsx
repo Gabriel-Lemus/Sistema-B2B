@@ -5,7 +5,6 @@ import UserProfile from '../organisms/UserProfile';
 import Loader from '../molecules/Loader';
 
 function ShoppingCart() {
-  // State
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
