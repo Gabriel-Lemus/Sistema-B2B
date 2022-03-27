@@ -7,6 +7,7 @@ import CryptoJS from 'crypto-js';
 import { AiOutlineUser, AiOutlineShoppingCart } from 'react-icons/ai';
 import { BiPurchaseTagAlt } from 'react-icons/bi';
 import { FiBook } from 'react-icons/fi';
+import { MdSell } from 'react-icons/md';
 
 /**
  * Color palette
@@ -59,6 +60,21 @@ const SELLER_PAGES = [
     icon: <FiBook />,
     title: 'Catálogo de dispositivos',
     reference: '/catalogo-ventas',
+  },
+  {
+    icon: <BiPurchaseTagAlt />,
+    title: 'Ventas',
+    reference: '/ventas',
+  },
+  {
+    icon: <MdSell />,
+    title: 'Compras',
+    reference: '/compras-b2b',
+  },
+  {
+    icon: <AiOutlineUser />,
+    title: 'Perfil',
+    reference: '/perfil',
   },
 ];
 
