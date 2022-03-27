@@ -8,95 +8,134 @@ function UserProfile(props) {
   const [newUserData, setNewUserData] = useState({});
   const [clientComPat, setClientComPat] = useState(new Blob());
   const [changedPatent, setChangedPatent] = useState(false);
+  const [isUserTypeSet, setIsUserTypeSet] = useState(false);
 
   useEffect(async () => {
-    let user = await axios.get(
-      `http://${helpers.LOCALHOST_IP}:${
-        helpers.TOMCAT_PORT
-      }/sales-system/sales?table=clientes&id=${Number(
-        localStorage.getItem('userId')
-      )}`
-    );
+    let user;
+
+    if (localStorage.getItem('userType') !== 'vendedor') {
+      user = await axios.get(
+        `http://${helpers.LOCALHOST_IP}:${
+          helpers.TOMCAT_PORT
+        }/sales-system/sales?table=clientes&id=${Number(
+          localStorage.getItem('userId')
+        )}`
+      );
+    } else {
+      user = await axios.get(
+        `http://${helpers.LOCALHOST_IP}:${
+          helpers.TOMCAT_PORT
+        }/sales-system/sales?table=vendedores&id=${Number(
+          localStorage.getItem('userId')
+        )}`
+      );
+    }
+
     let oldUserData = JSON.parse(JSON.stringify(user.data.data));
     setUserData(user.data.data);
     setNewUserData(oldUserData);
+    setIsUserTypeSet(localStorage.getItem('userType'));
     props.setLoading(false);
   }, []);
 
   const handleSaveChanges = async () => {
     props.setLoading(true);
-    if (newUserData.nombre !== '') {
-      // Attempt to update the user's data
-      let formData = new FormData();
-      formData.append(
-        'fileName',
-        `${helpers.replaceWhiteSpaces(
-          userData.nombre,
-          '-'
-        )}-${Date.now()}-commerce-patent.jpg`
-      );
-      formData.append('commerce-patent', clientComPat);
-      let clientCommercePatentUpload = await axios.post(
-        `http://${helpers.LOCALHOST_IP}:3001/upload-commerce-patent`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-
-      let uploadUserData = { ...newUserData };
-
-      // Check if the user uploaded a new commerce patent
-      if (clientComPat.size !== 0) {
-        uploadUserData = {
-          ...uploadUserData,
-          patente_comercio:
-            ':' + clientCommercePatentUpload.data.imgURL.split(':')[2],
-        };
-        const commercePatentImgURL = userData.patente_comercio;
-        const commercePatentName =
-          commercePatentImgURL.split('/')[
-            commercePatentImgURL.split('/').length - 1
-          ];
-        let deleteOldComPat = await axios.delete(
-          `http://localhost:3001/delete-commerce-patent/${commercePatentName}`
+    if (isUserTypeSet !== 'vendedor') {
+      if (newUserData.nombre !== '') {
+        // Attempt to update the user's data
+        let formData = new FormData();
+        formData.append(
+          'fileName',
+          `${helpers.replaceWhiteSpaces(
+            userData.nombre,
+            '-'
+          )}-${Date.now()}-commerce-patent.jpg`
         );
-        let successfullyDeleted = deleteOldComPat.data.success;
+        formData.append('commerce-patent', clientComPat);
+        let clientCommercePatentUpload = await axios.post(
+          `http://${helpers.LOCALHOST_IP}:3001/upload-commerce-patent`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
 
-        while (!successfullyDeleted) {
-          deleteOldComPat = await axios.delete(
+        let uploadUserData = { ...newUserData };
+
+        // Check if the user uploaded a new commerce patent
+        if (clientComPat.size !== 0) {
+          uploadUserData = {
+            ...uploadUserData,
+            patente_comercio:
+              ':' + clientCommercePatentUpload.data.imgURL.split(':')[2],
+          };
+          const commercePatentImgURL = userData.patente_comercio;
+          const commercePatentName =
+            commercePatentImgURL.split('/')[
+              commercePatentImgURL.split('/').length - 1
+            ];
+          let deleteOldComPat = await axios.delete(
             `http://localhost:3001/delete-commerce-patent/${commercePatentName}`
           );
-          successfullyDeleted = deleteOldComPat.data.success;
+          let successfullyDeleted = deleteOldComPat.data.success;
+
+          while (!successfullyDeleted) {
+            deleteOldComPat = await axios.delete(
+              `http://localhost:3001/delete-commerce-patent/${commercePatentName}`
+            );
+            successfullyDeleted = deleteOldComPat.data.success;
+          }
+        }
+
+        let updateUserData = await axios.put(
+          `http://${helpers.LOCALHOST_IP}:${
+            helpers.TOMCAT_PORT
+          }/sales-system/sales?table=clientes&id=${Number(
+            localStorage.getItem('userId')
+          )}`,
+          uploadUserData
+        );
+
+        if (updateUserData.data.success && updateUserData.data.success) {
+          props.setLoading(false);
+          setUserData(uploadUserData);
+          setNewUserData(uploadUserData);
+          helpers.showModal(
+            'Operación exitosa',
+            'Sus datos de usuario han sido actualizados.'
+          );
         }
       }
-
-      let updateUserData = await axios.put(
-        `http://${helpers.LOCALHOST_IP}:${
-          helpers.TOMCAT_PORT
-        }/sales-system/sales?table=clientes&id=${Number(
-          localStorage.getItem('userId')
-        )}`,
-        uploadUserData
-      );
-
-      if (updateUserData.data.success && updateUserData.data.success) {
-        props.setLoading(false);
-        setUserData(uploadUserData);
-        setNewUserData(uploadUserData);
-        helpers.showModal(
-          'Operación exitosa',
-          'Sus datos de usuario han sido actualizados.'
+    } else {
+      if (newUserData.nombre !== '') {
+        // Attempt to update the user's data
+        let updateUserData = await axios.put(
+          `http://${helpers.LOCALHOST_IP}:${
+            helpers.TOMCAT_PORT
+          }/sales-system/sales?table=vendedores&id=${Number(
+            localStorage.getItem('userId')
+          )}`,
+          newUserData
         );
+
+        if (updateUserData.data.success && updateUserData.data.success) {
+          props.setLoading(false);
+          setUserData(newUserData);
+          setNewUserData(newUserData);
+          helpers.showModal(
+            'Operación exitosa',
+            'Sus datos de usuario han sido actualizados.'
+          );
+        }
       }
     }
   };
 
   return Object.keys(userData).length === 0 ? (
     <></>
-  ) : (
+  ) : isUserTypeSet && isUserTypeSet !== 'vendedor' ? (
     <>
       <table className="table table-striped">
         <thead>
@@ -292,6 +331,45 @@ function UserProfile(props) {
                     JSON.stringify(newUserData)
                   );
                   potentialUserData.vencimiento_suscripcion = e.target.value;
+                  setNewUserData(potentialUserData);
+                }}
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      {helpers.compareObjects(userData, newUserData) && !changedPatent ? (
+        <button className="btn btn-primary" disabled>
+          Guardar Cambios
+        </button>
+      ) : (
+        <button className="btn btn-primary" onClick={handleSaveChanges}>
+          Guardar Cambios
+        </button>
+      )}
+    </>
+  ) : (
+    <>
+      <table className="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Propiedad</th>
+            <th scope="col">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Nombre</th>
+            <td>
+              <input
+                className="form-control"
+                type="text"
+                defaultValue={userData.nombre}
+                onChange={(e) => {
+                  let potentialUserData = JSON.parse(
+                    JSON.stringify(newUserData)
+                  );
+                  potentialUserData.nombre = e.target.value;
                   setNewUserData(potentialUserData);
                 }}
               />
