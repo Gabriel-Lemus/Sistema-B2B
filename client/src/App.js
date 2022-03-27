@@ -13,6 +13,7 @@ import ShoppingCart from './components/pages/ShoppingCart';
 import UserProfile from './components/pages/UserProfile';
 import SalesCatalog from './components/pages/SalesCatalog';
 import Sales from './components/pages/Sales';
+import SpecializedSearch from './components/pages/SpecializedSearch';
 
 function App() {
   return (
@@ -23,7 +24,8 @@ function App() {
           <Route path="/Login" exact element={<Login />} />
           <Route path="/Sign-Up" element={<SignUp />} />
           <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
-          <Route path="/Catalogo-Dispositivos-Busqueda/:searchParam" element={<DevicesCatalogSearch />} />
+          <Route path="/Catalogo-Dispositivos-Busqueda/" element={<DevicesCatalogSearch />} />
+          <Route path="/Busqueda-Especializada" element={<SpecializedSearch />} />
           <Route path="/Datos-Dispositivo/:seller/:id" element={<DeviceData />} />
           <Route path="/Carrito-Compras" element={<ShoppingCart />} />
           <Route path="/Perfil" element={<UserProfile />} />
