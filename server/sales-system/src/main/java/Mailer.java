@@ -63,7 +63,7 @@ public class Mailer extends HttpServlet {
                 String bodyStr = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
                 JSONObject body = new JSONObject(bodyStr);
                 JSONArray items = body.getJSONArray("devices");
-                String date = body.getString("date");
+                // String date = body.getString("date");
                 float subTotal = body.getFloat("subTotal");
                 float discounts = body.getFloat("discounts");
                 float taxes = body.getFloat("taxes");
@@ -103,7 +103,7 @@ public class Mailer extends HttpServlet {
                 String bodyStr = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
                 JSONObject body = new JSONObject(bodyStr);
                 JSONArray items = body.getJSONArray("devices");
-                String date = body.getString("date");
+                // String date = body.getString("date");
                 float subTotal = body.getFloat("subTotal");
                 float discounts = body.getFloat("discounts");
                 float taxes = body.getFloat("taxes");
