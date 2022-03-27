@@ -1,5 +1,5 @@
 import java.sql.*;
-
+import java.util.ArrayList;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -180,6 +180,197 @@ public class SellersServlet extends HttpServlet {
             String vendedor = request.getParameter("verVendedor").replace(" ", "_");
             setSchema(vendedor);
             sqlSchema.handlePost(request, response);
+        } else if (helper.requestContainsParameter(request, "busquedaGeneralizada")) {
+            String searchParam = request.getParameter("busquedaGeneralizada");
+            String[] fields = { "nombre", "descripcion", "existencias", "precio",
+                    "codigo_modelo", "color", "categoria", "tiempo_garantia" };
+            ArrayList<String> setFields = new ArrayList<>();
+
+            for (int i = 0; i < fields.length; i++) {
+                setFields.add("LOWER(" + fields[i] + ") LIKE '%" + searchParam.toLowerCase() + "%'");
+            }
+
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                Connection con = DriverManager.getConnection(conUrl, user, password);
+                Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                        ResultSet.CONCUR_READ_ONLY);
+                String allSellersQuery = "SELECT * FROM " + schema + ".vendedores";
+                ResultSet rs = stmt.executeQuery(allSellersQuery);
+                ArrayList<String> sellers = new ArrayList<String>();
+                String devicesQuery = "";
+
+                while (rs.next()) {
+                    sellers.add(rs.getString("nombre"));
+                }
+
+                if (sellers.size() > 0) {
+                    devicesQuery += "SELECT df.*, v.nombre vendedor, m.nombre marca FROM (";
+
+                    if (sellers.size() > 1) {
+                        for (int i = 0; i < sellers.size(); i++) {
+                            devicesQuery += "SELECT d.*, f.foto FROM (SELECT * FROM " + (sellers.get(i)).replace(" ", "_") + "_dispositivos WHERE ";
+                            
+                            for (int j = 0; j < setFields.size(); j++) {
+                                devicesQuery += setFields.get(j);
+                                if (j < setFields.size() - 1) {
+                                    devicesQuery += " OR ";
+                                }
+                            }
+
+                            devicesQuery += ") d INNER JOIN " + (sellers.get(i)).replace(" ", "_") + "_fotos_dispositivos f ON d.id_dispositivo = f.id_dispositivo";
+
+                            if (i < sellers.size() - 1) {
+                                devicesQuery += " UNION ALL ";
+                            }
+                        }
+
+                        devicesQuery += ") df INNER JOIN vendedores v ON df.id_vendedor = v.id_vendedor INNER JOIN marcas m ON df.id_marca = m.id_marca";
+                        ResultSet rs2 = stmt.executeQuery(devicesQuery);
+                        String jsonString = "{\"success\":true,\"dispositivos\":[";
+
+                        if (rs2.next()) {
+                            rs2.previous();
+
+                            String[] attrs = { "id_dispositivo", "id_vendedor",
+                            "id_marca", "nombre", "descripcion", "existencias",
+                            "precio", "codigo_modelo", "color", "categoria",
+                            "tiempo_garantia", "foto", "vendedor", "marca" };
+                            String[] types = { "INTEGER", "INTEGER", "INTEGER",
+                            "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT",
+                            "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER",
+                            "VARCHAR2", "VARCHAR2", "VARCHAR2" };
+
+                            while (rs2.next()) {
+                                jsonString += helper.getRow(rs2, out, attrs, types);
+
+                                if (rs2.isLast()) {
+                                    jsonString += "]}";
+                                } else {
+                                    jsonString += ",";
+                                }
+                            }
+
+                            out.print(formatDevices(jsonString));
+                            out.flush();
+                            con.close();
+                        }
+                    } else {
+                        devicesQuery = "SELECT * FROM " + sellers.get(0) + "_dispositivos WHERE ";
+                        
+                        for (int i = 0; i < setFields.size(); i++) {
+                            devicesQuery += setFields.get(i);
+                            if (i < setFields.size() - 1) {
+                                devicesQuery += " AND ";
+                            }
+                        }
+                    }
+                } else {
+                    helper.printJsonMessage(out, false, "error",
+                            "There are no sellers in the database.");
+                }
+            } catch (Exception e) {
+                helper.printErrorMessage(out, e);
+            }
+        } else if (helper.requestContainsParameter(request, "busquedaEspecializada")) {
+            String bodyStr = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
+            JSONObject body = new JSONObject(bodyStr);
+            String[] fields = { "nombre", "descripcion", "existencias", "precio",
+                    "codigo_modelo", "color", "categoria", "tiempo_garantia", "id_marca"};
+            ArrayList<String> setFields = new ArrayList<>();
+
+            for (int i = 0; i < fields.length; i++) {
+                if (!body.getString(fields[i]).equals("") && i != 8) {
+                    setFields.add("LOWER(" + fields[i] + ") LIKE '%" + body.getString(fields[i]).toLowerCase() + "%'");
+                }
+
+                if (i == 8) {
+                    setFields.add("id_marca = " + body.getInt(fields[i]));
+                }
+            }
+
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                Connection con = DriverManager.getConnection(conUrl, user, password);
+                Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                        ResultSet.CONCUR_READ_ONLY);
+                String allSellersQuery = "SELECT * FROM " + schema + ".vendedores";
+                ResultSet rs = stmt.executeQuery(allSellersQuery);
+                ArrayList<String> sellers = new ArrayList<String>();
+                String devicesQuery = "";
+
+                while (rs.next()) {
+                    sellers.add(rs.getString("nombre"));
+                }
+
+                if (sellers.size() > 0) {
+                    devicesQuery += "SELECT df.*, v.nombre vendedor, m.nombre marca FROM (";
+
+                    if (sellers.size() > 1) {
+                        for (int i = 0; i < sellers.size(); i++) {
+                            devicesQuery += "SELECT d.*, f.foto FROM (SELECT * FROM " + (sellers.get(i)).replace(" ", "_") + "_dispositivos WHERE ";
+                            
+                            for (int j = 0; j < setFields.size(); j++) {
+                                devicesQuery += setFields.get(j);
+                                if (j < setFields.size() - 1) {
+                                    devicesQuery += " AND ";
+                                }
+                            }
+
+                            devicesQuery += ") d INNER JOIN " + (sellers.get(i)).replace(" ", "_") + "_fotos_dispositivos f ON d.id_dispositivo = f.id_dispositivo";
+
+                            if (i < sellers.size() - 1) {
+                                devicesQuery += " UNION ALL ";
+                            }
+                        }
+
+                        devicesQuery += ") df INNER JOIN vendedores v ON df.id_vendedor = v.id_vendedor INNER JOIN marcas m ON df.id_marca = m.id_marca";
+                        ResultSet rs2 = stmt.executeQuery(devicesQuery);
+                        String jsonString = "{\"success\":true,\"dispositivos\":[";
+
+                        if (rs2.next()) {
+                            rs2.previous();
+
+                            String[] attrs = { "id_dispositivo", "id_vendedor",
+                            "id_marca", "nombre", "descripcion", "existencias",
+                            "precio", "codigo_modelo", "color", "categoria",
+                            "tiempo_garantia", "foto", "vendedor", "marca" };
+                            String[] types = { "INTEGER", "INTEGER", "INTEGER",
+                            "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT",
+                            "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER",
+                            "VARCHAR2", "VARCHAR2", "VARCHAR2" };
+
+                            while (rs2.next()) {
+                                jsonString += helper.getRow(rs2, out, attrs, types);
+
+                                if (rs2.isLast()) {
+                                    jsonString += "]}";
+                                } else {
+                                    jsonString += ",";
+                                }
+                            }
+
+                            out.print(formatDevices(jsonString));
+                            out.flush();
+                            con.close();
+                        }
+                    } else {
+                        devicesQuery = "SELECT * FROM " + sellers.get(0) + "_dispositivos WHERE ";
+                        
+                        for (int i = 0; i < setFields.size(); i++) {
+                            devicesQuery += setFields.get(i);
+                            if (i < setFields.size() - 1) {
+                                devicesQuery += " AND ";
+                            }
+                        }
+                    }
+                } else {
+                    helper.printJsonMessage(out, false, "error",
+                            "There are no sellers in the database.");
+                }
+            } catch (Exception e) {
+                helper.printErrorMessage(out, e);
+            }
         } else {
             helper.printJsonMessage(out, false, "error",
                     "The request does not contain the required parameters.");
