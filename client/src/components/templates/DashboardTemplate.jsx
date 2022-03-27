@@ -49,6 +49,16 @@ function DashboardTemplate(props) {
               >
                 Buscar
               </button>
+              <button
+                className="btn btn-secondary"
+                type="button"
+                id="button-addon2"
+                onClick={() => {
+                  navigate('/busqueda-especializada');
+                }}
+              >
+                Búsqueda especializada
+              </button>
             </div>
           </div>
         ) : (
@@ -56,10 +66,13 @@ function DashboardTemplate(props) {
         )}
         <ul className="navbar-nav px-3">
           <li className="nav-item text-nowrap">
-            <a className="nav-link" onClick={() => {
-              helpers.removeLoginUserAttributes();
-              navigate('/');
-            }}>
+            <a
+              className="nav-link"
+              onClick={() => {
+                helpers.removeLoginUserAttributes();
+                navigate('/');
+              }}
+            >
               Cerrar Sesión
             </a>
           </li>
