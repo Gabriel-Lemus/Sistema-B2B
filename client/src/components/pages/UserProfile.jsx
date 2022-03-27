@@ -15,7 +15,11 @@ function ShoppingCart() {
     <>
       <DashboardTemplate
         displaySearchBar={false}
-        sideBarItems={helpers.CLIENT_PAGES}
+        sideBarItems={
+          localStorage.getItem('userType') !== 'vendedor'
+            ? helpers.CLIENT_PAGES
+            : helpers.SELLER_PAGES
+        }
         pageTitle="Perfil de Usuario"
       >
         <UserProfile setLoading={setLoading} />
