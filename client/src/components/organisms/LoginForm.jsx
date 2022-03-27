@@ -50,7 +50,7 @@ function LoginForm() {
               ) {
                 if (credentials.data.tipo_usuario === 'cliente') {
                   let client = await axios.get(
-                    `http://localhost:8080/sales-system/sales?table=clientes&id=${credentials.data.id_cliente}`
+                    `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${credentials.data.id_cliente}`
                   );
                   helpers.setLoginUserAttributes(
                     client.data.data.tipo_cliente,
@@ -61,7 +61,7 @@ function LoginForm() {
                   navigate('/Catalogo-Dispositivos');
                 } else {
                   let seller = await axios.get(
-                    `http://localhost:8080/sales-system/sales?table=vendedores&id=${credentials.data.id_vendedor}`
+                    `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=vendedores&id=${credentials.data.id_vendedor}`
                   );
                   helpers.setLoginUserAttributes(
                     'vendedor',

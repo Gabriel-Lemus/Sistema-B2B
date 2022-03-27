@@ -17,13 +17,13 @@ function DevicesCatalogSearch() {
 
     if (location.state.deviceSearch !== undefined) {
       devicesData = await axios.post(
-        'http://localhost:8080/sales-system/sellers?busquedaEspecializada=true',
+        'http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?busquedaEspecializada=true',
         location.state.deviceSearch
       );
     } else {
       const search = location.state.searchParam;
       devicesData = await axios.post(
-        `http://localhost:8080/sales-system/sellers?busquedaGeneralizada=${search}`,
+        `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?busquedaGeneralizada=${search}`,
         {}
       );
     }

@@ -25,10 +25,10 @@ function DeviceData() {
     $('#sidebarMenu').css('height', $(document.body).height());
     (async () => {
       let deviceData = await axios.get(
-        `http://localhost:8080/sales-system/sellers?get=true&verDispositivo=true&id=${id}&vendedor=${seller}`
+        `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&verDispositivo=true&id=${id}&vendedor=${seller}`
       );
       let sellerIdNum = await axios.get(
-        `http://localhost:8080/sales-system/sellers?get=true&sellerId=${seller}`
+        `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&sellerId=${seller}`
       );
       if (deviceData.data.success) {
         setDataSuccess(true);
