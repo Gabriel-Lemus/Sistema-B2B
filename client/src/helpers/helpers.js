@@ -6,7 +6,7 @@ import CryptoJS from 'crypto-js';
 // React icons
 import { AiOutlineUser, AiOutlineShoppingCart } from 'react-icons/ai';
 import { BiPurchaseTagAlt } from 'react-icons/bi';
-import { FiBook } from 'react-icons/fi';
+import { FiBook, FiUsers } from 'react-icons/fi';
 import { MdSell } from 'react-icons/md';
 
 /**
@@ -70,6 +70,11 @@ const SELLER_PAGES = [
     icon: <MdSell />,
     title: 'Compras',
     reference: '/compras-b2b',
+  },
+  {
+    icon: <FiUsers />,
+    title: 'Clientes',
+    reference: '/clientes',
   },
   {
     icon: <AiOutlineUser />,
