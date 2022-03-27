@@ -9,20 +9,18 @@ function UserProfile(props) {
   const [clientComPat, setClientComPat] = useState(new Blob());
   const [changedPatent, setChangedPatent] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      let user = await axios.get(
-        `http://${helpers.LOCALHOST_IP}:${
-          helpers.TOMCAT_PORT
-        }/sales-system/sales?table=clientes&id=${Number(
-          localStorage.getItem('userId')
-        )}`
-      );
-      let oldUserData = JSON.parse(JSON.stringify(user.data.data));
-      setUserData(user.data.data);
-      setNewUserData(oldUserData);
-      props.setLoading(false);
-    })();
+  useEffect(async () => {
+    let user = await axios.get(
+      `http://${helpers.LOCALHOST_IP}:${
+        helpers.TOMCAT_PORT
+      }/sales-system/sales?table=clientes&id=${Number(
+        localStorage.getItem('userId')
+      )}`
+    );
+    let oldUserData = JSON.parse(JSON.stringify(user.data.data));
+    setUserData(user.data.data);
+    setNewUserData(oldUserData);
+    props.setLoading(false);
   }, []);
 
   const handleSaveChanges = async () => {
@@ -282,8 +280,8 @@ function UserProfile(props) {
                 className="form-control"
                 type="date"
                 defaultValue={
-                  userData.vencimiento_suscripcion !== undefined
-                  && userData.vencimiento_suscripcion !== null
+                  userData.vencimiento_suscripcion !== undefined &&
+                  userData.vencimiento_suscripcion !== null
                     ? new Date(userData.vencimiento_suscripcion)
                         .toISOString()
                         .slice(0, 10)

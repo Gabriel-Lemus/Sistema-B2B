@@ -4,11 +4,9 @@ import $ from 'jquery';
 import helpers from '../../helpers/helpers';
 
 function DashboardTemplate(props) {
-  // State
   const navigate = useNavigate();
   const [searchParam, setSearchParam] = useState('');
 
-  // Effects
   useEffect(() => {
     setTimeout(() => {
       $('#sidebarMenu').css('height', $(document).height());
