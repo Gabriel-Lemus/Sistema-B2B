@@ -1,7 +1,6 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import helpers from '../../helpers/helpers';
-import $ from 'jquery';
 import Loader from '../molecules/Loader';
 
 function SalesCatalogForm() {
@@ -26,7 +25,6 @@ function SalesCatalogForm() {
           .getItem('userName')
           .replace(/\s/g, '_')}_dispositivos`
       );
-      console.log(sellerDevices.data);
       setDevices(sellerDevices.data.data);
       setNewDevices(sellerDevices.data.data);
       setSeller({
