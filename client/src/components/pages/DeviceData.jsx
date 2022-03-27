@@ -8,10 +8,7 @@ import $ from 'jquery';
 import Loader from '../molecules/Loader';
 
 function DeviceData() {
-  // Page parameters
   let { seller, id } = useParams();
-
-  // State
   const [device, setDevice] = useState({});
   const [dataSuccess, setDataSuccess] = useState(false);
   const [currentImage, setCurrentImage] = useState('');
@@ -19,31 +16,25 @@ function DeviceData() {
   const [sellerId, setSellerId] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Get device data
-  useEffect(() => {
+  useEffect(async () => {
     $('.background-div').css('height', $(document).height());
     $('#sidebarMenu').css('height', $(document.body).height());
-    (async () => {
-      let deviceData = await axios.get(
-        `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&verDispositivo=true&id=${id}&vendedor=${seller}`
-      );
-      let sellerIdNum = await axios.get(
-        `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&sellerId=${seller}`
-      );
-      if (deviceData.data.success) {
-        setDataSuccess(true);
-        setDevice(deviceData.data.dispositivos[0]);
-        setCurrentImage(deviceData.data.dispositivos[0].fotos[0]);
-        setSellerId(sellerIdNum.data.sellerId);
-        setLoading(false);
-      } else {
-        setDataSuccess(false);
-        setLoading(false);
-      }
-    })();
+    let deviceData = await axios.get(
+      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&verDispositivo=true&id=${id}&vendedor=${seller}`
+    );
+    let sellerIdNum = await axios.get(
+      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&sellerId=${seller}`
+    );
+    if (deviceData.data.success) {
+      setDataSuccess(true);
+      setDevice(deviceData.data.dispositivos[0]);
+      setCurrentImage(deviceData.data.dispositivos[0].fotos[0]);
+      setSellerId(sellerIdNum.data.sellerId);
+    } else {
+      setDataSuccess(false);
+    }
   }, []);
 
-  // Handlers
   const handleAddDevices = async () => {
     if (
       Number(quantity) > 0 &&
@@ -160,6 +151,7 @@ function DeviceData() {
             seller={seller}
             setQuantity={setQuantity}
             handleAddDevices={handleAddDevices}
+            loading={loading}
             setLoading={setLoading}
           />
         )}

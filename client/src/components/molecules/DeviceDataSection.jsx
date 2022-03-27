@@ -12,9 +12,11 @@ function DeviceDataSection(props) {
   const [newPrice, setNewPrice] = useState(0);
   const [newDeviceCategory, setNewDeviceCategory] = useState('');
   const [newDeviceModelCode, setNewDeviceModelCode] = useState('');
+  const [newDeviceBrand, setNewDeviceBrand] = useState(0);
   const [newDeviceColor, setNewDeviceColor] = useState('');
   const [newDeviceWarranty, setNewDeviceWarranty] = useState(0);
   const [newDeviceExistance, setNewDeviceExistance] = useState(0);
+  const [devicesBrands, setDevicesBrands] = useState([]);
   const [changedDevice, setChangedDevice] = useState(false);
 
   // Effects
@@ -37,6 +39,14 @@ function DeviceDataSection(props) {
     }
   }, [props]);
 
+  useEffect(async () => {
+    const brands = await axios.get(
+      'http://localhost:8080/sales-system/sales?table=marcas'
+    );
+    setDevicesBrands(brands.data.data);
+    props.setLoading(false);
+  }, []);
+
   // Functions
   const handleDeviceUpdate = async () => {
     props.setLoading(true);
@@ -57,6 +67,7 @@ function DeviceDataSection(props) {
         newDeviceWarranty !== 0 ? newDeviceWarranty : device.tiempo_garantia,
       existencias:
         newDeviceExistance !== 0 ? newDeviceExistance : device.existencias,
+      id_marca: newDeviceBrand !== 0 ? newDeviceBrand : device.id_marca,
     };
     let deviceUpdate = await axios.put(
       `http://${helpers.LOCALHOST_IP}:${
@@ -82,7 +93,7 @@ function DeviceDataSection(props) {
     }
   };
 
-  return (
+  return !props.loading ? (
     <section className="device-information-section">
       <section className="device-images">
         {Object.prototype.hasOwnProperty.call(props.device, 'fotos') ? (
@@ -248,6 +259,38 @@ function DeviceDataSection(props) {
             </tr>
             <tr>
               <td>
+                <b>Marca:</b>
+              </td>
+              <td>
+                <select
+                  className="form-control"
+                  defaultValue={devicesBrands.findIndex(
+                    (brand) => brand.nombre === props.device.marca
+                  )}
+                  onChange={(e) => {
+                    setNewDeviceBrand(Number(e.target.value) + 1);
+                    if (
+                      Number(e.target.value) !==
+                      devicesBrands.findIndex(
+                        (brand) => brand.nombre === props.device.marca
+                      )
+                    ) {
+                      setChangedDevice(true);
+                    } else {
+                      setChangedDevice(false);
+                    }
+                  }}
+                >
+                  {devicesBrands.map((brand, index) => (
+                    <option key={index} value={index}>
+                      {brand.nombre}
+                    </option>
+                  ))}
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td>
                 <b>Color:</b>
               </td>
               <td>
@@ -347,6 +390,8 @@ function DeviceDataSection(props) {
         )}
       </section>
     </section>
+  ) : (
+    <></>
   );
 }
 
