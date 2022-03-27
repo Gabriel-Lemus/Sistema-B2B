@@ -3,36 +3,36 @@ import React, { useState, useEffect } from 'react';
 import helpers from '../../helpers/helpers';
 import Loader from '../molecules/Loader';
 
-function SalesCatalogForm() {
-  // State
+function SalesCatalogForm(props) {
   const [devices, setDevices] = useState([]);
   const [newDevices, setNewDevices] = useState([]);
   const [catalogChanged, setCatalogChanged] = useState(false);
   const [newDevicesToAdd, setNewDevicesToAdd] = useState([]);
   const [canAddNewDevices, setCanAddNewDevices] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [brands, setBrands] = useState([]);
   const [seller, setSeller] = useState({});
 
-  // Effect
-  useEffect(() => {
-    (async () => {
-      let sellerDevices = await axios.get(
-        `http://${helpers.LOCALHOST_IP}:${
-          helpers.TOMCAT_PORT
-        }/sales-system/sellers?get=true&verVendedor=${localStorage
-          .getItem('userName')
-          .replace(/\s/g, '_')}&table=${localStorage
-          .getItem('userName')
-          .replace(/\s/g, '_')}_dispositivos`
-      );
-      setDevices(sellerDevices.data.data);
-      setNewDevices(sellerDevices.data.data);
-      setSeller({
-        id: localStorage.getItem('userId'),
-        sellerName: localStorage.getItem('userName'),
-      });
-      setLoading(false);
-    })();
+  useEffect(async () => {
+    const sellerDevices = await axios.get(
+      `http://${helpers.LOCALHOST_IP}:${
+        helpers.TOMCAT_PORT
+      }/sales-system/sellers?get=true&verVendedor=${localStorage
+        .getItem('userName')
+        .replace(/\s/g, '_')}&table=${localStorage
+        .getItem('userName')
+        .replace(/\s/g, '_')}_dispositivos`
+    );
+    const brands = await axios.get(
+      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=marcas`
+    );
+    setBrands(brands.data.data);
+    setDevices(sellerDevices.data.data);
+    setNewDevices(sellerDevices.data.data);
+    setSeller({
+      id: localStorage.getItem('userId'),
+      sellerName: localStorage.getItem('userName'),
+    });
+    props.setLoading(false);
   }, []);
 
   // Functions
@@ -51,6 +51,7 @@ function SalesCatalogForm() {
   };
 
   const handleUpdateDevices = async () => {
+    props.setLoading(true);
     let couldUpdateAllDevices = true;
 
     for (let i = 0; i < newDevices.length; i++) {
@@ -76,11 +77,13 @@ function SalesCatalogForm() {
       setCatalogChanged(false);
       setDevices(newDevices);
       setNewDevices(newDevices);
+      props.setLoading(false);
       helpers.showModal(
         'Operación exitosa',
         'Se han actualizado los dispositivos.'
       );
     } else {
+      props.setLoading(false);
       helpers.showModal(
         'Error',
         'No se pudieron actualizar los dispositivos. Por favor, inténtelo de nuevo.'
@@ -99,21 +102,21 @@ function SalesCatalogForm() {
         existencias: 0,
         id_dispositivo: devices.length + newDevicesToAdd.length + 1,
         id_marca: 1,
-        id_vendedor:
-          seller.sellerName.toLowerCase() === 'max'
-            ? 1
-            : seller.sellerName.toLowerCase() === 'Electronica'
-            ? 2
-            : 3,
+        id_vendedor: localStorage.getItem('userId'),
         nombre: '',
         precio: 0,
         tiempo_garantia: 0,
+        imagenes: [],
       },
     ]);
   };
 
   const handlePostNewDevices = async () => {
+    props.setLoading(true);
     let devicesToAdd = [];
+    let enoughImages;
+    let enoughData;
+    let correctImagesExtension = true;
 
     for (let i = 0; i < newDevicesToAdd.length; i++) {
       if (
@@ -127,41 +130,126 @@ function SalesCatalogForm() {
         newDevicesToAdd[i].tiempo_garantia !== 0
       ) {
         devicesToAdd.push(newDevicesToAdd[i]);
+        enoughData = true;
+      } else {
+        enoughData = false;
+        break;
+      }
+
+      if (newDevicesToAdd[i].imagenes.length >= 3) {
+        enoughImages = true;
+      } else {
+        enoughImages = false;
+        break;
+      }
+
+      // Check if images have correct extension: jpg, jpeg or png
+      for (let j = 0; j < newDevicesToAdd[i].imagenes.length; j++) {
+        if (
+          !newDevicesToAdd[i].imagenes[j].name.endsWith('.jpg') &&
+          !newDevicesToAdd[i].imagenes[j].name.endsWith('.jpeg') &&
+          !newDevicesToAdd[i].imagenes[j].name.endsWith('.png')
+        ) {
+          correctImagesExtension = false;
+          break;
+        }
       }
     }
 
-    if (devicesToAdd.length > 0) {
+    if (!correctImagesExtension) {
+      props.setLoading(false);
+      helpers.showModal(
+        'Formato incorrecto',
+        'Las extensiones de las imágenes deben ser jpg, jpeg o png.'
+      );
+    } else if (!enoughData) {
+      props.setLoading(false);
+      helpers.showModal(
+        'No se pudieron agregar los dispositivos',
+        'No hay suficientes datos para agregar los dispositivos Por favor, ingrese todos los datos solicitados.'
+      );
+    } else if (!enoughImages) {
+      props.setLoading(false);
+      helpers.showModal(
+        'Faltan imágenes',
+        'Por favor, agregue un mínimo de 3 imágenes de sus dispositivos.'
+      );
+    } else {
       for (let i = 0; i < devicesToAdd.length; i++) {
+        // Add the new device and then add the images
         let postDevice = await axios.post(
-          `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?seller=${seller.sellerName}&table=dispositivos`,
+          `http://${helpers.LOCALHOST_IP}:${
+            helpers.TOMCAT_PORT
+          }/sales-system/sellers?verVendedor=${seller.sellerName.replace(
+            ' ',
+            '_'
+          )}&table=${seller.sellerName.replace(' ', '_')}_dispositivos`,
           devicesToAdd[i]
         );
 
         if (!postDevice.data.success) {
+          props.setLoading(false);
           helpers.showModal(
             'Error',
             'No se pudieron agregar los dispositivos. Por favor, inténtelo de nuevo.'
           );
           break;
+        } else {
+          const deviceId = postDevice.data.dataAdded.id_dispositivo;
+
+          // Upload the images
+          for (let j = 0; j < devicesToAdd[i].imagenes.length; j++) {
+            let formData = new FormData();
+            formData.append(
+              'fileName',
+              `${helpers.replaceWhiteSpaces(
+                localStorage.getItem('userName'),
+                '-'
+              )}-${Date.now()}-product-image.jpg`
+            );
+            formData.append('product-image', devicesToAdd[i].imagenes[j]);
+            let sellerProductImgUpload = await axios.post(
+              `http://${helpers.LOCALHOST_IP}:3001/upload-product-image`,
+              formData,
+              {
+                headers: {
+                  'Content-Type': 'multipart/form-data',
+                },
+              }
+            );
+            let imageUrl = sellerProductImgUpload.data.imgURL.slice(
+              sellerProductImgUpload.data.imgURL.indexOf(':') + 1
+            );
+            imageUrl = imageUrl.slice(imageUrl.indexOf(':'));
+
+            // Upload the image url
+            let postImage = await axios.post(
+              `http://${helpers.LOCALHOST_IP}:${
+                helpers.TOMCAT_PORT
+              }/sales-system/sellers?verVendedor=${seller.sellerName.replace(
+                ' ',
+                '_'
+              )}&table=${seller.sellerName.replace(' ', '_')}_fotos_dispositivos`,
+              {
+                id_dispositivo: deviceId,
+                foto: imageUrl,
+              }
+            );
+          }
         }
       }
 
       setNewDevicesToAdd([]);
       setDevices([...devices, ...devicesToAdd]);
-
+      props.setLoading(false);
       helpers.showModal(
         'Operación exitosa',
         'Se han agregado los dispositivos.'
       );
-    } else {
-      helpers.showModal(
-        'No se pudieron agregar los dispositivos',
-        'No hay suficientes datos para agregar los dispositivos Por favor, ingrese todos los datos solicitados.'
-      );
     }
   };
 
-  return !loading ? (
+  return !props.loading ? (
     <>
       <section className="sales-catalog mt-4">
         <h4>
@@ -180,6 +268,7 @@ function SalesCatalogForm() {
                 <th scope="col">Código de Modelo</th>
                 <th scope="col">Color</th>
                 <th scope="col">Categoría</th>
+                <th scope="col">Marca</th>
                 <th scope="col">Años de Garantía</th>
               </tr>
             </thead>
@@ -334,6 +423,32 @@ function SalesCatalogForm() {
                     />
                   </td>
                   <td>
+                    <select
+                      className="form-control"
+                      defaultValue={device.id_marca}
+                      onChange={(e) => {
+                        let potentialNewDevices = JSON.parse(
+                          JSON.stringify(newDevices)
+                        );
+                        potentialNewDevices[
+                          device.id_dispositivo - 1
+                        ].id_marca = Number(e.target.value);
+                        setNewDevices(potentialNewDevices);
+                        if (!equivalentDevices(devices, potentialNewDevices)) {
+                          setCatalogChanged(true);
+                        } else {
+                          setCatalogChanged(false);
+                        }
+                      }}
+                    >
+                      {brands.map((brand) => (
+                        <option key={brand.id_marca} value={brand.id_marca}>
+                          {brand.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td>
                     <input
                       type="number"
                       min={0}
@@ -385,7 +500,9 @@ function SalesCatalogForm() {
                 <th scope="col">Código de Modelo</th>
                 <th scope="col">Color</th>
                 <th scope="col">Categoría</th>
+                <th scope="col">Marca</th>
                 <th scope="col">Años de Garantía</th>
+                <th scope="col">Imágenes</th>
               </tr>
             </thead>
             <tbody>
@@ -542,6 +659,27 @@ function SalesCatalogForm() {
                     />
                   </td>
                   <td>
+                    <select
+                      className="form-control"
+                      defaultValue={device.id_marca}
+                      onChange={(e) => {
+                        let potentialNewDevices = JSON.parse(
+                          JSON.stringify(newDevicesToAdd)
+                        );
+                        potentialNewDevices[
+                          newDevicesToAdd.indexOf(device)
+                        ].id_marca = Number(e.target.value);
+                        setNewDevices(potentialNewDevices);
+                      }}
+                    >
+                      {brands.map((brand) => (
+                        <option key={brand.id_marca} value={brand.id_marca}>
+                          {brand.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td>
                     <input
                       type="number"
                       min={0}
@@ -556,6 +694,27 @@ function SalesCatalogForm() {
                         ].tiempo_garantia = Number(e.target.value);
                         setNewDevicesToAdd(potentialNewDevices);
                         if (e.target.value !== '') {
+                          setCanAddNewDevices(true);
+                        } else {
+                          setCanAddNewDevices(false);
+                        }
+                      }}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="file"
+                      multiple
+                      className="form-control"
+                      onChange={(e) => {
+                        let potentialNewDevices = JSON.parse(
+                          JSON.stringify(newDevicesToAdd)
+                        );
+                        potentialNewDevices[
+                          newDevicesToAdd.indexOf(device)
+                        ].imagenes = e.target.files;
+                        setNewDevicesToAdd(potentialNewDevices);
+                        if (e.target.files.length > 3) {
                           setCanAddNewDevices(true);
                         } else {
                           setCanAddNewDevices(false);
@@ -580,7 +739,7 @@ function SalesCatalogForm() {
       </section>
     </>
   ) : (
-    <Loader loading={loading} />
+    <></>
   );
 }
 
