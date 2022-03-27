@@ -52,6 +52,17 @@ const CLIENT_PAGES = [
 ];
 
 /**
+ * Seller pages
+ */
+const SELLER_PAGES = [
+  {
+    icon: <FiBook />,
+    title: 'Catálogo de dispositivos',
+    reference: '/catalogo-ventas',
+  },
+];
+
+/**
  * Get the copyright text with the current year.
  * @return {string}
  */
@@ -369,6 +380,7 @@ const TOMCAT_PORT = '8080';
 const helpers = {
   PALETTE,
   CLIENT_PAGES,
+  SELLER_PAGES,
   getCopyrightText,
   getAuthors,
   getThousandSeparators,
