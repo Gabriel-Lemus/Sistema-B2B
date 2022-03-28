@@ -360,7 +360,7 @@ public class SqlTableCrud {
             }
         } else {
             // There are no records; print an empty array
-            out.print("{}]}");
+            out.print("]}");
         }
 
         con.close();
