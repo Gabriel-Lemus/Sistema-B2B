@@ -8,6 +8,7 @@ import {
   AiOutlineUser,
   AiOutlineShoppingCart,
   AiOutlineDollar,
+  AiOutlineCopyrightCircle,
 } from 'react-icons/ai';
 import { BiPurchaseTagAlt } from 'react-icons/bi';
 import { FiBook, FiUsers } from 'react-icons/fi';
@@ -96,7 +97,11 @@ ADMIN_PAGES.splice(ADMIN_PAGES.length - 1, 0, {
   title: 'Vendedores',
   reference: '/vendedores',
 });
-
+ADMIN_PAGES.splice(ADMIN_PAGES.length - 1, 0, {
+  icon: <AiOutlineCopyrightCircle />,
+  title: 'Marcas',
+  reference: '/marcas',
+});
 
 /**
  * Get the copyright text with the current year.
@@ -324,6 +329,26 @@ const compareObjects = (obj1, obj2) => {
 };
 
 /**
+ * Determine if two arrays of objects have the same keys and values.
+ * @param {object[]} arr1 The first array of objects.
+ * @param {object[]} arr2 The second array of objects.
+ * @return {boolean} True if the arrays have the same keys and values.
+ */
+const compareArrays = (arr1, arr2) => {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+
+  for (let i = 0; i < arr1.length; i++) {
+    if (!compareObjects(arr1[i], arr2[i])) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+/**
  * Get the base64 representation of a file.
  * @param {File} file The file to be converted.
  * @return {Promise<string>} The base64 representation of the file.
@@ -430,6 +455,7 @@ const helpers = {
   getHashedPassword,
   getFormattedCurrency,
   compareObjects,
+  compareArrays,
   getBase64,
   replaceWhiteSpaces,
   setLoginUserAttributes,
