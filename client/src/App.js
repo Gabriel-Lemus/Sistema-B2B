@@ -14,6 +14,7 @@ import UserProfile from './components/pages/UserProfile';
 import SalesCatalog from './components/pages/SalesCatalog';
 import Sales from './components/pages/Sales';
 import SpecializedSearch from './components/pages/SpecializedSearch';
+import Clients from './components/pages/Clients';
 
 function App() {
   return (
@@ -29,8 +30,9 @@ function App() {
           <Route path="/Datos-Dispositivo/:seller/:id" element={<DeviceData />} />
           <Route path="/Carrito-Compras" element={<ShoppingCart />} />
           <Route path="/Perfil" element={<UserProfile />} />
-          <Route path="/Catalogo-Ventas" element={<SalesCatalog />} />
           <Route path="/Compras" element={<Sales />} />
+          <Route path="/Catalogo-Ventas" element={<SalesCatalog />} />
+          <Route path="/Clientes" element={<Clients />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
