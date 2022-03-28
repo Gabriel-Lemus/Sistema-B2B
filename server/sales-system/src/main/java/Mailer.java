@@ -63,7 +63,7 @@ public class Mailer extends HttpServlet {
                 String bodyStr = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
                 JSONObject body = new JSONObject(bodyStr);
                 JSONArray items = body.getJSONArray("devices");
-                // String date = body.getString("date");
+                String date = body.getString("date");
                 float subTotal = body.getFloat("subTotal");
                 float discounts = body.getFloat("discounts");
                 float taxes = body.getFloat("taxes");
@@ -76,22 +76,34 @@ public class Mailer extends HttpServlet {
                     message.setSubject("Factura de compra de " + body.getString("name"));
 
                     StringBuilder messageBuilder = new StringBuilder();
-                    messageBuilder.append("<html><head><style>table{border-collapse: collapse;width: 100%;}");
-                    messageBuilder.append("th, td {border: 1px solid #dddddd;padding: 8px;}");
-                    messageBuilder.append("tr:nth-child(even){background-color: #dddddd;}</style></head>");
-                    messageBuilder.append("<body><div style='background-color: #d1f6ed;padding: 20px;'>");
-                    messageBuilder.append("<table><tr><th>Nombre</th><th>Cantidad</th><th>Precio</th></tr>");
+                    messageBuilder.append("<!DOCTYPE html><head><style type='text/css'>body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #d1f6ed; }");
+                    messageBuilder.append(".mail-form { width: 650px; max-width: 90vw; min-width: 300px; padding: 25px; margin: 42px auto; background-color: $white; border-radius: 10px; }");
+                    messageBuilder.append(".mail-form-header { margin-bottom: 50px; } .mail-form-body { margin-bottom: 25px; width: 85%; margin: 0 auto; }");
+                    messageBuilder.append(".bold-table-rows { border-top: 1.5px solid black; border-bottom: 1.5px solid black; } .bold-table-rows-2 { border-top: none; border-bottom: 2.5px solid black; }");
+                    messageBuilder.append(".table-double-border { margin-top: 7px; border-top: 2.7px solid black; } .table { width: 100%; margin-bottom: 1rem; color: #212529; } .text-muted { color: #6c757d !important; } .text-secondary { color: #6c757d !important; } ");
+                    messageBuilder.append(".font-weight-normal { font-weight: 400 !important; } .text-right { text-align: right !important; } .text-left { text-align: left !important; } ");
+                    messageBuilder.append("");
+                    messageBuilder.append("</style></head><body>");
+                    messageBuilder.append("<div class='mail-form'><div class='mail-form-header'><h2 class='text-center mt-3 mb-5'>¡Gracias por su compra!</h2>");
+                    messageBuilder.append("<h4 class='text-center mt-3 mb-3'>Detalle:</h4><p class='text-center text-muted'>" + date + "</p></div>");
+                    messageBuilder.append("<div class='mail-form-body'><table class='body' style='margin-bottom: 0px;'><tbody>");
 
                     for (int i = 0; i < items.length(); i++) {
                         JSONObject item = items.getJSONObject(i);
                         messageBuilder.append("<tr><td>" + item.getString("name") + "</td>");
-                        messageBuilder.append("<td>" + item.getInt("quantity") + "</td>");
-                        messageBuilder.append("<td>" + item.getFloat("unitPrice") + "</td></tr>");
+                        messageBuilder.append("<td class='text-right text-muted font-weight-normal text-secondary'>Q. " + item.getFloat("unitPrice") + "</td></tr>");
+                        messageBuilder.append("<td class='text-left text-muted font-weight-normal text-secondary'>x " + item.getInt("quantity") + "</td>");
+                        messageBuilder.append("<td class='text-right'>Q. " + item.getInt("quantity") * item.getFloat("unitPrice") + "</td></tr>");
                     }
 
-                    messageBuilder.append("</table><b>Subtotal:</b> " + subTotal + "<br><b>Descuentos:</b> " + discounts
-                            + "<br><b>Impuestos:</b> " + taxes + "<br><b>Total:</b> " + totalPrice);
-                    messageBuilder.append("</div></body></html>");
+                    messageBuilder.append("</tbody></table>");
+                    messageBuilder.append("<table class='table bold-table-rows' style='margin-bottom: 0px;'><tbody><tr><th class='text-left font-weight-normal font-italic'>Subtotal</th>");
+                    messageBuilder.append("<th class='text-right font-weight-normal font-italic'>Q. " + subTotal + "</th></tr><tr><th class='text-left font-weight-normal font-italic'>Descuentos</th>");
+                    messageBuilder.append("<th class='text-right font-weight-normal font-italic'>Q. " + discounts + "</th></tr><tr><th class='text-left font-weight-normal font-italic'>Impuestos</th>");
+                    messageBuilder.append("<th class='text-right font-weight-normal font-italic'>Q. " + taxes + "</th></tr></tbody></table>");
+                    messageBuilder.append("<table class='table bold-table-rows-2' style='margin-bottom: 0px;'><tbody><tr><th class='text-left font-weight-normal font-weight-bold font-italic'>Total</th>");
+                    messageBuilder.append("<th class='text-right font-weight-normal font-weight-bold font-italic'>Q. " + totalPrice + "</th></tr></tbody></table><hr class='table-double-border'><p class='text-center font-weight-bold mt-4 mb-4'>Sistema B2B</p>");
+                    messageBuilder.append("</div></div></body></html>");
                     message.setContent(messageBuilder.toString(), "text/html");
                     Transport.send(message);
 
