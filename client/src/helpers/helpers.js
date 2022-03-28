@@ -58,7 +58,7 @@ const CLIENT_PAGES = [
 const SELLER_PAGES = [
   {
     icon: <FiBook />,
-    title: 'Catálogo de dispositivos',
+    title: 'Catálogo de ventas',
     reference: '/catalogo-ventas',
   },
   {
