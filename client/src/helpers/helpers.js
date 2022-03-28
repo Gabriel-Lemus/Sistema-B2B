@@ -4,7 +4,11 @@ import $ from 'jquery';
 import CryptoJS from 'crypto-js';
 
 // React icons
-import { AiOutlineUser, AiOutlineShoppingCart } from 'react-icons/ai';
+import {
+  AiOutlineUser,
+  AiOutlineShoppingCart,
+  AiOutlineDollar,
+} from 'react-icons/ai';
 import { BiPurchaseTagAlt } from 'react-icons/bi';
 import { FiBook, FiUsers } from 'react-icons/fi';
 import { MdSell } from 'react-icons/md';
@@ -82,6 +86,17 @@ const SELLER_PAGES = [
     reference: '/perfil',
   },
 ];
+
+/**
+ * Admin pages
+ */
+const ADMIN_PAGES = [...SELLER_PAGES];
+ADMIN_PAGES.splice(ADMIN_PAGES.length - 1, 0, {
+  icon: <AiOutlineDollar />,
+  title: 'Vendedores',
+  reference: '/vendedores',
+});
+
 
 /**
  * Get the copyright text with the current year.
@@ -402,6 +417,7 @@ const helpers = {
   PALETTE,
   CLIENT_PAGES,
   SELLER_PAGES,
+  ADMIN_PAGES,
   getCopyrightText,
   getAuthors,
   getThousandSeparators,
