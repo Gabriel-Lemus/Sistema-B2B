@@ -153,13 +153,13 @@ public class SellersServlet extends HttpServlet {
                                 "A seller with the given name already exists.");
                     } else {
                         CallableStatement cs = con.prepareCall("{CALL " + schema + ".CREATE_SELLER_TABLES(?)}");
-                        cs.setString(1, vendedor);
+                        cs.setString(1, vendedor.replace("_", " "));
                         cs.execute();
 
                         int sellerId = -1;
                         String getSellerIdQuery = "SELECT id_vendedor FROM " + schema
                                 + ".vendedores WHERE UPPER(nombre) = UPPER('"
-                                + vendedor + "')";
+                                + vendedor.replace("_", " ") + "')";
                         rs = stmt.executeQuery(getSellerIdQuery);
 
                         if (rs.next()) {
