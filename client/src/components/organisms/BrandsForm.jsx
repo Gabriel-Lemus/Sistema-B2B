@@ -17,7 +17,6 @@ function SalesCatalogForm(props) {
     );
     setBrands(brands.data.data);
     setNewBrands(brands.data.data);
-    console.log(brands.data.data);
     setSeller({
       id: localStorage.getItem('userId'),
       sellerName: localStorage.getItem('userName'),
