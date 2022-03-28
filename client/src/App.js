@@ -15,6 +15,7 @@ import SalesCatalog from './components/pages/SalesCatalog';
 import Sales from './components/pages/Sales';
 import SpecializedSearch from './components/pages/SpecializedSearch';
 import Clients from './components/pages/Clients';
+import Sellers from './components/pages/Sellers';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="/Compras" element={<Sales />} />
           <Route path="/Catalogo-Ventas" element={<SalesCatalog />} />
           <Route path="/Clientes" element={<Clients />} />
+          <Route path="/Vendedores" element={<Sellers />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
