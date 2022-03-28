@@ -11,7 +11,11 @@ function SalesCatalog() {
     <>
       <DashboardTemplate
         displaySearchBar={false}
-        sideBarItems={helpers.SELLER_PAGES}
+        sideBarItems={
+          localStorage.getItem('isAdmin') === 'true'
+            ? helpers.ADMIN_PAGES
+            : helpers.SELLER_PAGES
+        }
         pageTitle="Catálogo de Ventas"
       >
         <SalesCatalogForm loading={loading} setLoading={setLoading} />

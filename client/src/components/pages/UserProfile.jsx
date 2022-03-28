@@ -18,6 +18,8 @@ function ShoppingCart() {
         sideBarItems={
           localStorage.getItem('userType') !== 'vendedor'
             ? helpers.CLIENT_PAGES
+            : localStorage.getItem('isAdmin') === 'true'
+            ? helpers.ADMIN_PAGES
             : helpers.SELLER_PAGES
         }
         pageTitle="Perfil de Usuario"
