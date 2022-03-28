@@ -27,8 +27,13 @@ function SignUpForm() {
   // Use effect
   useEffect(() => {
     // Check if user is logged in
-    if (helpers.isLoggedIn()) {
+    if (
+      helpers.isLoggedIn() &&
+      localStorage.getItem('userType') !== 'vendedor'
+    ) {
       navigate('/Catalogo-Dispositivos');
+    } else if (helpers.isLoggedIn()) {
+      navigate('/Catalogo-Ventas');
     }
 
     $('#usertype-dropdown-menu-options').children().eq(0).tooltip({
@@ -148,6 +153,7 @@ function SignUpForm() {
                       sellerRegistration.data.sellerId,
                       sellerName
                     );
+                    localStorage.setItem('isAdmin', false);
                     setLoading(false);
                     helpers.showOptionModal(
                       'Registro exitoso',

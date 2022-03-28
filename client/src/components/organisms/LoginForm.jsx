@@ -15,8 +15,13 @@ function LoginForm() {
   // Effects
   useEffect(() => {
     // Check if user is logged in
-    if (helpers.isLoggedIn()) {
+    if (
+      helpers.isLoggedIn() &&
+      localStorage.getItem('userType') !== 'vendedor'
+    ) {
       navigate('/Catalogo-Dispositivos');
+    } else if (helpers.isLoggedIn()) {
+      navigate('/Catalogo-Ventas');
     }
   }, []);
 
@@ -68,6 +73,7 @@ function LoginForm() {
                     credentials.data.id_vendedor,
                     seller.data.data.nombre
                   );
+                  localStorage.setItem('isAdmin', seller.data.data.es_admin === 'True' ? true : false);
                   setLoading(false);
                   navigate('/Catalogo-Ventas');
                 }
