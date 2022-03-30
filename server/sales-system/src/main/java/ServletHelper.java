@@ -323,7 +323,13 @@ public class ServletHelper {
      */
     public String round(float number, int places) {
         if (number == 0) {
-            return "0";
+            String num = "0.";
+
+            for (int i = 0; i < places; i++) {
+                num += "0";
+            }
+
+            return num;
         }
 
         StringBuilder sb = new StringBuilder();
@@ -441,5 +447,50 @@ public class ServletHelper {
         }
 
         return dateTime;
+    }
+
+    /**
+     * Format a number string with thousand separators.
+     * 
+     * @param number The number to format.
+     * @return The formatted string.
+     */
+    public String formatNumber(String number) {
+        String formattedNumber = "";
+        int index = number.indexOf(".");
+        int numCount = 0;
+
+        if (index == -1) {
+            for (int i = number.length() - 1; i >= 0; i--) {
+                numCount++;
+                formattedNumber += number.charAt(i);
+
+                if (numCount % 3 == 0 && i != 0) {
+                    formattedNumber += ",";
+                }
+            }
+
+            StringBuilder sb = new StringBuilder(formattedNumber);
+            formattedNumber = sb.reverse().toString();
+            formattedNumber += ".00";
+        } else {
+            String integerPart = number.substring(0, index);
+            String decimalPart = number.substring(index + 1);
+
+            for (int i = integerPart.length() - 1; i >= 0; i--) {
+                numCount++;
+                formattedNumber += integerPart.charAt(i);
+
+                if (numCount % 3 == 0 && i != 0) {
+                    formattedNumber += ",";
+                }
+            }
+
+            StringBuilder sb = new StringBuilder(formattedNumber);
+            formattedNumber = sb.reverse().toString();
+            formattedNumber += "." + decimalPart;
+        }
+
+        return formattedNumber;
     }
 }
