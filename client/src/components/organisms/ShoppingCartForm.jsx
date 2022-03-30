@@ -91,9 +91,12 @@ function ShoppingCartForm(props) {
               distinctSellers.push({
                 sellerId: devices[i].vendedor,
                 products: devices[i].cantidad,
-                total: Number(
-                  (devices[i].precio * devices[i].cantidad * 1.9).toFixed(2)
-                ),
+                total:
+                  localStorage.getItem('userType') === 'individual'
+                    ? devices[i].precio * devices[i].cantidad * 1.9
+                    : localStorage.getItem('userType') === 'grande'
+                    ? devices[i].precio * devices[i].cantidad * 1.9 * 0.95
+                    : devices[i].precio * devices[i].cantidad * 1.9 * 0.85,
               });
               distinctSellerIds.push(devices[i].vendedor);
             } else {
@@ -101,21 +104,30 @@ function ShoppingCartForm(props) {
                 (seller) => seller.sellerId === devices[i].vendedor
               );
               distinctSellers[index].products += devices[i].cantidad;
-              distinctSellers[index].total += Number(
-                (devices[i].precio * devices[i].cantidad * 1.9).toFixed(2)
-              );
+              distinctSellers[index].total +=
+                devices[i].precio * devices[i].cantidad * 1.9;
             }
           }
+
+          let discounts =
+            localStorage.getItem('userType') === 'distribuidor'
+              ? 0.15
+              : localStorage.getItem('userType') === 'grande'
+              ? 0.05
+              : 0;
+          const saleDate = new Date(new Date().getTime() - 21600000)
+            .toISOString()
+            .slice(0, 19)
+            .replace('T', ' ');
 
           // Attempt to register the sales
           for (let i = 0; i < distinctSellers.length; i++) {
             let sellerId = devices[i].id_vendedor;
-            let discounts =
-              localStorage.getItem('userType') === 'distribuidor'
-                ? 0.15
-                : localStorage.getItem('userType') === 'grande'
-                ? 0.05
-                : 0;
+            const totalPrice = distinctSellers[i].total / (1 - discounts);
+            const discountedPrice = (totalPrice / 1.9) * discounts;
+            const salePrices = totalPrice / 1.9;
+            const taxes =
+              distinctSellers[i].total + discountedPrice - salePrices;
             let response = await axios.post(
               `http://${helpers.LOCALHOST_IP}:${
                 helpers.TOMCAT_PORT
@@ -126,19 +138,12 @@ function ShoppingCartForm(props) {
               {
                 id_cliente: Number(localStorage.getItem('userId')),
                 id_vendedor: sellerId,
-                fecha_venta: new Date(new Date().getTime() - 21600000)
-                  .toISOString()
-                  .substring(0, 10),
-                precios_venta:
-                  distinctSellers[i].total -
-                  distinctSellers[i].total * 0.5 -
-                  distinctSellers[i].total * discounts,
+                fecha_venta: saleDate,
+                precios_venta: Number(salePrices.toFixed(2)),
                 cantidad_dispositivos: distinctSellers[i].products,
-                impuestos: Number((distinctSellers[i].total * 0.5).toFixed(2)),
-                descuentos: Number(
-                  (distinctSellers[i].total * discounts).toFixed(2)
-                ),
-                total_venta: distinctSellers[i].total,
+                impuestos: Number(taxes.toFixed(2)),
+                descuentos: Number(discountedPrice.toFixed(2)),
+                total_venta: Number(distinctSellers[i].total.toFixed(2)),
               }
             );
             distinctSales.push({
@@ -164,6 +169,7 @@ function ShoppingCartForm(props) {
                 '_'
               )}_dispositivos&id=${devices[i].id}`
             );
+            console.log(oldDeviceData.data);
 
             let newDeviceData = {
               id_dispositivo: oldDeviceData.data.data.id_dispositivo,
@@ -229,7 +235,14 @@ function ShoppingCartForm(props) {
                 name: userName,
                 subTotal: Number(getSubtotal().toFixed(2)),
                 discounts: Number((getSubtotal() * discount).toFixed(2)),
-                taxes: Number((getImport() + getTaxes() + getSaleCommision() + getSaleProfit()).toFixed(2)),
+                taxes: Number(
+                  (
+                    getImport() +
+                    getTaxes() +
+                    getSaleCommision() +
+                    getSaleProfit()
+                  ).toFixed(2)
+                ),
                 totalPrice: Number(getTotal().toFixed(2)),
                 date: new Date().toISOString().substring(0, 10),
                 devices: devices.map((device) => ({
@@ -464,6 +477,7 @@ function ShoppingCartForm(props) {
             <input
               type="number"
               id="cardNumber"
+              min={0}
               className="form-control"
               placeholder="Número de Tarjeta"
               required
