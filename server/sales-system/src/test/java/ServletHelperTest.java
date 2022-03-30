@@ -247,4 +247,10 @@ public class ServletHelperTest {
         assertTrue(helper.requestContainsParameter(request, "param"));
         assertFalse(helper.requestContainsParameter(request, "param2"));
     }
+
+    @Test
+    void testRound() {
+        assertEquals("1.0", helper.round(1.0f, 1));
+        assertEquals("2.00", helper.round(2.0f, 2));
+    }
 }
