@@ -12,7 +12,8 @@ function DevicesCatalog(props) {
             <img
               className="product-image"
               src={
-                device.fotos[0].slice(0, 7) === 'http://' || device.fotos[0].slice(0, 8) === 'https://'
+                device.fotos[0].slice(0, 7) === 'http://' ||
+                device.fotos[0].slice(0, 8) === 'https://'
                   ? device.fotos[0]
                   : `http://${helpers.LOCALHOST_IP}${device.fotos[0]}`
               }
@@ -27,7 +28,17 @@ function DevicesCatalog(props) {
                 ? device.descripcion
                 : `${device.descripcion.substring(0, 25)}...`}
               <br />
-              {helpers.getFormattedCurrency('Q. ', device.precio * 1.9)}
+              {localStorage.getItem('userType') === 'individual'
+                ? helpers.getFormattedCurrency('Q. ', device.precio * 1.9)
+                : localStorage.getItem('userType') === 'grande'
+                ? helpers.getFormattedCurrency(
+                    'Q. ',
+                    device.precio * 1.9 * 0.95
+                  )
+                : helpers.getFormattedCurrency(
+                    'Q. ',
+                    device.precio * 1.9 * 0.85
+                  )}
             </p>
             <Link
               to={`/datos-dispositivo/${device.vendedor}/${device.id_dispositivo}`}
@@ -42,3 +53,4 @@ function DevicesCatalog(props) {
 }
 
 export default DevicesCatalog;
+

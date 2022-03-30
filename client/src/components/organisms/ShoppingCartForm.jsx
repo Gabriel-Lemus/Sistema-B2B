@@ -576,7 +576,7 @@ function ShoppingCartForm(props) {
                   </p>
                   <p>
                     {helpers.getFormattedCurrency(
-                      'Q. ',
+                      '- Q. ',
                       getSubtotal() * discount
                     )}
                   </p>
