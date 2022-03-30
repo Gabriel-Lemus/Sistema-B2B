@@ -50,6 +50,12 @@ function DeviceDataSection(props) {
     props.setLoading(false);
   }, []);
 
+  useEffect(() => {
+    $('#device-brand').val(
+      devicesBrands.findIndex((brand) => brand.nombre === props.device.marca)
+    );
+  }, [devicesBrands]);
+
   // Functions
   const handleDeviceUpdate = async () => {
     props.setLoading(true);
@@ -84,15 +90,23 @@ function DeviceDataSection(props) {
     );
     if (deviceUpdate.data.success) {
       setChangedDevice(false);
-      props.device.categoria = newDeviceCategory !== '' ? newDeviceCategory : device.categoria;
-      props.device.codigo_modelo = newDeviceModelCode !== '' ? newDeviceModelCode : device.codigo_modelo;
-      props.device.color = newDeviceColor !== '' ? newDeviceColor : device.color;
-      props.device.descripcion = newDeviceDescription !== '' ? newDeviceDescription : device.descripcion;
-      props.device.existencias = newDeviceExistance !== 0 ? newDeviceExistance : device.existencias;
+      props.device.categoria =
+        newDeviceCategory !== '' ? newDeviceCategory : device.categoria;
+      props.device.codigo_modelo =
+        newDeviceModelCode !== '' ? newDeviceModelCode : device.codigo_modelo;
+      props.device.color =
+        newDeviceColor !== '' ? newDeviceColor : device.color;
+      props.device.descripcion =
+        newDeviceDescription !== '' ? newDeviceDescription : device.descripcion;
+      props.device.existencias =
+        newDeviceExistance !== 0 ? newDeviceExistance : device.existencias;
       props.device.marca = newDeviceBrand !== 0 ? newDeviceBrand : device.marca;
-      props.device.nombre = newDeviceName !== '' ? newDeviceName : device.nombre;
-      props.device.precio = newDeviceListPrice !== 0 ? newDeviceListPrice : device.precio;
-      props.device.tiempo_garantia = newDeviceWarranty !== 0 ? newDeviceWarranty : device.tiempo_garantia;
+      props.device.nombre =
+        newDeviceName !== '' ? newDeviceName : device.nombre;
+      props.device.precio =
+        newDeviceListPrice !== 0 ? newDeviceListPrice : device.precio;
+      props.device.tiempo_garantia =
+        newDeviceWarranty !== 0 ? newDeviceWarranty : device.tiempo_garantia;
       setNewDeviceName(newDeviceName);
       setNewDeviceDescription(newDeviceDescription);
       setNewPrice(newDevicePrice);
@@ -321,6 +335,7 @@ function DeviceDataSection(props) {
               </td>
               <td>
                 <select
+                  id="device-brand"
                   className="form-control"
                   defaultValue={devicesBrands.findIndex(
                     (brand) => brand.nombre === props.device.marca
