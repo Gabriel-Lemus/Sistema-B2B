@@ -63,7 +63,7 @@ public class Mailer extends HttpServlet {
                 String bodyStr = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
                 JSONObject body = new JSONObject(bodyStr);
                 JSONArray items = body.getJSONArray("devices");
-                String date = body.getString("date");
+                String date = helper.getCurrentDateAndTime();
                 float subTotal = body.getFloat("subTotal");
                 float discounts = body.getFloat("discounts");
                 float taxes = body.getFloat("taxes");
@@ -76,34 +76,27 @@ public class Mailer extends HttpServlet {
                     message.setSubject("Factura de compra de " + body.getString("name"));
 
                     StringBuilder messageBuilder = new StringBuilder();
-                    messageBuilder.append("<!DOCTYPE html><head><style type='text/css'>body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #d1f6ed; }");
-                    messageBuilder.append(".mail-form { width: 650px; max-width: 90vw; min-width: 300px; padding: 25px; margin: 42px auto; background-color: $white; border-radius: 10px; }");
-                    messageBuilder.append(".mail-form-header { margin-bottom: 50px; } .mail-form-body { margin-bottom: 25px; width: 85%; margin: 0 auto; }");
-                    messageBuilder.append(".bold-table-rows { border-top: 1.5px solid black; border-bottom: 1.5px solid black; } .bold-table-rows-2 { border-top: none; border-bottom: 2.5px solid black; }");
-                    messageBuilder.append(".table-double-border { margin-top: 7px; border-top: 2.7px solid black; } .table { width: 100%; margin-bottom: 1rem; color: #212529; } .text-muted { color: #6c757d !important; } .text-secondary { color: #6c757d !important; } ");
-                    messageBuilder.append(".font-weight-normal { font-weight: 400 !important; } .text-right { text-align: right !important; } .text-left { text-align: left !important; } ");
-                    messageBuilder.append("");
-                    messageBuilder.append("</style></head><body>");
-                    messageBuilder.append("<div class='mail-form'><div class='mail-form-header'><h2 class='text-center mt-3 mb-5'>¡Gracias por su compra!</h2>");
-                    messageBuilder.append("<h4 class='text-center mt-3 mb-3'>Detalle:</h4><p class='text-center text-muted'>" + date + "</p></div>");
-                    messageBuilder.append("<div class='mail-form-body'><table class='body' style='margin-bottom: 0px;'><tbody>");
+                    messageBuilder.append("<!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'></head><body>");
+                    messageBuilder.append("<div style='width: 650px; max-width: 90vw; min-width: 300px; padding: 25px; margin: 42px auto; background-color: #d1f6ed; border-radius: 10px;'>");
+                    messageBuilder.append("<div style='margin-bottom: 50px;'><h2 style='font-size: 2rem; text-align: center !important; margin-top: 1rem !important; margin-bottom: 1rem !important;'>¡Gracias por su compra!</h2>");
+                    messageBuilder.append("<p style='font-size: 1rem; text-align: center !important; color: #6c757d !important;'>" + date + "</p></div>");       
+                    messageBuilder.append("<div style='margin-bottom: 25px; width: 85%; margin: 0 auto; font-size: 1rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';'><table style='box-sizing: border-box; width: 100%; margin-bottom: 1rem; color: #212529; border-collapse: collapse; display: table; text-indent: initial; border-spacing: 2px; border-color: grey;'><tbody>");
 
                     for (int i = 0; i < items.length(); i++) {
                         JSONObject item = items.getJSONObject(i);
-                        messageBuilder.append("<tr><td>" + item.getString("name") + "</td>");
-                        messageBuilder.append("<td class='text-right text-muted font-weight-normal text-secondary'>Q. " + item.getFloat("unitPrice") + "</td></tr>");
-                        messageBuilder.append("<td class='text-left text-muted font-weight-normal text-secondary'>x " + item.getInt("quantity") + "</td>");
-                        messageBuilder.append("<td class='text-right'>Q. " + item.getInt("quantity") * item.getFloat("unitPrice") + "</td></tr>");
+                        messageBuilder.append("<tr><td style='font-size: 1rem;'>" + item.getString("name") + "</td>");
+                        messageBuilder.append("<td style='font-size: 1rem; color: #6c757d !important; font-weight: 400 !important; text-align: right !important;'>Q. " + item.getFloat("unitPrice") + "</td>");
+                        messageBuilder.append("<td style='font-size: 1rem; color: #6c757d !important; font-weight: 400 !important; text-align: left !important;'>x " + item.getInt("quantity") + "</td>");
+                        messageBuilder.append("<td style='font-size: 1rem; text-align: right !important;'>Q. " + helper.round(item.getInt("quantity") * item.getFloat("unitPrice"), 2) + "</td></tr>");
                     }
 
                     messageBuilder.append("</tbody></table>");
-                    messageBuilder.append("<table class='table bold-table-rows' style='margin-bottom: 0px;'><tbody><tr><th class='text-left font-weight-normal font-italic'>Subtotal</th>");
-                    messageBuilder.append("<th class='text-right font-weight-normal font-italic'>Q. " + subTotal + "</th></tr><tr><th class='text-left font-weight-normal font-italic'>Descuentos</th>");
-                    messageBuilder.append("<th class='text-right font-weight-normal font-italic'>Q. " + discounts + "</th></tr><tr><th class='text-left font-weight-normal font-italic'>Impuestos</th>");
-                    messageBuilder.append("<th class='text-right font-weight-normal font-italic'>Q. " + taxes + "</th></tr></tbody></table>");
-                    messageBuilder.append("<table class='table bold-table-rows-2' style='margin-bottom: 0px;'><tbody><tr><th class='text-left font-weight-normal font-weight-bold font-italic'>Total</th>");
-                    messageBuilder.append("<th class='text-right font-weight-normal font-weight-bold font-italic'>Q. " + totalPrice + "</th></tr></tbody></table><hr class='table-double-border'><p class='text-center font-weight-bold mt-4 mb-4'>Sistema B2B</p>");
-                    messageBuilder.append("</div></div></body></html>");
+                    messageBuilder.append("<table style='padding-top: 1rem; width: 100%; margin-bottom: 0px; color: #212529; border-collapse: collapse; border-top: 1.5px solid black; border-bottom: 1.5px solid black;'><tbody><tr><th style='padding-top: 1rem; font-size: 1rem; text-align: left !important; font-weight: 400 !important; font-style: italic !important; margin-top: 1rem !important;'>Subtotal</th>");
+                    messageBuilder.append("<td style='padding-top: 1rem; font-size: 1rem; text-align: right !important; font-weight: 400 !important; font-style: italic !important;'>Q. " + helper.round(subTotal, 2) + "</td></tr><tr><th style='font-size: 1rem; text-align: left !important; font-weight: 400 !important; font-style: italic !important;'>Descuentos</th>");
+                    messageBuilder.append("<td style='font-size: 1rem; text-align: right !important; font-weight: 400 !important; font-style: italic !important;'>- Q. " + helper.round(discounts, 2) + "</td></tr><tr><th style='padding-bottom: 1rem; font-size: 1rem; text-align: left !important; font-weight: 400 !important; font-style: italic !important;'>Impuestos</th>");
+                    messageBuilder.append("<td style='padding-bottom: 1rem; font-size: 1rem; text-align: right !important; font-weight: 400 !important; font-style: italic !important;'>Q. " + helper.round(taxes, 2) + "</td></tr></tbody></table>");
+                    messageBuilder.append("<table style='border-top: none; border-bottom: 2.5px solid black; width: 100%; margin-bottom: 0px; color: #212529; border-collapse: collapse; border-top: 1.5px solid black; border-bottom: 1.5px solid black;'><tbody><tr><th style='font-size: 1rem; text-align: left !important; font-style: italic !important; padding-top: 1rem; padding-bottom: 1rem;'>Total</th>");
+                    messageBuilder.append("<td style='padding-top: 1rem; padding-bottom: 1rem; font-size: 1rem; font-weight: 700 !important; text-align: right !important; font-style: italic !important;'>Q. " + helper.round(totalPrice, 2) + "</td></tr></tbody></table><hr style='border-top: 2.7px solid black;'><p style='text-align: center !important; margin-top: 1.5rem !important; margin-bottom: 0.5rem !important; font-weight: 500 !important; font-size: 1rem;'>Sistema B2B</p></div></div></body></html>");
                     message.setContent(messageBuilder.toString(), "text/html");
                     Transport.send(message);
 
