@@ -1,5 +1,6 @@
 import java.sql.*;
 import java.util.Base64;
+import java.util.Calendar;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -310,5 +311,135 @@ public class ServletHelper {
      */
     public boolean requestContainsParameter(HttpServletRequest request, String param) {
         return request.getParameter(param) != null;
+    }
+
+    /**
+     * Return a string with the number of decimal places specified.
+     * 
+     * @param number The number to format.
+     * @param places The number of decimal places to format to.
+     * @throws IllegalArgumentException If the number is null.
+     * @return The formatted string.
+     */
+    public String round(float number, int places) {
+        if (number == 0) {
+            return "0";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(number);
+
+        if (sb.charAt(0) == '-') {
+            sb.deleteCharAt(0);
+        }
+
+        int index = sb.indexOf(".");
+
+        if (index == -1) {
+            sb.append(".");
+        }
+
+        while (sb.length() - index < places + 1) {
+            sb.append("0");
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Get the current day of the week.
+     * 
+     * @return The current day of the week.
+     */
+    public String getDayOfWeek() {
+        Calendar cal = Calendar.getInstance();
+        int day = cal.get(Calendar.DAY_OF_WEEK);
+
+        switch (day) {
+            case Calendar.SUNDAY:
+                return "Domingo";
+            case Calendar.MONDAY:
+                return "Lunes";
+            case Calendar.TUESDAY:
+                return "Martes";
+            case Calendar.WEDNESDAY:
+                return "Miércoles";
+            case Calendar.THURSDAY:
+                return "Jueves";
+            case Calendar.FRIDAY:
+                return "Viernes";
+            case Calendar.SATURDAY:
+                return "Sábado";
+            default:
+                return "";
+        }
+    }
+
+    /**
+     * Get the current month.
+     * 
+     * @return The current month.
+     */
+    public String getMonth() {
+        Calendar cal = Calendar.getInstance();
+        int month = cal.get(Calendar.MONTH);
+
+        switch (month) {
+            case Calendar.JANUARY:
+                return "Enero";
+            case Calendar.FEBRUARY:
+                return "Febrero";
+            case Calendar.MARCH:
+                return "Marzo";
+            case Calendar.APRIL:
+                return "Abril";
+            case Calendar.MAY:
+                return "Mayo";
+            case Calendar.JUNE:
+                return "Junio";
+            case Calendar.JULY:
+                return "Julio";
+            case Calendar.AUGUST:
+                return "Agosto";
+            case Calendar.SEPTEMBER:
+                return "Septiembre";
+            case Calendar.OCTOBER:
+                return "Octubre";
+            case Calendar.NOVEMBER:
+                return "Noviembre";
+            case Calendar.DECEMBER:
+                return "Diciembre";
+            default:
+                return "";
+        }
+    }
+
+    /**
+     * Get the current date and time in the format day of the week, date de mes del
+     * año a las horas:minutos a.m./p.m.
+     * 
+     * @return The current date and time.
+     */
+    public String getCurrentDateAndTime() {
+        String dateTime = "";
+        String day = getDayOfWeek();
+
+        Calendar cal = Calendar.getInstance();
+        int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+        int year = cal.get(Calendar.YEAR);
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int minute = cal.get(Calendar.MINUTE);
+        int ampm = cal.get(Calendar.AM_PM);
+
+        dateTime += day + ", " + dayOfMonth + " de " + getMonth() + " del " + year + " a las ";
+        dateTime += (hour == 0 ? "12" : hour) + ":" + (minute < 10 ? "0" + minute : minute) + " ";
+
+        if (ampm == Calendar.AM) {
+            dateTime += "a.m. ";
+        } else {
+            dateTime += "p.m. ";
+        }
+
+        return dateTime;
     }
 }
