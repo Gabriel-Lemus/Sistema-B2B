@@ -85,18 +85,18 @@ public class Mailer extends HttpServlet {
                     for (int i = 0; i < items.length(); i++) {
                         JSONObject item = items.getJSONObject(i);
                         messageBuilder.append("<tr><td style='font-size: 1rem;'>" + item.getString("name") + "</td>");
-                        messageBuilder.append("<td style='font-size: 1rem; color: #6c757d !important; font-weight: 400 !important; text-align: right !important;'>Q. " + item.getFloat("unitPrice") + "</td>");
+                        messageBuilder.append("<td style='font-size: 1rem; color: #6c757d !important; font-weight: 400 !important; text-align: right !important;'>Q. " + helper.formatNumber(helper.round(item.getFloat("unitPrice"), 2)) + "</td>");
                         messageBuilder.append("<td style='font-size: 1rem; color: #6c757d !important; font-weight: 400 !important; text-align: left !important;'>x " + item.getInt("quantity") + "</td>");
-                        messageBuilder.append("<td style='font-size: 1rem; text-align: right !important;'>Q. " + helper.round(item.getInt("quantity") * item.getFloat("unitPrice"), 2) + "</td></tr>");
+                        messageBuilder.append("<td style='font-size: 1rem; text-align: right !important;'>Q. " + helper.formatNumber(helper.round(item.getInt("quantity") * item.getFloat("unitPrice"), 2)) + "</td></tr>");
                     }
 
                     messageBuilder.append("</tbody></table>");
                     messageBuilder.append("<table style='padding-top: 1rem; width: 100%; margin-bottom: 0px; color: #212529; border-collapse: collapse; border-top: 1.5px solid black; border-bottom: 1.5px solid black;'><tbody><tr><th style='padding-top: 1rem; font-size: 1rem; text-align: left !important; font-weight: 400 !important; font-style: italic !important; margin-top: 1rem !important;'>Subtotal</th>");
-                    messageBuilder.append("<td style='padding-top: 1rem; font-size: 1rem; text-align: right !important; font-weight: 400 !important; font-style: italic !important;'>Q. " + helper.round(subTotal, 2) + "</td></tr><tr><th style='font-size: 1rem; text-align: left !important; font-weight: 400 !important; font-style: italic !important;'>Descuentos</th>");
-                    messageBuilder.append("<td style='font-size: 1rem; text-align: right !important; font-weight: 400 !important; font-style: italic !important;'>- Q. " + helper.round(discounts, 2) + "</td></tr><tr><th style='padding-bottom: 1rem; font-size: 1rem; text-align: left !important; font-weight: 400 !important; font-style: italic !important;'>Impuestos</th>");
-                    messageBuilder.append("<td style='padding-bottom: 1rem; font-size: 1rem; text-align: right !important; font-weight: 400 !important; font-style: italic !important;'>Q. " + helper.round(taxes, 2) + "</td></tr></tbody></table>");
+                    messageBuilder.append("<td style='padding-top: 1rem; font-size: 1rem; text-align: right !important; font-weight: 400 !important; font-style: italic !important;'>Q. " + helper.formatNumber(helper.round(subTotal, 2)) + "</td></tr><tr><th style='font-size: 1rem; text-align: left !important; font-weight: 400 !important; font-style: italic !important;'>Descuentos</th>");
+                    messageBuilder.append("<td style='font-size: 1rem; text-align: right !important; font-weight: 400 !important; font-style: italic !important;'>- Q. " + helper.formatNumber(helper.round(discounts, 2)) + "</td></tr><tr><th style='padding-bottom: 1rem; font-size: 1rem; text-align: left !important; font-weight: 400 !important; font-style: italic !important;'>Impuestos + Comisión de Ventas</th>");
+                    messageBuilder.append("<td style='padding-bottom: 1rem; font-size: 1rem; text-align: right !important; font-weight: 400 !important; font-style: italic !important;'>Q. " + helper.formatNumber(helper.round(taxes, 2)) + "</td></tr></tbody></table>");
                     messageBuilder.append("<table style='border-top: none; border-bottom: 2.5px solid black; width: 100%; margin-bottom: 0px; color: #212529; border-collapse: collapse; border-top: 1.5px solid black; border-bottom: 1.5px solid black;'><tbody><tr><th style='font-size: 1rem; text-align: left !important; font-style: italic !important; padding-top: 1rem; padding-bottom: 1rem;'>Total</th>");
-                    messageBuilder.append("<td style='padding-top: 1rem; padding-bottom: 1rem; font-size: 1rem; font-weight: 700 !important; text-align: right !important; font-style: italic !important;'>Q. " + helper.round(totalPrice, 2) + "</td></tr></tbody></table><hr style='border-top: 2.7px solid black;'><p style='text-align: center !important; margin-top: 1.5rem !important; margin-bottom: 0.5rem !important; font-weight: 500 !important; font-size: 1rem;'>Sistema B2B</p></div></div></body></html>");
+                    messageBuilder.append("<td style='padding-top: 1rem; padding-bottom: 1rem; font-size: 1rem; font-weight: 700 !important; text-align: right !important; font-style: italic !important;'>Q. " + helper.formatNumber(helper.round(totalPrice, 2)) + "</td></tr></tbody></table><hr style='border-top: 2.7px solid black;'><p style='text-align: center !important; margin-top: 1.5rem !important; margin-bottom: 0.5rem !important; font-weight: 500 !important; font-size: 1rem;'>Sistema B2B</p></div></div></body></html>");
                     message.setContent(messageBuilder.toString(), "text/html");
                     Transport.send(message);
 
@@ -136,7 +136,7 @@ public class Mailer extends HttpServlet {
                     }
 
                     messageBuilder.append("</table><b>Subtotal:</b> " + subTotal + "<br><b>Descuentos:</b> " + discounts
-                            + "<br><b>Impuestos:</b> " + taxes + "<br><b>Total:</b> " + totalPrice);
+                            + "<br><b>Impuestos + Comisión de Ventas:</b> " + taxes + "<br><b>Total:</b> " + totalPrice);
                     messageBuilder.append("<br>Para realizar su pago, por favor haga click en el siguiente botón:");
                     messageBuilder.append("<br><button style='background-color: #449342;padding: 20px;'><a href='"
                             + paymentLink + "'>Pagar</a></button>");
