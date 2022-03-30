@@ -9,6 +9,7 @@ function DeviceDataSection(props) {
   const [newDeviceName, setNewDeviceName] = useState('');
   const [newDeviceDescription, setNewDeviceDescription] = useState('');
   const [newDevicePrice, setNewDevicePrice] = useState(0);
+  const [newDeviceListPrice, setNewDeviceListPrice] = useState(0);
   const [newPrice, setNewPrice] = useState(0);
   const [newDeviceCategory, setNewDeviceCategory] = useState('');
   const [newDeviceModelCode, setNewDeviceModelCode] = useState('');
@@ -32,8 +33,10 @@ function DeviceDataSection(props) {
     ) {
       if (newPrice === 0) {
         $('#device-price').val((props.device.precio * 1.9).toFixed(2));
+        $('#device-list-price').val(props.device.precio.toFixed(2));
       } else {
         $('#device-price').val(newPrice.toFixed(2));
+        $('#device-list-price').val(newDeviceListPrice.toFixed(2));
       }
       setDevice(props.device);
     }
@@ -81,7 +84,9 @@ function DeviceDataSection(props) {
     );
     if (deviceUpdate.data.success) {
       setChangedDevice(false);
+      props.device.precio = newDeviceListPrice;
       setNewPrice(newDevicePrice);
+      setNewDeviceListPrice(newDeviceListPrice);
       props.setLoading(false);
       helpers.showModal(
         'Operación exitosa',
@@ -187,6 +192,7 @@ function DeviceDataSection(props) {
                 <input
                   id="device-price"
                   type="number"
+                  step=".01"
                   className="form-control"
                   min={0}
                   defaultValue={
@@ -195,7 +201,41 @@ function DeviceDataSection(props) {
                       : 0
                   }
                   onChange={(e) => {
+                    $('#device-list-price').val((Number(e.target.value) / 1.9).toFixed(2));
                     setNewDevicePrice(Number(e.target.value));
+                    setNewDeviceListPrice(Number(e.target.value) / 1.9);
+                    if (
+                      Number(e.target.value) !==
+                      Number((device.precio * 1.9).toFixed(2))
+                    ) {
+                      setChangedDevice(true);
+                    } else {
+                      setChangedDevice(false);
+                    }
+                  }}
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <b>Precio de Lista:</b>
+              </td>
+              <td>
+                <input
+                  id="device-list-price"
+                  type="number"
+                  step=".01"
+                  className="form-control"
+                  min={0}
+                  defaultValue={
+                    Object.prototype.hasOwnProperty.call(props.device, 'precio')
+                      ? props.device.precio
+                      : 0
+                  }
+                  onChange={(e) => {
+                    $('#device-price').val((e.target.value * 1.9).toFixed(2));
+                    setNewDeviceListPrice(Number(e.target.value));
+                    setNewDevicePrice(Number(e.target.value) * 1.9);
                     if (Number(e.target.value) !== device.precio) {
                       setChangedDevice(true);
                     } else {
@@ -396,3 +436,4 @@ function DeviceDataSection(props) {
 }
 
 export default DeviceDataSection;
+
