@@ -131,6 +131,7 @@ function DeviceData() {
       );
     }
     $('#cart-quantity').val('');
+    setQuantity(0);
   };
 
   return (

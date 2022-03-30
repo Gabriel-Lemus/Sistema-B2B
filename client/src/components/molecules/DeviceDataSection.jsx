@@ -84,9 +84,25 @@ function DeviceDataSection(props) {
     );
     if (deviceUpdate.data.success) {
       setChangedDevice(false);
-      props.device.precio = newDeviceListPrice;
+      props.device.categoria = newDeviceCategory !== '' ? newDeviceCategory : device.categoria;
+      props.device.codigo_modelo = newDeviceModelCode !== '' ? newDeviceModelCode : device.codigo_modelo;
+      props.device.color = newDeviceColor !== '' ? newDeviceColor : device.color;
+      props.device.descripcion = newDeviceDescription !== '' ? newDeviceDescription : device.descripcion;
+      props.device.existencias = newDeviceExistance !== 0 ? newDeviceExistance : device.existencias;
+      props.device.marca = newDeviceBrand !== 0 ? newDeviceBrand : device.marca;
+      props.device.nombre = newDeviceName !== '' ? newDeviceName : device.nombre;
+      props.device.precio = newDeviceListPrice !== 0 ? newDeviceListPrice : device.precio;
+      props.device.tiempo_garantia = newDeviceWarranty !== 0 ? newDeviceWarranty : device.tiempo_garantia;
+      setNewDeviceName(newDeviceName);
+      setNewDeviceDescription(newDeviceDescription);
       setNewPrice(newDevicePrice);
       setNewDeviceListPrice(newDeviceListPrice);
+      setNewDeviceCategory(newDeviceCategory);
+      setNewDeviceModelCode(newDeviceModelCode);
+      setNewDeviceColor(newDeviceColor);
+      setNewDeviceWarranty(newDeviceWarranty);
+      setNewDeviceExistance(newDeviceExistance);
+      setNewDeviceBrand(newDeviceBrand);
       props.setLoading(false);
       helpers.showModal(
         'Operación exitosa',
@@ -201,7 +217,9 @@ function DeviceDataSection(props) {
                       : 0
                   }
                   onChange={(e) => {
-                    $('#device-list-price').val((Number(e.target.value) / 1.9).toFixed(2));
+                    $('#device-list-price').val(
+                      (Number(e.target.value) / 1.9).toFixed(2)
+                    );
                     setNewDevicePrice(Number(e.target.value));
                     setNewDeviceListPrice(Number(e.target.value) / 1.9);
                     if (

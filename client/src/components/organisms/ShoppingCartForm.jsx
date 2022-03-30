@@ -117,12 +117,12 @@ function ShoppingCartForm(props) {
                 ? 0.05
                 : 0;
             let response = await axios.post(
-              `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?verVendedor=${devices[
-                i
-              ].vendedor.replace(' ', '_')}&table=${devices[i].vendedor.replace(
+              `http://${helpers.LOCALHOST_IP}:${
+                helpers.TOMCAT_PORT
+              }/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(
                 ' ',
                 '_'
-              )}_ventas`,
+              )}&table=${devices[i].vendedor.replace(' ', '_')}_ventas`,
               {
                 id_cliente: Number(localStorage.getItem('userId')),
                 id_vendedor: sellerId,
@@ -155,7 +155,9 @@ function ShoppingCartForm(props) {
 
           for (let i = 0; i < devices.length; i++) {
             let oldDeviceData = await axios.get(
-              `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&verVendedor=${devices[
+              `http://${helpers.LOCALHOST_IP}:${
+                helpers.TOMCAT_PORT
+              }/sales-system/sellers?get=true&verVendedor=${devices[
                 i
               ].vendedor.replace(' ', '_')}&table=${devices[i].vendedor.replace(
                 ' ',
@@ -179,18 +181,24 @@ function ShoppingCartForm(props) {
               tiempo_garantia: oldDeviceData.data.data.tiempo_garantia,
             };
             let couldUpdateDevice = await axios.put(
-              `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?verVendedor=${devices[
-                i
-              ].vendedor.replace(' ', '_')}&table=${devices[i].vendedor.replace(
+              `http://${helpers.LOCALHOST_IP}:${
+                helpers.TOMCAT_PORT
+              }/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(
+                ' ',
+                '_'
+              )}&table=${devices[i].vendedor.replace(
                 ' ',
                 '_'
               )}_dispositivos&id=${devices[i].id}`,
               newDeviceData
             );
             let deviceXSale = await axios.post(
-              `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?verVendedor=${devices[
-                i
-              ].vendedor.replace(' ', '_')}&table=${devices[i].vendedor.replace(
+              `http://${helpers.LOCALHOST_IP}:${
+                helpers.TOMCAT_PORT
+              }/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(
+                ' ',
+                '_'
+              )}&table=${devices[i].vendedor.replace(
                 ' ',
                 '_'
               )}_dispositivos_x_ventas`,
@@ -219,10 +227,10 @@ function ShoppingCartForm(props) {
               `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/mail?sendReceipt=true&recipient=${parsedEmail}`,
               {
                 name: userName,
-                subTotal: getSubtotal(),
-                discounts: getSubtotal() * discount,
-                taxes: getTaxes(),
-                totalPrice: getTotal(),
+                subTotal: Number(getSubtotal().toFixed(2)),
+                discounts: Number((getSubtotal() * discount).toFixed(2)),
+                taxes: Number((getImport() + getTaxes() + getSaleCommision() + getSaleProfit()).toFixed(2)),
+                totalPrice: Number(getTotal().toFixed(2)),
                 date: new Date().toISOString().substring(0, 10),
                 devices: devices.map((device) => ({
                   name: device.nombre,
@@ -664,3 +672,4 @@ function ShoppingCartForm(props) {
 }
 
 export default ShoppingCartForm;
+
