@@ -253,4 +253,12 @@ public class ServletHelperTest {
         assertEquals("1.0", helper.round(1.0f, 1));
         assertEquals("2.00", helper.round(2.0f, 2));
     }
+
+    @Test
+    void testFormatNumber() {
+        assertEquals("1,234,567,123.00", helper.formatNumber("1234567123"));
+        assertEquals("21,598.27", helper.formatNumber("21598.27"));
+        assertEquals("0.00", helper.formatNumber("0"));
+        assertEquals("-1,234,567,123.00", helper.formatNumber("-1234567123"));
+    }
 }
