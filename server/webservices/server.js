@@ -9,12 +9,44 @@ app.use(
   })
 );
 
+// ================================ Constants ================================
+const LOCAL_HOST_IP = "localhost";
+const TOMCAT_PORT = "8080";
+
 // ================================= Routes =================================
 app.post("/", (req, res) => {
-  res.send({
-    method: "POST",
-    message: "Hello, world!",
-  });
+  console.log(req);
+
+  (async () => {
+    // Check if the request has the brand parameter
+    if (req.query.marca) {
+      // Attempt to add the new brand
+      const newBrand = req.query.marca;
+      const uploadBrand = await axios.post(
+        `http://${LOCAL_HOST_IP}:${TOMCAT_PORT}/sales-system/sales?table=marcas`,
+        {
+          nombre: newBrand,
+        }
+      );
+
+      if (uploadBrand.data.success) {
+        res.send({
+          sucess: true,
+          data: uploadBrand.data,
+        });
+      } else {
+        res.send({
+          sucess: false,
+          data: uploadBrand.data,
+        });
+      }
+    } else {
+      res.send({
+        sucess: false,
+        error: "The brand name was not specified.",
+      });
+    }
+  })();
 });
 
 app.get("/", (req, res) => {
@@ -25,13 +57,9 @@ app.get("/", (req, res) => {
 
     res.send({
       method: "GET",
-      message: "Hello, world!",
+      success: true,
       devices: devices.data,
     });
-  })();
-
-  (() => {
-    console.log("Hello, world!");
   })();
 });
 
