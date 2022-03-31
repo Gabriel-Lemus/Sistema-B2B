@@ -10,17 +10,12 @@ function SalesList(props) {
     const purchases = await axios.get(
       `http://localhost:8080/sales-system/sellers?get=true&compras=${userId}`
     );
-    console.log(purchases.data);
     if (purchases.data.success) {
       setUserPurchases(purchases.data.compras);
     }
 
     props.setLoading(false);
   }, []);
-
-  useEffect(() => {
-    console.log(userPurchases);
-  }, [userPurchases]);
 
   return !props.loading ? (
     userPurchases.length !== 0 ? (

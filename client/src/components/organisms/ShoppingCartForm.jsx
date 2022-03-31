@@ -172,7 +172,6 @@ function ShoppingCartForm(props) {
                 '_'
               )}_dispositivos&id=${devices[i].id}`
             );
-            console.log(oldDeviceData.data);
 
             let newDeviceData = {
               id_dispositivo: oldDeviceData.data.data.id_dispositivo,
