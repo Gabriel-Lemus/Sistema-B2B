@@ -23,115 +23,123 @@ function SalesList(props) {
   }, [userPurchases]);
 
   return !props.loading ? (
-    <div className="purchases">
-      {userPurchases.map((purchaseList, index) => (
-        <div className="purchases-list" key={index}>
-          <h5 className="text-left">Compra #{index + 1}</h5>
-          <p style={{ marginBottom: '0' }}>
-            Fecha: {helpers.formatDate(purchaseList[0].fecha_venta)}
-          </p>
-          <p className="mb-4">
-            Dispositivos adquiridos: {purchaseList[0].dispositivos_totales}
-          </p>
-          <table className="table purchases-table">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Precio</th>
-                <th>Cantidad</th>
-                <th className="text-right">Total</th>
-              </tr>
-            </thead>
-            {purchaseList.map((purchase, index) => (
-              <tbody key={index}>
+    userPurchases.length !== 0 ? (
+      <div className="purchases">
+        {userPurchases.map((purchaseList, index) => (
+          <div className="purchases-list" key={index}>
+            <h5 className="text-left">Compra #{index + 1}</h5>
+            <p style={{ marginBottom: '0' }}>
+              Fecha: {helpers.formatDate(purchaseList[0].fecha_venta)}
+            </p>
+            <p className="mb-4">
+              Dispositivos adquiridos: {purchaseList[0].dispositivos_totales}
+            </p>
+            <table className="table purchases-table">
+              <thead>
                 <tr>
-                  <td>{purchase.nombre}</td>
-                  <td>
-                    {helpers.getFormattedCurrency('Q. ', purchase.precio)}
+                  <th>Producto</th>
+                  <th>Precio</th>
+                  <th>Cantidad</th>
+                  <th className="text-right">Total</th>
+                </tr>
+              </thead>
+              {purchaseList.map((purchase, index) => (
+                <tbody key={index}>
+                  <tr>
+                    <td>{purchase.nombre}</td>
+                    <td>
+                      {helpers.getFormattedCurrency('Q. ', purchase.precio)}
+                    </td>
+                    <td>x {purchase.dispositivos_adquiridos}</td>
+                    <td className="text-right">
+                      {helpers.getFormattedCurrency(
+                        'Q. ',
+                        purchase.precio * purchase.dispositivos_adquiridos
+                      )}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colSpan={4}>
+                      {purchase.descripcion.length <= 100
+                        ? purchase.descripcion
+                        : purchase.descripcion.substring(0, 100) + '...'}
+                    </td>
+                  </tr>
+                </tbody>
+              ))}
+            </table>
+            <table className="table purchases-table">
+              <tbody>
+                <tr>
+                  <td className="font-italic">
+                    <strong>Subtotal:</strong>
                   </td>
-                  <td>x {purchase.dispositivos_adquiridos}</td>
                   <td className="text-right">
                     {helpers.getFormattedCurrency(
                       'Q. ',
-                      purchase.precio * purchase.dispositivos_adquiridos
+                      purchaseList.reduce(
+                        (acc, purchase) =>
+                          acc +
+                          purchase.precio * purchase.dispositivos_adquiridos,
+                        0
+                      )
                     )}
                   </td>
                 </tr>
                 <tr>
-                  <td colSpan={4}>
-                    {purchase.descripcion.length <= 100
-                      ? purchase.descripcion
-                      : purchase.descripcion.substring(0, 100) + '...'}
+                  <td className="font-italic">
+                    <strong>Descuentos:</strong>
+                  </td>
+                  <td className="text-right">
+                    {helpers.getFormattedCurrency(
+                      '- Q. ',
+                      purchaseList.reduce(
+                        (acc, purchase) => acc + purchase.descuentos,
+                        0
+                      )
+                    )}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="font-italic">
+                    <strong>Impuestos + Comisión de Ventas:</strong>
+                  </td>
+                  <td className="text-right">
+                    {helpers.getFormattedCurrency(
+                      'Q. ',
+                      purchaseList.reduce(
+                        (acc, purchase) => acc + purchase.impuestos,
+                        0
+                      )
+                    )}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="font-italic">
+                    <strong>Total:</strong>
+                  </td>
+                  <td className="text-right">
+                    {helpers.getFormattedCurrency(
+                      'Q. ',
+                      purchaseList.reduce(
+                        (acc, purchase) => acc + purchase.total_venta,
+                        0
+                      )
+                    )}
                   </td>
                 </tr>
               </tbody>
-            ))}
-          </table>
-          <table className="table purchases-table">
-            <tbody>
-              <tr>
-                <td className="font-italic">
-                  <strong>Subtotal:</strong>
-                </td>
-                <td className="text-right">
-                  {helpers.getFormattedCurrency(
-                    'Q. ',
-                    purchaseList.reduce(
-                      (acc, purchase) =>
-                        acc +
-                        purchase.precio * purchase.dispositivos_adquiridos,
-                      0
-                    )
-                  )}
-                </td>
-              </tr>
-              <tr>
-                <td className="font-italic">
-                  <strong>Descuentos:</strong>
-                </td>
-                <td className="text-right">
-                  {helpers.getFormattedCurrency(
-                    '- Q. ',
-                    purchaseList.reduce(
-                      (acc, purchase) => acc + purchase.descuentos,
-                      0
-                    )
-                  )}
-                </td>
-              </tr>
-              <tr>
-                <td className="font-italic">
-                  <strong>Impuestos + Comisión de Ventas:</strong>
-                </td>
-                <td className="text-right">
-                  {helpers.getFormattedCurrency(
-                    'Q. ',
-                    purchaseList.reduce(
-                      (acc, purchase) => acc + purchase.impuestos,
-                      0
-                    )
-                  )}
-                </td>
-              </tr>
-              <tr>
-                <td className="font-italic">
-                  <strong>Total:</strong>
-                </td>
-                <td className="text-right">
-                  {helpers.getFormattedCurrency(
-                    'Q. ',
-                    purchaseList.reduce(
-                      (acc, purchase) => acc + purchase.total_venta,
-                      0
-                    )
-                  )}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      ))}
-    </div>
+            </table>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="alert alert-info mt-4">
+        <h5 className="text-center">
+          No ha realizado ninguna compra aún.
+        </h5>
+      </div>
+    )
   ) : (
     <></>
   );
