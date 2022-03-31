@@ -475,7 +475,7 @@ const formatDate = (date) => {
     let year = dateObj.getFullYear();
     let hours = dateObj.getHours() < 10 ? `0${dateObj.getHours()}` : dateObj.getHours() % 12;
     let minutes = dateObj.getMinutes() < 10 ? `0${dateObj.getMinutes()}` : dateObj.getMinutes();
-    let ampm = hours >= 12 ? 'p.m.' : 'a.m.';
+    let ampm = dateObj.getHours() >= 12 ? 'p.m.' : 'a.m.';
 
     formattedDate = `${dayOfWeek}, ${day} de ${month} del ${year} a las ${hours}:${minutes} ${ampm}`;
   }
