@@ -597,7 +597,6 @@ public class SellersServlet extends HttpServlet {
                                     }
                                 }
     
-                                // out.print(formatDevices(jsonString));
                                 // out.print(jsonString);
                                 out.print(formatPurchases(jsonString));
                                 out.flush();
