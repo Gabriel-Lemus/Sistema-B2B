@@ -426,6 +426,64 @@ const isValidCardExpirationDate = (date) => {
 };
 
 /**
+ * Get the name of the day of the week based on the date.
+ * @param {Date} date The date to be checked.
+ * @return {string} The name of the day of the week.
+ */
+const getDayOfWeek = (date) => {
+  const days = [
+    'Domingo',
+    'Lunes',
+    'Martes',
+    'Miércoles',
+    'Jueves',
+    'Viernes',
+    'Sabado',
+  ];
+
+  return days[date.getDay()];
+};
+
+/**
+ * Format date and time from YYYY-MM-DD HH:mm:ss to day of the week, date de month del year a las HH:mm. a.m./p.m.
+ * @param {string} date The date to be formatted.
+ * @return {string} The formatted date.
+ */
+const formatDate = (date) => {
+  let formattedDate = '';
+
+  if (date) {
+    const months = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ];
+    
+    let dateObj = new Date(date);
+    let dayOfWeek = getDayOfWeek(dateObj);
+    let day = dateObj.getDate() < 10 ? `0${dateObj.getDate()}` : dateObj.getDate();
+    let month = months[dateObj.getMonth()];
+    let year = dateObj.getFullYear();
+    let hours = dateObj.getHours() < 10 ? `0${dateObj.getHours()}` : dateObj.getHours() % 12;
+    let minutes = dateObj.getMinutes() < 10 ? `0${dateObj.getMinutes()}` : dateObj.getMinutes();
+    let ampm = hours >= 12 ? 'p.m.' : 'a.m.';
+
+    formattedDate = `${dayOfWeek}, ${day} de ${month} del ${year} a las ${hours}:${minutes} ${ampm}`;
+  }
+
+  return formattedDate;
+};
+
+/**
  * Localhost IP address.
  */
 const LOCALHOST_IP = 'localhost';
@@ -463,6 +521,8 @@ const helpers = {
   isLoggedIn,
   isValidPassword,
   isValidCardExpirationDate,
+  formatDate,
 };
 
 export default helpers;
+
