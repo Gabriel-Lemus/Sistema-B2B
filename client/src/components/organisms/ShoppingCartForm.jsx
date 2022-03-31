@@ -140,7 +140,10 @@ function ShoppingCartForm(props) {
                 id_vendedor: sellerId,
                 fecha_venta: saleDate,
                 precios_venta: Number(salePrices.toFixed(2)),
-                cantidad_dispositivos: distinctSellers[i].products,
+                cantidad_dispositivos: distinctSellers.reduce(
+                  (acc, cur) => acc + cur.products,
+                  0
+                ),
                 impuestos: Number(taxes.toFixed(2)),
                 descuentos: Number(discountedPrice.toFixed(2)),
                 total_venta: Number(distinctSellers[i].total.toFixed(2)),
@@ -257,7 +260,13 @@ function ShoppingCartForm(props) {
             helpers.showOptionModal(
               'Operación exitosa',
               'Su pago se ha realizado con éxito.',
-              () => clearCart()
+              () => {
+                clearCart();
+                window.scrollTo({
+                  top: 0,
+                  behavior: 'smooth',
+                });
+              }
             );
           } else {
             props.setLoading(false);
