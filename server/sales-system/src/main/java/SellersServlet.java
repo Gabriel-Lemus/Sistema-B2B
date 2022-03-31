@@ -614,6 +614,56 @@ public class SellersServlet extends HttpServlet {
                 } catch (Exception e) {
                     helper.printErrorMessage(out, e);
                 }
+            } else if (helper.requestContainsParameter(request, "ventas")) {
+                int sellerId = Integer.parseInt(request.getParameter("ventas"));
+
+                try {
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    Connection con = DriverManager.getConnection(conUrl, user, password);
+                    Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    String checkSellerExistsQuery = "SELECT * FROM " + schema + ".vendedores WHERE id_vendedor = " + sellerId;
+                    ResultSet rs = stmt.executeQuery(checkSellerExistsQuery);
+                    String salesQuery = "";
+
+                    if (rs.next()) {
+                        salesQuery += "SELECT v.id_venta, v.id_cliente, dv.id_vendedor, v.fecha_venta, v.precios_venta, v.cantidad_dispositivos dispositivos_totales, v.impuestos, v.descuentos, v.total_venta, dv.id_dispositivo, dv.id_marca, dv.nombre, dv.descripcion, dv.existencias, dv.precio, dv.codigo_modelo, dv.color, dv.categoria, dv.tiempo_garantia, dv.cantidad_dispositivos dispositivos_adquiridos FROM " + rs.getString("nombre").replace(" ", "_") + "_ventas v, (SELECT d.*, dv.id_venta, dv.cantidad_dispositivos from " + rs.getString("nombre").replace(" ", "_") + "_dispositivos d, " + rs.getString("nombre").replace(" ", "_") + "_dispositivos_x_ventas dv WHERE d.id_dispositivo = dv.id_dispositivo) dv WHERE v.id_venta = dv.id_venta ORDER BY v.fecha_venta ASC, v.id_venta ASC";
+                        ResultSet rs2 = stmt.executeQuery(salesQuery);
+                        String jsonString = "{\"success\":true,\"compras\":[";
+    
+                        if (rs2.next()) {
+                            rs2.previous();
+    
+                            String[] attrs = { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precios_venta",
+                                    "dispositivos_totales", "impuestos", "descuentos", "total_venta", "id_dispositivo",
+                                    "id_marca", "nombre", "descripcion", "existencias", "precio", "codigo_modelo",
+                                    "color", "categoria", "tiempo_garantia", "dispositivos_adquiridos" };
+                            String[] types = { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT",
+                                    "FLOAT", "FLOAT", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER",
+                                    "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "INTEGER" };
+    
+                            while (rs2.next()) {
+                                jsonString += helper.getRow(rs2, out, attrs, types);
+    
+                                if (rs2.isLast()) {
+                                    jsonString += "]}";
+                                } else {
+                                    jsonString += ",";
+                                }
+                            }
+    
+                            // out.print(jsonString);
+                            out.print(formatPurchases(jsonString));
+                            out.flush();
+                            con.close();
+                        }
+                    } else {
+                        helper.printJsonMessage(out, false, "error",
+                                "There is no seller with the specified id.");
+                    }
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                }
             } else {
                 helper.printJsonMessage(out, false, "error",
                         "The request does not contain the required parameters.");
