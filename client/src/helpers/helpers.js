@@ -467,20 +467,61 @@ const formatDate = (date) => {
       'Noviembre',
       'Diciembre',
     ];
-    
+
     let dateObj = new Date(date);
     let dayOfWeek = getDayOfWeek(dateObj);
-    let day = dateObj.getDate() < 10 ? `0${dateObj.getDate()}` : dateObj.getDate();
+    let day =
+      dateObj.getDate() < 10 ? `0${dateObj.getDate()}` : dateObj.getDate();
     let month = months[dateObj.getMonth()];
     let year = dateObj.getFullYear();
-    let hours = dateObj.getHours() < 10 ? `0${dateObj.getHours()}` : dateObj.getHours() % 12;
-    let minutes = dateObj.getMinutes() < 10 ? `0${dateObj.getMinutes()}` : dateObj.getMinutes();
+    let hours =
+      dateObj.getHours() < 10
+        ? `0${dateObj.getHours()}`
+        : dateObj.getHours() % 12;
+    let minutes =
+      dateObj.getMinutes() < 10
+        ? `0${dateObj.getMinutes()}`
+        : dateObj.getMinutes();
     let ampm = dateObj.getHours() >= 12 ? 'p.m.' : 'a.m.';
 
     formattedDate = `${dayOfWeek}, ${day} de ${month} del ${year} a las ${hours}:${minutes} ${ampm}`;
   }
 
   return formattedDate;
+};
+
+/**
+ * Iterate through an array of objects and check if a given value is present in an object.
+ * @param {object[]} arr The array of objects.
+ * @param {string} key The key to be checked.
+ * @param {string} value The value to be checked.
+ * @return {boolean} True if the value is present in the object.
+ */
+const isValueInArray = (arr, key, value) => {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i][key] === value) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+/**
+ * Get the index of an object inside an array of objects.
+ * @param {object[]} arr The array of objects.
+ * @param {string} key The key to be checked.
+ * @param {string} value The value to be checked.
+ * @return {number} The index of the object. -1 if the object is not found.
+ */
+const getIndexOfObject = (arr, key, value) => {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i][key] === value) {
+      return i;
+    }
+  }
+
+  return -1;
 };
 
 /**
@@ -522,6 +563,8 @@ const helpers = {
   isValidPassword,
   isValidCardExpirationDate,
   formatDate,
+  isValueInArray,
+  getIndexOfObject,
 };
 
 export default helpers;

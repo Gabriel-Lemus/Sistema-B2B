@@ -55,6 +55,7 @@ function SalesList(props) {
                   </tr>
                   <tr>
                     <td colSpan={4}>
+                      <strong>Descripción: </strong>
                       {purchase.descripcion.length <= 100
                         ? purchase.descripcion
                         : purchase.descripcion.substring(0, 100) + '...'}
@@ -130,9 +131,7 @@ function SalesList(props) {
       </div>
     ) : (
       <div className="alert alert-info mt-4">
-        <h5 className="text-center">
-          No ha realizado ninguna compra aún.
-        </h5>
+        <h5 className="text-center">No ha realizado ninguna compra aún.</h5>
       </div>
     )
   ) : (
