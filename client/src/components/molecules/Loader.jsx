@@ -17,7 +17,7 @@ function Loader(props) {
   useEffect(() => {
     setTimeout(() => {
       $('.background-div').css('height', $(document).height());
-    }, 600);
+    }, 1000);
   }, []);
 
   return (

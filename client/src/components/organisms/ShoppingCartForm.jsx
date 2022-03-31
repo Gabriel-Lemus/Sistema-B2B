@@ -682,7 +682,7 @@ function ShoppingCartForm(props) {
                   top: 0,
                   behavior: 'smooth',
                 });
-              }, 750);
+              }, 1000);
             }}
           >
             Limpiar Carrito

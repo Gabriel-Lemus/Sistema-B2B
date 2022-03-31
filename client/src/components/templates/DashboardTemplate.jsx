@@ -10,7 +10,7 @@ function DashboardTemplate(props) {
   useEffect(() => {
     setTimeout(() => {
       $('#sidebarMenu').css('height', $(document).height());
-    }, 600);
+    }, 1000);
   }, []);
 
   return (
@@ -96,7 +96,7 @@ function DashboardTemplate(props) {
             </div>
           </nav>
           <main role="main" className="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-            <h1 className='mt-3'>{props.pageTitle}</h1>
+            <h1 className="mt-3">{props.pageTitle}</h1>
             {props.children}
           </main>
         </div>
@@ -106,3 +106,4 @@ function DashboardTemplate(props) {
 }
 
 export default DashboardTemplate;
+
