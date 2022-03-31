@@ -153,8 +153,23 @@ function ShoppingCartForm(props) {
               vendedor: devices[i].vendedor,
               id_venta: response.data.dataAdded.id_venta,
             });
+            const payment = await axios.post(
+              `http://${helpers.LOCALHOST_IP}:${
+                helpers.TOMCAT_PORT
+              }/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(
+                ' ',
+                '_'
+              )}&table=${devices[i].vendedor.replace(' ', '_')}_pagos`,
+              {
+                id_venta: response.data.dataAdded.id_venta,
+                id_cliente: Number(localStorage.getItem('userId')),
+                id_vendedor: sellerId,
+                fecha_pago: saleDate,
+                total: Number(distinctSellers[i].total.toFixed(2)),
+              }
+            );
 
-            if (!response.data.success) {
+            if (!response.data.success && !payment.data.success) {
               break;
             } else {
               successfulPosts++;
