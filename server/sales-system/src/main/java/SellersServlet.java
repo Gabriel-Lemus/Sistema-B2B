@@ -119,6 +119,50 @@ public class SellersServlet extends HttpServlet {
         return jsonObject.toString();
     }
 
+    /**
+     * Format a string of purchases, joining each individual purchase made on the same date and time
+     * 
+     * @param devices the devices to format
+     * @return the formatted devices json string
+     */
+    private String formatPurchases(String purchases) {
+        JSONObject jsonPurchases = new JSONObject(purchases);
+        JSONArray purchasesArray = new JSONArray();
+        JSONArray currPurchArray = new JSONArray();
+        JSONObject currentPurchase = new JSONObject();
+        JSONObject newPurchase = new JSONObject();
+        JSONArray compras = jsonPurchases.getJSONArray("compras");
+        jsonPurchases.remove("compras");
+
+        // Iterate through the compras JSONArray
+        for (int i = 0; i < compras.length(); i++) {
+            newPurchase = compras.getJSONObject(i);
+
+            if (i == 0) {
+                currentPurchase = newPurchase;
+                currPurchArray.put(currentPurchase);
+            } else {
+                if (currentPurchase.getInt("dispositivos_totales") == newPurchase.getInt("dispositivos_totales")
+                        && currentPurchase.getString("fecha_venta").equals(newPurchase.getString("fecha_venta"))) {
+                    currPurchArray.put(newPurchase);
+                } else {
+                    purchasesArray.put(currPurchArray);
+                    currentPurchase = newPurchase;
+                    currPurchArray = new JSONArray();
+                    currPurchArray.put(currentPurchase);
+                }
+            }
+
+            // Add the last purchase to the current array
+            if (i == compras.length() - 1) {
+                purchasesArray.put(currPurchArray);
+            }
+        }
+        
+        jsonPurchases.put("compras", purchasesArray);
+        return jsonPurchases.toString();
+    }
+
     // ========================= CRUD Methods =========================
     /**
      * Method to allow the handling of the post request to the schema instance.
@@ -495,6 +539,78 @@ public class SellersServlet extends HttpServlet {
                     } else {
                         helper.printJsonMessage(out, false, "error",
                                 "The seller with the given name does not exist.");
+                    }
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                }
+            } else if (helper.requestContainsParameter(request, "compras")) {
+                int clientId = Integer.parseInt(request.getParameter("compras"));
+
+                try {
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    Connection con = DriverManager.getConnection(conUrl, user, password);
+                    Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    String allSellersQuery = "SELECT * FROM " + schema + ".vendedores";
+                    ResultSet rs = stmt.executeQuery(allSellersQuery);
+                    ArrayList<String> sellers = new ArrayList<String>();
+                    String salesQuery = "";
+    
+                    while (rs.next()) {
+                        sellers.add(rs.getString("nombre"));
+                    }
+    
+                    if (sellers.size() > 0) {
+                        salesQuery += "SELECT * FROM (";
+    
+                        if (sellers.size() > 1) {
+                            for (int i = 0; i < sellers.size(); i++) {
+                                salesQuery += "SELECT v.id_venta, v.id_cliente, dv.id_vendedor, v.fecha_venta, v.precios_venta, v.cantidad_dispositivos dispositivos_totales, v.impuestos, v.descuentos, v.total_venta, dv.id_dispositivo, dv.id_marca, dv.nombre, dv.descripcion, dv.existencias, dv.precio, dv.codigo_modelo, dv.color, dv.categoria, dv.tiempo_garantia, dv.cantidad_dispositivos dispositivos_adquiridos FROM " + sellers.get(i).replace(" ", "_") + "_ventas v, (SELECT d.*, dv.id_venta, dv.cantidad_dispositivos from " + sellers.get(i).replace(" ", "_") + "_dispositivos d, " + sellers.get(i).replace(" ", "_") + "_dispositivos_x_ventas dv WHERE d.id_dispositivo = dv.id_dispositivo) dv WHERE v.id_venta = dv.id_venta";
+    
+                                if (i < sellers.size() - 1) {
+                                    salesQuery += " UNION ALL ";
+                                }
+                            }
+    
+                            salesQuery += ") s WHERE s.id_cliente = " + clientId + " ORDER BY s.fecha_venta ASC, s.id_venta ASC";
+                            ResultSet rs2 = stmt.executeQuery(salesQuery);
+                            String jsonString = "{\"success\":true,\"compras\":[";
+    
+                            if (rs2.next()) {
+                                rs2.previous();
+    
+                                String[] attrs = { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precios_venta",
+                                        "dispositivos_totales", "impuestos", "descuentos", "total_venta", "id_dispositivo",
+                                        "id_marca", "nombre", "descripcion", "existencias", "precio", "codigo_modelo",
+                                        "color", "categoria", "tiempo_garantia", "dispositivos_adquiridos" };
+                                String[] types = { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT",
+                                        "FLOAT", "FLOAT", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER",
+                                        "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "INTEGER" };
+    
+                                while (rs2.next()) {
+                                    jsonString += helper.getRow(rs2, out, attrs, types);
+    
+                                    if (rs2.isLast()) {
+                                        jsonString += "]}";
+                                    } else {
+                                        jsonString += ",";
+                                    }
+                                }
+    
+                                // out.print(formatDevices(jsonString));
+                                // out.print(jsonString);
+                                out.print(formatPurchases(jsonString));
+                                out.flush();
+                                con.close();
+                            }
+                        } else {
+                            salesQuery += "SELECT * FROM (";
+                            salesQuery += "SELECT v.id_venta, v.id_cliente, dv.id_vendedor, v.fecha_venta, v.precios_venta, v.cantidad_dispositivos dispositivos_totales, v.impuestos, v.descuentos, v.total_venta, dv.id_dispositivo, dv.id_marca, dv.nombre, dv.descripcion, dv.existencias, dv.precio, dv.codigo_modelo, dv.color, dv.categoria, dv.tiempo_garantia, dv.cantidad_dispositivos dispositivos_adquiridos FROM " + sellers.get(0).replace(" ", "_") + "_ventas v, (SELECT d.*, dv.id_venta, dv.cantidad_dispositivos from " + sellers.get(0).replace(" ", "_") + "_dispositivos d, " + sellers.get(0).replace(" ", "_") + "_dispositivos_x_ventas dv WHERE d.id_dispositivo = dv.id_dispositivo) dv WHERE v.id_venta = dv.id_venta";
+                            salesQuery += ") s WHERE s.id_cliente = " + clientId;
+                        }
+                    } else {
+                        helper.printJsonMessage(out, false, "error",
+                                "There are no sellers in the database.");
                     }
                 } catch (Exception e) {
                     helper.printErrorMessage(out, e);
