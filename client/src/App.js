@@ -17,6 +17,8 @@ import SpecializedSearch from './components/pages/SpecializedSearch';
 import Clients from './components/pages/Clients';
 import Sellers from './components/pages/Sellers';
 import Brands from './components/pages/Brands';
+import SellersSales from './components/pages/SellersSales';
+import SellersPurchases from './components/pages/SellersPurchases';
 
 function App() {
   return (
@@ -36,6 +38,8 @@ function App() {
           <Route path="/Catalogo-Ventas" element={<SalesCatalog />} />
           <Route path="/Clientes" element={<Clients />} />
           <Route path="/Vendedores" element={<Sellers />} />
+          <Route path="/Ventas" element={<SellersSales />} />
+          <Route path="/Compras-B2B" element={<SellersPurchases />} />
           <Route path="/Marcas" element={<Brands />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
