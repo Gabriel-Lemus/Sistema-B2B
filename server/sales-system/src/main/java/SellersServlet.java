@@ -122,7 +122,7 @@ public class SellersServlet extends HttpServlet {
     /**
      * Format a string of purchases, joining each individual purchase made on the same date and time
      * 
-     * @param devices the devices to format
+     * @param purchases the devices to format
      * @return the formatted devices json string
      */
     private String formatPurchases(String purchases) {

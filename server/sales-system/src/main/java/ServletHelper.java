@@ -37,8 +37,10 @@ public class ServletHelper {
      * Returns a string concatenated with the attribute provided as a paramenter
      * with its correct data type.
      * 
-     * @param json  The json object to get the attribute from.
-     * @param index The index of the attribute.
+     * @param json       The json object to get the attribute from.
+     * @param index      The index of the attribute.
+     * @param attributes The array of attributes to check.
+     * @param types      The array of data types of the attributes.
      * @return The string concatenated with the attribute with its correct data
      *         type.
      */
@@ -78,9 +80,11 @@ public class ServletHelper {
      * Prints the values from the result set matching the correct data type to
      * the provided print writer.
      * 
-     * @param rs    The result set from which to print the value.
-     * @param index The index of the value to print.
-     * @param out   The print writer to print the value to.
+     * @param rs         The result set from which to print the value.
+     * @param index      The index of the value to print.
+     * @param attributes The array of attributes to check.
+     * @param types      The array of data types of the attributes.
+     * @param out        The print writer to print the value to.
      * @throws SQLException If there is an error while printing the value.
      */
     private void printAttributeValue(ResultSet rs, Integer index, String[] attributes, String[] types, PrintWriter out)
@@ -113,9 +117,11 @@ public class ServletHelper {
     /**
      * Get the values from the result set matching the correct data type
      * 
-     * @param rs    The result set from which to print the value.
-     * @param index The index of the value to print.
-     * @param out   The print writer to print the value to.
+     * @param rs         The result set from which to print the value.
+     * @param index      The index of the value to print.
+     * @param attributes The array of attributes to check.
+     * @param types      The array of data types of the attributes.
+     * @param out        The print writer to print the value to.
      * @throws SQLException If there is an error while printing the value.
      * @return The string representation of the value.
      */
@@ -264,7 +270,12 @@ public class ServletHelper {
      * Returns an insert query string based on the schema, table name, and json
      * object provided.
      * 
-     * @param json The json object to get the attributes from.
+     * @param schema        The schema of the table.
+     * @param table         The table name.
+     * @param attrs         The array of attributes to insert.
+     * @param types         The array of types of the attributes.
+     * @param nullableAttrs The array of nullable attributes.
+     * @param json          The json object to insert.
      * @return The insert query string.
      */
     public String getInsertQuery(String schema, String table, String[] attrs, String[] types, boolean[] nullableAttrs,

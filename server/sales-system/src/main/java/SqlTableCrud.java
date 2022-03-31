@@ -203,8 +203,8 @@ public class SqlTableCrud {
     /**
      * Attempt to insert a record without providing a primary key.
      * 
-     * @param request  The request to get the json object from.
-     * @param response The response to print the message to.
+     * @param body The json object to get the attributes from.
+     * @param out  The print writer to print the message to.
      * @throws Exception If the insert operation fails.
      */
     public void attemptToInsertRecord(String body, PrintWriter out)
@@ -324,7 +324,8 @@ public class SqlTableCrud {
     /**
      * Get method helper that attempts to display all the records in the database.
      * 
-     * @param out The print writer to print the message to.
+     * @param request The request object.
+     * @param out     The print writer to print the message to.
      * @throws Exception If the select operation fails.
      */
     public void attemptToDisplayAllRecords(HttpServletRequest request, PrintWriter out) throws Exception {
@@ -369,8 +370,9 @@ public class SqlTableCrud {
     /**
      * Get method helper to get a page of records.
      * 
-     * @param out  The print writer to print the message to.
-     * @param page The page to get.
+     * @param request The request object.
+     * @param out     The print writer to print the message to.
+     * @param page    The page to get.
      * @throws Exception If the select operation fails.
      */
     public void attemptToGetPageOfRecords(HttpServletRequest request, PrintWriter out, int page) throws Exception {
@@ -594,8 +596,10 @@ public class SqlTableCrud {
                     if (rs.next()) {
                         // rs.previous();
                         helper.printRow(rs, out,
-                                new String[] { "id_credencial", "id_cliente", "id_vendedor", "tipo_usuario", "email", "salt", "hash" },
-                                new String[] { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2" });
+                                new String[] { "id_credencial", "id_cliente", "id_vendedor", "tipo_usuario", "email",
+                                        "salt", "hash" },
+                                new String[] { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2",
+                                        "VARCHAR2" });
                     } else {
                         helper.printJsonMessage(out, false, "message", "The email is not registered.");
                     }
