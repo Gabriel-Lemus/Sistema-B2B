@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 
 const Device = require('../models/Device');
+const { isAuthenticated } = require('../helpers/auth');
 
-router.get('/devices/add', (req, res) => {
+router.get('/devices/add', isAuthenticated, (req, res) => {
     res.render('devices/new-device');
 });
 
-router.post('/devices/new-device', async (req, res) => {
+router.post('/devices/new-device', isAuthenticated, async (req, res) => {
     const {title, description, model_code, category, kind, brand, color, warranty_time, shipping_time, price } = req.body;
     const errors = [];
     if(!title){
@@ -39,24 +40,24 @@ router.post('/devices/new-device', async (req, res) => {
     }
 });
 
-router.get('/devices', async (req, res) => {
+router.get('/devices', isAuthenticated, async (req, res) => {
     const devices = await Device.find().lean().sort({date: 'desc'});
     res.render('devices/all-devices', {devices});
 });
 
-router.get('/devices/edit/:id', async (req, res) => {
+router.get('/devices/edit/:id', isAuthenticated, async (req, res) => {
     const device = await Device.findById(req.params.id).lean();
     res.render('devices/edit-device', {device});
 });
 
-router.put('/devices/edit-device/:id', async (req, res) => {
+router.put('/devices/edit-device/:id', isAuthenticated, async (req, res) => {
     const {title, description, model_code, category, kind, brand, color, warranty_time, shipping_time, price } = req.body;
     await Device.findByIdAndUpdate(req.params.id,{title, description, model_code, category, kind, brand, color, warranty_time, shipping_time, price });
     req.flash('success_msg', 'Device updated successfully');
     res.redirect('/devices');
 });
 
-router.delete('/devices/delete/:id', async (req, res) => {
+router.delete('/devices/delete/:id', isAuthenticated, async (req, res) => {
     await Device.findByIdAndDelete(req.params.id);
     req.flash('success_msg', 'Device deleted successfully');
     res.redirect('/devices');
