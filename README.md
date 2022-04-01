@@ -1,5 +1,7 @@
 # Sistema B2B
 
+Version 0.01
+
 Repositorio del sistema B2B proyecto interdisciplinario de Análisis, Diseño y Fabricación de Sistemas y Bases de Datos 2.
 
 ## Autores
