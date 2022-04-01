@@ -19,6 +19,8 @@
 @import '../../src/components/organisms/ShoppingCartForm.scss';
 @import '../../src/components/organisms/UserProfile.scss';
 @import '../../src/components/organisms/SalesCatalogForm.scss';
+@import '../../src/components/organisms/SpecializedSearchForm.scss';
+@import '../../src/components/organisms/SalesList.scss';
 
 // Templates
 @import '../../src/components/templates/DashboardTemplate.scss';
@@ -59,8 +61,19 @@ $light: #b8e9d3;
   color: $white !important;
   
   &:hover {
-    background-color: $darkGreen !important;
-    border-color: $darkGreen !important;
+    background-color: #1a611a !important;
+    border-color: #1a611a !important;
+  }
+}
+
+.btn-secondary {
+  background-color: $blue !important;
+  border-color: $blue !important;
+  color: $white !important;
+  
+  &:hover {
+    background-color: $darkBlue !important;
+    border-color: $darkBlue !important;
   }
 }
 

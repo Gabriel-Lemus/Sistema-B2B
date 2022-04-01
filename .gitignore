@@ -15,3 +15,6 @@ Misc
 
 # Maven target folder
 /server/sales-system/target/
+
+# Java email servlet credentials
+MailSecrets.java

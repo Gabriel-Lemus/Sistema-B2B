@@ -13,6 +13,12 @@ import ShoppingCart from './components/pages/ShoppingCart';
 import UserProfile from './components/pages/UserProfile';
 import SalesCatalog from './components/pages/SalesCatalog';
 import Sales from './components/pages/Sales';
+import SpecializedSearch from './components/pages/SpecializedSearch';
+import Clients from './components/pages/Clients';
+import Sellers from './components/pages/Sellers';
+import Brands from './components/pages/Brands';
+import SellersSales from './components/pages/SellersSales';
+import SellersPurchases from './components/pages/SellersPurchases';
 
 function App() {
   return (
@@ -23,12 +29,18 @@ function App() {
           <Route path="/Login" exact element={<Login />} />
           <Route path="/Sign-Up" element={<SignUp />} />
           <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
-          <Route path="/Catalogo-Dispositivos-Busqueda/:searchParam" element={<DevicesCatalogSearch />} />
+          <Route path="/Catalogo-Dispositivos-Busqueda/" element={<DevicesCatalogSearch />} />
+          <Route path="/Busqueda-Especializada" element={<SpecializedSearch />} />
           <Route path="/Datos-Dispositivo/:seller/:id" element={<DeviceData />} />
           <Route path="/Carrito-Compras" element={<ShoppingCart />} />
           <Route path="/Perfil" element={<UserProfile />} />
-          <Route path="/Catalogo-Ventas/:seller" element={<SalesCatalog />} />
           <Route path="/Compras" element={<Sales />} />
+          <Route path="/Catalogo-Ventas" element={<SalesCatalog />} />
+          <Route path="/Clientes" element={<Clients />} />
+          <Route path="/Vendedores" element={<Sellers />} />
+          <Route path="/Ventas" element={<SellersSales />} />
+          <Route path="/Compras-B2B" element={<SellersPurchases />} />
+          <Route path="/Marcas" element={<Brands />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

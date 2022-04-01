@@ -4,9 +4,15 @@ import $ from 'jquery';
 import CryptoJS from 'crypto-js';
 
 // React icons
-import { AiOutlineUser, AiOutlineShoppingCart } from 'react-icons/ai';
+import {
+  AiOutlineUser,
+  AiOutlineShoppingCart,
+  AiOutlineDollar,
+  AiOutlineCopyrightCircle,
+} from 'react-icons/ai';
 import { BiPurchaseTagAlt } from 'react-icons/bi';
-import { FiBook } from 'react-icons/fi';
+import { FiBook, FiUsers } from 'react-icons/fi';
+import { MdSell } from 'react-icons/md';
 
 /**
  * Color palette
@@ -22,6 +28,7 @@ const PALETTE = {
   lightGreen: '#2eaf7d',
   lightBlue: '#3fd0c9',
   lightestBlue: '#d1f6ed',
+  blue: '#0583d2',
 };
 
 /**
@@ -49,6 +56,52 @@ const CLIENT_PAGES = [
     reference: '/perfil',
   },
 ];
+
+/**
+ * Seller pages
+ */
+const SELLER_PAGES = [
+  {
+    icon: <FiBook />,
+    title: 'Catálogo de ventas',
+    reference: '/catalogo-ventas',
+  },
+  {
+    icon: <BiPurchaseTagAlt />,
+    title: 'Ventas',
+    reference: '/ventas',
+  },
+  {
+    icon: <MdSell />,
+    title: 'Compras',
+    reference: '/compras-b2b',
+  },
+  {
+    icon: <FiUsers />,
+    title: 'Clientes',
+    reference: '/clientes',
+  },
+  {
+    icon: <AiOutlineUser />,
+    title: 'Perfil',
+    reference: '/perfil',
+  },
+];
+
+/**
+ * Admin pages
+ */
+const ADMIN_PAGES = [...SELLER_PAGES];
+ADMIN_PAGES.splice(ADMIN_PAGES.length - 1, 0, {
+  icon: <AiOutlineDollar />,
+  title: 'Vendedores',
+  reference: '/vendedores',
+});
+ADMIN_PAGES.splice(ADMIN_PAGES.length - 1, 0, {
+  icon: <AiOutlineCopyrightCircle />,
+  title: 'Marcas',
+  reference: '/marcas',
+});
 
 /**
  * Get the copyright text with the current year.
@@ -144,6 +197,76 @@ const showModal = (title, message) => {
 };
 
 /**
+ * Display a Bootstrap modal with a message.
+ * @param {string} title The modal title.
+ * @param {string} message The modal message.
+ * @param {() => void} callback The callback to be executed when the modal is closed.
+ * @return {JSX.Element} The modal to be displayed.
+ */
+const getOptionModal = (title, message, callback) => {
+  return (
+    <div id="pageModal" className="modal" tabIndex="-1">
+      <div className="modal-dialog">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title">{title}</h5>
+            <button
+              type="button"
+              className="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div className="modal-body">
+            <p>{message}</p>
+          </div>
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-secondary close-btn"
+              data-dismiss="modal"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary confirm-btn"
+              data-dismiss="modal"
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Add a modal to the DOM and display it.
+ * @param {string} title The modal title.
+ * @param {string} message The modal message.
+ * @param {() => void} callback The callback to be executed when the modal is closed.
+ */
+const showOptionModal = (title, message, callback) => {
+  let modal = getOptionModal(title, message, callback);
+  $('#pageModal').remove();
+  $('body').append(ReactDOMServer.renderToString(modal));
+  $('#pageModal').modal('show');
+  $('#pageModal .close-btn').on('click', () => {
+    $('#pageModal').modal('hide');
+    $('#pageModal').remove();
+    $('.modal-backdrop').remove();
+    callback();
+  });
+  $('.confirm-btn').on('click', () => {
+    callback();
+  });
+};
+
+/**
  * Generate cryptographic salt.
  * @param {length} The length of the salt.
  * @return {string} The salt.
@@ -175,11 +298,9 @@ const getHashedPassword = (password, salt) => {
  * @return {string} The formatted currency.
  */
 const getFormattedCurrency = (sign, value) => {
-  let formattedCurrency = `${sign}${getThousandSeparators(value)}`;
-
-  if (value % 1 === 0) {
-    formattedCurrency += '.00';
-  }
+  let formattedCurrency = `${sign}${value
+    .toFixed(2)
+    .replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
 
   return formattedCurrency;
 };
@@ -208,6 +329,26 @@ const compareObjects = (obj1, obj2) => {
 };
 
 /**
+ * Determine if two arrays of objects have the same keys and values.
+ * @param {object[]} arr1 The first array of objects.
+ * @param {object[]} arr2 The second array of objects.
+ * @return {boolean} True if the arrays have the same keys and values.
+ */
+const compareArrays = (arr1, arr2) => {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+
+  for (let i = 0; i < arr1.length; i++) {
+    if (!compareObjects(arr1[i], arr2[i])) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+/**
  * Get the base64 representation of a file.
  * @param {File} file The file to be converted.
  * @return {Promise<string>} The base64 representation of the file.
@@ -227,6 +368,163 @@ const getBase64 = (file) => {
 };
 
 /**
+ * Replace white spaces with the given character.
+ * @param {string} str The string to be replaced.
+ * @param {string} char The character to be used.
+ * @return {string} The string with the replaced white spaces.
+ */
+const replaceWhiteSpaces = (str, char) => {
+  return str.replace(/\s/g, char);
+};
+
+/**
+ * Set user attributes to the local storage.
+ * @param {string} userType The user type.
+ * @param {Number} userId The user id.
+ */
+const setLoginUserAttributes = (userType, userId, userName) => {
+  localStorage.setItem('loggedIn', true);
+  localStorage.setItem('userType', userType);
+  localStorage.setItem('userId', userId);
+  localStorage.setItem('userName', userName);
+};
+
+/**
+ * Remove user attributes from the local storage.
+ */
+const removeLoginUserAttributes = () => {
+  localStorage.clear();
+};
+
+/**
+ * Check if the user is logged in based on the local storage.
+ * @return {boolean} True if the user is logged in.
+ */
+const isLoggedIn = () => {
+  return localStorage.getItem('loggedIn') === 'true';
+};
+
+/**
+ * Check if the password is valid based on the salt and the hashed password.
+ * @param {string} password The password.
+ * @param {string} salt The cryptographic salt.
+ * @param {string} hashedPassword The hashed password.
+ * @return {boolean} True if the password is valid.
+ */
+const isValidPassword = (password, salt, hashedPassword) => {
+  return getHashedPassword(password, salt) === hashedPassword;
+};
+
+/**
+ * Check if the string provided is a valid card expiration date (MM/YY).
+ * @param {string} date The date to be checked.
+ * @return {boolean} True if the date is valid.
+ */
+const isValidCardExpirationDate = (date) => {
+  let regex = /^(0[1-9]|1[0-2])\/[0-9]{2}$/;
+  return regex.test(date);
+};
+
+/**
+ * Get the name of the day of the week based on the date.
+ * @param {Date} date The date to be checked.
+ * @return {string} The name of the day of the week.
+ */
+const getDayOfWeek = (date) => {
+  const days = [
+    'Domingo',
+    'Lunes',
+    'Martes',
+    'Miércoles',
+    'Jueves',
+    'Viernes',
+    'Sabado',
+  ];
+
+  return days[date.getDay()];
+};
+
+/**
+ * Format date and time from YYYY-MM-DD HH:mm:ss to day of the week, date de month del year a las HH:mm. a.m./p.m.
+ * @param {string} date The date to be formatted.
+ * @return {string} The formatted date.
+ */
+const formatDate = (date) => {
+  let formattedDate = '';
+
+  if (date) {
+    const months = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ];
+
+    let dateObj = new Date(date);
+    let dayOfWeek = getDayOfWeek(dateObj);
+    let day =
+      dateObj.getDate() < 10 ? `0${dateObj.getDate()}` : dateObj.getDate();
+    let month = months[dateObj.getMonth()];
+    let year = dateObj.getFullYear();
+    let hours =
+      dateObj.getHours() < 10
+        ? `0${dateObj.getHours()}`
+        : dateObj.getHours() % 12;
+    let minutes =
+      dateObj.getMinutes() < 10
+        ? `0${dateObj.getMinutes()}`
+        : dateObj.getMinutes();
+    let ampm = dateObj.getHours() >= 12 ? 'p.m.' : 'a.m.';
+
+    formattedDate = `${dayOfWeek}, ${day} de ${month} del ${year} a las ${hours}:${minutes} ${ampm}`;
+  }
+
+  return formattedDate;
+};
+
+/**
+ * Iterate through an array of objects and check if a given value is present in an object.
+ * @param {object[]} arr The array of objects.
+ * @param {string} key The key to be checked.
+ * @param {string} value The value to be checked.
+ * @return {boolean} True if the value is present in the object.
+ */
+const isValueInArray = (arr, key, value) => {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i][key] === value) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+/**
+ * Get the index of an object inside an array of objects.
+ * @param {object[]} arr The array of objects.
+ * @param {string} key The key to be checked.
+ * @param {string} value The value to be checked.
+ * @return {number} The index of the object. -1 if the object is not found.
+ */
+const getIndexOfObject = (arr, key, value) => {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i][key] === value) {
+      return i;
+    }
+  }
+
+  return -1;
+};
+
+/**
  * Localhost IP address.
  */
 const LOCALHOST_IP = 'localhost';
@@ -242,18 +540,32 @@ const TOMCAT_PORT = '8080';
 const helpers = {
   PALETTE,
   CLIENT_PAGES,
+  SELLER_PAGES,
+  ADMIN_PAGES,
   getCopyrightText,
   getAuthors,
   getThousandSeparators,
   isValidEmail,
   showModal,
+  showOptionModal,
   LOCALHOST_IP,
   TOMCAT_PORT,
   getCryptoSalt,
   getHashedPassword,
   getFormattedCurrency,
   compareObjects,
+  compareArrays,
   getBase64,
+  replaceWhiteSpaces,
+  setLoginUserAttributes,
+  removeLoginUserAttributes,
+  isLoggedIn,
+  isValidPassword,
+  isValidCardExpirationDate,
+  formatDate,
+  isValueInArray,
+  getIndexOfObject,
 };
 
 export default helpers;
+

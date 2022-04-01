@@ -1,2 +1,0 @@
-This is the directory of the factories system backend.
-This file is just to be able to push the directory to the repository.

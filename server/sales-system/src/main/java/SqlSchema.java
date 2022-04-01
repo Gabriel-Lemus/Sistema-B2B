@@ -166,7 +166,6 @@ public class SqlSchema {
      * 
      * @param request    The request object.
      * @param response   The response object.
-     * @param tableIndex The index of the table in the tableCruds array.
      * @throws ServletException If the servlet throws an exception.
      * @throws IOException      If there is an error with the input or output.
      */
@@ -190,7 +189,6 @@ public class SqlSchema {
      * 
      * @param request    The request object.
      * @param response   The response object.
-     * @param tableIndex The index of the table in the tableCruds array.
      * @throws ServletException If the servlet throws an exception.
      * @throws IOException      If there is an error with the input or output.
      */
@@ -214,7 +212,6 @@ public class SqlSchema {
      * 
      * @param request    The request object.
      * @param response   The response object.
-     * @param tableIndex The index of the table in the tableCruds array.
      * @throws ServletException If the servlet throws an exception.
      * @throws IOException      If there is an error with the input or output.
      */
@@ -239,7 +236,6 @@ public class SqlSchema {
      * 
      * @param request    The request object.
      * @param response   The response object.
-     * @param tableIndex The index of the table in the tableCruds array.
      * @throws ServletException If the servlet throws an exception.
      * @throws IOException      If there is an error with the input or output.
      */

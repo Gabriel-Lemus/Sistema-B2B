@@ -1,0 +1,35 @@
+@import '../../../public/sass/utilities/variables';
+
+.purchases {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 25px;
+}
+
+.purchases-list {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+  margin-top: 25px;
+  background-color: $white;
+  border-radius: 5px;
+  width: $max-width;
+  height: auto;
+  padding: 30px;
+}
+
+.purchase-item {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+  height: auto;
+}
+
+.purchases-table {
+  width: 90% !important;
+  margin: 0 auto;
+}
