@@ -7,32 +7,43 @@ function DevicesCatalog(props) {
     <section className="devices-catalog">
       {props.devices.map((device, index) => (
         <div className="card product-card" key={props.devices.indexOf(device)}>
-          <div className="card-body">
+          <div className="card-body product-card-body">
             <h5 className="card-title">{device.dispositivo}</h5>
             <img
               className="product-image"
               src={
-                props.images[index] !== null &&
-                props.images[index] !== undefined
-                  ? props.images[index].substring(0, 22) !==
-                    'data:image/png;base64,'
-                    ? `data:image/png;base64,${props.images[index]}`
-                    : props.image
-                  : 'https://us.123rf.com/450wm/pavelstasevich/pavelstasevich1811/pavelstasevich181101028/112815904-no-image-available-icon-flat-vector-illustration.jpg?ver=6'
+                device.fotos[0].slice(0, 7) === 'http://' ||
+                device.fotos[0].slice(0, 8) === 'https://'
+                  ? device.fotos[0]
+                  : `http://${helpers.LOCALHOST_IP}${device.fotos[0]}`
               }
               alt="Imagen del dispositivo"
+              style={{
+                maxWidth: '80%',
+                height: 'auto',
+              }}
             />
             <p className="card-text">
               {device.descripcion.length < 25
                 ? device.descripcion
                 : `${device.descripcion.substring(0, 25)}...`}
               <br />
-              {helpers.getFormattedCurrency('Q. ', device.precio)}
+              {localStorage.getItem('userType') === 'individual'
+                ? helpers.getFormattedCurrency('Q. ', device.precio * 1.9)
+                : localStorage.getItem('userType') === 'grande'
+                ? helpers.getFormattedCurrency(
+                    'Q. ',
+                    device.precio * 1.9 * 0.95
+                  )
+                : helpers.getFormattedCurrency(
+                    'Q. ',
+                    device.precio * 1.9 * 0.85
+                  )}
             </p>
             <Link
               to={`/datos-dispositivo/${device.vendedor}/${device.id_dispositivo}`}
             >
-              <button className="btn btn-primary">Ver más</button>
+              <button className="btn btn-primary">Conocer más</button>
             </Link>
           </div>
         </div>
@@ -42,3 +53,4 @@ function DevicesCatalog(props) {
 }
 
 export default DevicesCatalog;
+

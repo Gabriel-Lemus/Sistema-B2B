@@ -1,13 +1,17 @@
 @import '../../../public/sass/utilities/variables';
 
 .sidebar-link {
-  color: #2f39f8 !important;
+  color: #228722 !important;
 }
 
 .sidebar-link:hover {
-  color: #0713ff !important;
+  color: #0a380a !important;
 }
 
 #sidebarMenu {
-  height: 95vh;
+  height: 100vh;
+}
+
+.nav-item:hover {
+  cursor: pointer;
 }

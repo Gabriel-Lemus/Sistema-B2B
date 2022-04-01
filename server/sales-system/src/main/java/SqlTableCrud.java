@@ -57,7 +57,7 @@ public class SqlTableCrud {
      * 
      * @return The select everything query string.
      */
-    private String getSelectQuery() {
+    public String getSelectQuery() {
         return "SELECT * FROM " + schema + "." + tableName;
     }
 
@@ -68,7 +68,7 @@ public class SqlTableCrud {
      * @param recordKey The primary key of the record to select.
      * @return The select query everything string.
      */
-    private String getCheckRowQuery(int recordKey) {
+    public String getCheckRowQuery(int recordKey) {
         return "SELECT * FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = " + recordKey;
     }
 
@@ -78,7 +78,7 @@ public class SqlTableCrud {
      * @param offset The offset to start at.
      * @return The offset and limit query string.
      */
-    private String getSelectOffsetQuery(int offset) {
+    public String getSelectOffsetQuery(int offset) {
         return "SELECT * FROM " + schema + "." + tableName + " ORDER BY " + primaryKey + " ASC OFFSET " + offset
                 + " ROWS FETCH NEXT " + maxRows + " ROWS ONLY";
     }
@@ -91,7 +91,7 @@ public class SqlTableCrud {
      * @param recordKey The primary key of the record to update.
      * @return The update query string.
      */
-    private String getUpdateQuery(JSONObject json, int recordKey) {
+    public String getUpdateQuery(JSONObject json, int recordKey) {
         String updateQuery = "UPDATE " + schema + "." + tableName + " SET ";
 
         for (int i = 0; i < attributes.length; i++) {
@@ -113,7 +113,7 @@ public class SqlTableCrud {
      * @param recordKey The primary key of the record to delete.
      * @return The delete query string.
      */
-    private String getDeleteQuery(int recordKey) {
+    public String getDeleteQuery(int recordKey) {
         return "DELETE FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = " + recordKey;
     }
 
@@ -124,7 +124,7 @@ public class SqlTableCrud {
      * @param page    The page number.
      * @return The url for the next page.
      */
-    private String getNextPageUrl(HttpServletRequest request, int page) {
+    public String getNextPageUrl(HttpServletRequest request, int page) {
         String[] params = request.getParameterMap().keySet().toArray(new String[0]);
         String schemaStr = schema.toLowerCase();
 
@@ -157,7 +157,7 @@ public class SqlTableCrud {
      * @param rowCount The number of rows.
      * @return The maximum number of pages.
      */
-    private int getMaxNumberOfPages(int rowCount) {
+    public int getMaxNumberOfPages(int rowCount) {
         return (rowCount - (rowCount % maxRows)) / maxRows + (rowCount % maxRows == 0 ? 0 : 1);
     }
 
@@ -170,7 +170,7 @@ public class SqlTableCrud {
      * @param recordId The primary key of the record to insert.
      * @throws Exception If the insert operation fails.
      */
-    private void attemptToInsertRecord(JSONObject json, PrintWriter out, int recordId) throws Exception {
+    public void attemptToInsertRecord(JSONObject json, PrintWriter out, int recordId) throws Exception {
         // Establish the connection to the DB and prepare the statement
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection con = DriverManager.getConnection(conUrl, user, password);
@@ -203,11 +203,11 @@ public class SqlTableCrud {
     /**
      * Attempt to insert a record without providing a primary key.
      * 
-     * @param request  The request to get the json object from.
-     * @param response The response to print the message to.
+     * @param body The json object to get the attributes from.
+     * @param out  The print writer to print the message to.
      * @throws Exception If the insert operation fails.
      */
-    private void attemptToInsertRecord(String body, PrintWriter out)
+    public void attemptToInsertRecord(String body, PrintWriter out)
             throws Exception {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection con = DriverManager.getConnection(conUrl, user, password);
@@ -324,10 +324,11 @@ public class SqlTableCrud {
     /**
      * Get method helper that attempts to display all the records in the database.
      * 
-     * @param out The print writer to print the message to.
+     * @param request The request object.
+     * @param out     The print writer to print the message to.
      * @throws Exception If the select operation fails.
      */
-    private void attemptToDisplayAllRecords(HttpServletRequest request, PrintWriter out) throws Exception {
+    public void attemptToDisplayAllRecords(HttpServletRequest request, PrintWriter out) throws Exception {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection con = DriverManager.getConnection(conUrl, user, password);
         Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -360,7 +361,7 @@ public class SqlTableCrud {
             }
         } else {
             // There are no records; print an empty array
-            out.print("{}]}");
+            out.print("]}");
         }
 
         con.close();
@@ -369,11 +370,12 @@ public class SqlTableCrud {
     /**
      * Get method helper to get a page of records.
      * 
-     * @param out  The print writer to print the message to.
-     * @param page The page to get.
+     * @param request The request object.
+     * @param out     The print writer to print the message to.
+     * @param page    The page to get.
      * @throws Exception If the select operation fails.
      */
-    private void attemptToGetPageOfRecords(HttpServletRequest request, PrintWriter out, int page) throws Exception {
+    public void attemptToGetPageOfRecords(HttpServletRequest request, PrintWriter out, int page) throws Exception {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection con = DriverManager.getConnection(conUrl, user, password);
         Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
@@ -438,7 +440,7 @@ public class SqlTableCrud {
      * @param recordId The id of the record to get.
      * @throws Exception If the select operation fails.
      */
-    private void attemptToGetRecordById(PrintWriter out, int recordId) throws Exception {
+    public void attemptToGetRecordById(PrintWriter out, int recordId) throws Exception {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection con = DriverManager.getConnection(conUrl, user, password);
         Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
@@ -581,6 +583,29 @@ public class SqlTableCrud {
                 } catch (Exception e) {
                     helper.printErrorMessage(out, e);
                 }
+            } else if (helper.requestContainsParameter(request, "getEmail")) {
+                try {
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    Connection con = DriverManager.getConnection(conUrl, user, password);
+                    Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    ResultSet rs = stmt.executeQuery("SELECT * FROM CREDENCIALES_USUARIOS WHERE EMAIL = '"
+                            + request.getParameter("getEmail") + "'");
+
+                    // Check if the count is greater than 0
+                    if (rs.next()) {
+                        // rs.previous();
+                        helper.printRow(rs, out,
+                                new String[] { "id_credencial", "id_cliente", "id_vendedor", "tipo_usuario", "email",
+                                        "salt", "hash" },
+                                new String[] { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2",
+                                        "VARCHAR2" });
+                    } else {
+                        helper.printJsonMessage(out, false, "message", "The email is not registered.");
+                    }
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                }
             } else {
                 // Incorrect parameter set
                 helper.printJsonMessage(out, false, "error",
@@ -591,7 +616,7 @@ public class SqlTableCrud {
         }
     }
 
-    private void insertNewRecord(PrintWriter out, HttpServletRequest request, int recordId) throws Exception {
+    public void insertNewRecord(PrintWriter out, HttpServletRequest request, int recordId) throws Exception {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection con = DriverManager.getConnection(conUrl, user, password);
         Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
@@ -704,7 +729,7 @@ public class SqlTableCrud {
      * @param recordId The id of the record.
      * @throws Exception If there is an error.
      */
-    private void attemptToDeleteRecordById(PrintWriter out, int recordId) throws Exception {
+    public void attemptToDeleteRecordById(PrintWriter out, int recordId) throws Exception {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection con = DriverManager.getConnection(conUrl, user, password);
         Statement stmt = con.createStatement();

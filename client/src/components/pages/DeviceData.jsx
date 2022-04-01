@@ -4,48 +4,37 @@ import { useParams } from 'react-router-dom';
 import DashboardTemplate from '../templates/DashboardTemplate';
 import helpers from '../../helpers/helpers';
 import DeviceDataSection from '../molecules/DeviceDataSection';
+import $ from 'jquery';
+import Loader from '../molecules/Loader';
 
 function DeviceData() {
-  // Page parameters
   let { seller, id } = useParams();
-
-  // State
   const [device, setDevice] = useState({});
   const [dataSuccess, setDataSuccess] = useState(false);
   const [currentImage, setCurrentImage] = useState('');
   const [quantity, setQuantity] = useState(0);
+  const [sellerId, setSellerId] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  // Get device data
-  useEffect(() => {
-    (async () => {
-      let deviceData = await axios.get(
-        `http://localhost:8080/sales-system/sellers?dispositivos=true&dispositivo=${id}&vendedor=${seller}`
-      );
-      if (deviceData.data.success) {
-        setDataSuccess(true);
-        if (
-          Object.prototype.hasOwnProperty.call(deviceData.data.data[0], 'fotos')
-        ) {
-          setDevice(deviceData.data.data[0]);
-          setCurrentImage(deviceData.data.data[0].fotos[0]);
-        } else {
-          let newDevice = JSON.parse(JSON.stringify(deviceData.data.data[0]));
-          newDevice.fotos = [
-            'iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAAC5ElEQVR4nOzVQRGCABRFUXXMYg9TmMClPYxACpoQgBYMCYjxF/ecBG9z5z1f/+XGnO2zT09Ie0wPgEkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBEDa/b2e0xvSvsdvekKaByBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIuwIAAP//fMQI6I3QHBgAAAAASUVORK5CYII=',
-            'iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAAC40lEQVR4nOzVMRXCYBgEQX4eFYZwgxJE4IESI5EQC9GQJjK+YmcUXLPvHt/1vjFn357TE9Lu0wNgkgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkLb+n3N6Q9rveE1PSPMApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGlXAAAA//9Z0giAyE4O1QAAAABJRU5ErkJggg==',
-            'iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAAC4klEQVR4nOzVMQ3CABRFUSBYwA4CSNgIHmqmWmqha2uqMv5wz1Hwlpv33M/1xpz/55iekPaYHgCTBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmAtPvr+5vekLYt7+kJaR6ANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIO0KAAD//1tkB5MIBshhAAAAAElFTkSuQmCC',
-          ];
-
-          setDevice(newDevice);
-          setCurrentImage(newDevice.fotos[0]);
-        }
-      } else {
-        setDataSuccess(false);
-      }
-    })();
+  useEffect(async () => {
+    $('.background-div').css('height', $(document).height());
+    $('#sidebarMenu').css('height', $(document.body).height());
+    let deviceData = await axios.get(
+      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&verDispositivo=true&id=${id}&vendedor=${seller}`
+    );
+    let sellerIdNum = await axios.get(
+      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&sellerId=${seller}`
+    );
+    if (deviceData.data.success) {
+      setDataSuccess(true);
+      setDevice(deviceData.data.dispositivos[0]);
+      setCurrentImage(deviceData.data.dispositivos[0].fotos[0]);
+      setSellerId(sellerIdNum.data.sellerId);
+    } else {
+      setDataSuccess(false);
+    }
   }, []);
 
-  // Handlers
   const handleAddDevices = async () => {
     if (
       Number(quantity) > 0 &&
@@ -79,7 +68,11 @@ function DeviceData() {
                 vendedor: seller,
                 nombre: device.nombre,
                 precio: device.precio,
-                cantidad: newAmount,
+                id_vendedor: sellerId,
+                cantidad:
+                  newAmount <= device.existencias
+                    ? newAmount
+                    : device.existencias,
                 foto: device.fotos[0],
               });
             } else {
@@ -95,8 +88,12 @@ function DeviceData() {
               id: Number(id),
               nombre: device.nombre,
               precio: device.precio,
+              id_vendedor: sellerId,
               vendedor: seller,
-              cantidad: Number(quantity),
+              cantidad:
+                Number(quantity) <= device.existencias
+                  ? Number(quantity)
+                  : device.existencias,
               foto: device.fotos[0],
             },
           ];
@@ -111,8 +108,12 @@ function DeviceData() {
               id: Number(id),
               nombre: device.nombre,
               precio: device.precio,
+              id_vendedor: sellerId,
               vendedor: seller,
-              cantidad: Number(quantity),
+              cantidad:
+                Number(quantity) <= device.existencias
+                  ? Number(quantity)
+                  : device.existencias,
               foto: device.fotos[0],
             },
           ])
@@ -129,28 +130,35 @@ function DeviceData() {
         'La cantidad por comprar debe ser mayor a 0 y menor o igual a la de existencias'
       );
     }
+    $('#cart-quantity').val('');
+    setQuantity(0);
   };
 
   return (
-    <DashboardTemplate
-      displaySearchBar={false}
-      sideBarItems={helpers.CLIENT_PAGES}
-      pageTitle="Catálogo de dispositivos"
-    >
-      {!dataSuccess ? (
-        <p>No existe un dispositivo con los datos indicados.</p>
-      ) : (
-        <DeviceDataSection
-          deviceId={Number(id)}
-          device={device}
-          setCurrentImage={setCurrentImage}
-          currentImage={currentImage}
-          seller={seller}
-          setQuantity={setQuantity}
-          handleAddDevices={handleAddDevices}
-        />
-      )}
-    </DashboardTemplate>
+    <>
+      <DashboardTemplate
+        displaySearchBar={false}
+        sideBarItems={helpers.CLIENT_PAGES}
+        pageTitle="Catálogo de dispositivos"
+      >
+        {!dataSuccess && !loading ? (
+          <p>No existe un dispositivo con los datos indicados.</p>
+        ) : (
+          <DeviceDataSection
+            deviceId={Number(id)}
+            device={device}
+            setCurrentImage={setCurrentImage}
+            currentImage={currentImage}
+            seller={seller}
+            setQuantity={setQuantity}
+            handleAddDevices={handleAddDevices}
+            loading={loading}
+            setLoading={setLoading}
+          />
+        )}
+      </DashboardTemplate>
+      {loading ? <Loader loading={loading} /> : <></>}
+    </>
   );
 }
 

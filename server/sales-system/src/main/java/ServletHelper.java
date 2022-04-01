@@ -1,5 +1,6 @@
 import java.sql.*;
 import java.util.Base64;
+import java.util.Calendar;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -36,8 +37,10 @@ public class ServletHelper {
      * Returns a string concatenated with the attribute provided as a paramenter
      * with its correct data type.
      * 
-     * @param json  The json object to get the attribute from.
-     * @param index The index of the attribute.
+     * @param json       The json object to get the attribute from.
+     * @param index      The index of the attribute.
+     * @param attributes The array of attributes to check.
+     * @param types      The array of data types of the attributes.
      * @return The string concatenated with the attribute with its correct data
      *         type.
      */
@@ -77,9 +80,11 @@ public class ServletHelper {
      * Prints the values from the result set matching the correct data type to
      * the provided print writer.
      * 
-     * @param rs    The result set from which to print the value.
-     * @param index The index of the value to print.
-     * @param out   The print writer to print the value to.
+     * @param rs         The result set from which to print the value.
+     * @param index      The index of the value to print.
+     * @param attributes The array of attributes to check.
+     * @param types      The array of data types of the attributes.
+     * @param out        The print writer to print the value to.
      * @throws SQLException If there is an error while printing the value.
      */
     private void printAttributeValue(ResultSet rs, Integer index, String[] attributes, String[] types, PrintWriter out)
@@ -112,9 +117,11 @@ public class ServletHelper {
     /**
      * Get the values from the result set matching the correct data type
      * 
-     * @param rs    The result set from which to print the value.
-     * @param index The index of the value to print.
-     * @param out   The print writer to print the value to.
+     * @param rs         The result set from which to print the value.
+     * @param index      The index of the value to print.
+     * @param attributes The array of attributes to check.
+     * @param types      The array of data types of the attributes.
+     * @param out        The print writer to print the value to.
      * @throws SQLException If there is an error while printing the value.
      * @return The string representation of the value.
      */
@@ -235,7 +242,7 @@ public class ServletHelper {
      * @return True if the string is a date with the required format, false
      *         otherwise.
      */
-    private boolean isDateWithTime(String date) {
+    public boolean isDateWithTime(String date) {
         return date.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
     }
 
@@ -263,7 +270,12 @@ public class ServletHelper {
      * Returns an insert query string based on the schema, table name, and json
      * object provided.
      * 
-     * @param json The json object to get the attributes from.
+     * @param schema        The schema of the table.
+     * @param table         The table name.
+     * @param attrs         The array of attributes to insert.
+     * @param types         The array of types of the attributes.
+     * @param nullableAttrs The array of nullable attributes.
+     * @param json          The json object to insert.
      * @return The insert query string.
      */
     public String getInsertQuery(String schema, String table, String[] attrs, String[] types, boolean[] nullableAttrs,
@@ -309,6 +321,187 @@ public class ServletHelper {
      * @return True if the parameter is present, false otherwise.
      */
     public boolean requestContainsParameter(HttpServletRequest request, String param) {
-        return request.getParameterMap().containsKey(param);
+        return request.getParameter(param) != null;
+    }
+
+    /**
+     * Return a string with the number of decimal places specified.
+     * 
+     * @param number The number to format.
+     * @param places The number of decimal places to format to.
+     * @throws IllegalArgumentException If the number is null.
+     * @return The formatted string.
+     */
+    public String round(float number, int places) {
+        if (number == 0) {
+            String num = "0.";
+
+            for (int i = 0; i < places; i++) {
+                num += "0";
+            }
+
+            return num;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(number);
+
+        if (sb.charAt(0) == '-') {
+            sb.deleteCharAt(0);
+        }
+
+        int index = sb.indexOf(".");
+
+        if (index == -1) {
+            sb.append(".");
+        }
+
+        while (sb.length() - index < places + 1) {
+            sb.append("0");
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Get the current day of the week.
+     * 
+     * @return The current day of the week.
+     */
+    public String getDayOfWeek() {
+        Calendar cal = Calendar.getInstance();
+        int day = cal.get(Calendar.DAY_OF_WEEK);
+
+        switch (day) {
+            case Calendar.SUNDAY:
+                return "Domingo";
+            case Calendar.MONDAY:
+                return "Lunes";
+            case Calendar.TUESDAY:
+                return "Martes";
+            case Calendar.WEDNESDAY:
+                return "Miércoles";
+            case Calendar.THURSDAY:
+                return "Jueves";
+            case Calendar.FRIDAY:
+                return "Viernes";
+            case Calendar.SATURDAY:
+                return "Sábado";
+            default:
+                return "";
+        }
+    }
+
+    /**
+     * Get the current month.
+     * 
+     * @return The current month.
+     */
+    public String getMonth() {
+        Calendar cal = Calendar.getInstance();
+        int month = cal.get(Calendar.MONTH);
+
+        switch (month) {
+            case Calendar.JANUARY:
+                return "Enero";
+            case Calendar.FEBRUARY:
+                return "Febrero";
+            case Calendar.MARCH:
+                return "Marzo";
+            case Calendar.APRIL:
+                return "Abril";
+            case Calendar.MAY:
+                return "Mayo";
+            case Calendar.JUNE:
+                return "Junio";
+            case Calendar.JULY:
+                return "Julio";
+            case Calendar.AUGUST:
+                return "Agosto";
+            case Calendar.SEPTEMBER:
+                return "Septiembre";
+            case Calendar.OCTOBER:
+                return "Octubre";
+            case Calendar.NOVEMBER:
+                return "Noviembre";
+            case Calendar.DECEMBER:
+                return "Diciembre";
+            default:
+                return "";
+        }
+    }
+
+    /**
+     * Get the current date and time in the format day of the week, date de mes del
+     * año a las horas:minutos a.m./p.m.
+     * 
+     * @return The current date and time.
+     */
+    public String getCurrentDateAndTime() {
+        String dateTime = "";
+        String day = getDayOfWeek();
+
+        Calendar cal = Calendar.getInstance();
+        int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+        int year = cal.get(Calendar.YEAR);
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int minute = cal.get(Calendar.MINUTE);
+        int ampm = cal.get(Calendar.AM_PM);
+
+        dateTime += day + ", " + dayOfMonth + " de " + getMonth() + " del " + year + " a las ";
+        dateTime += (hour == 0 ? "12" : hour) + ":" + (minute < 10 ? "0" + minute : minute) + " ";
+
+        if (ampm == Calendar.AM) {
+            dateTime += "a.m. ";
+        } else {
+            dateTime += "p.m. ";
+        }
+
+        return dateTime;
+    }
+
+    /**
+     * Format a number string with thousand separators.
+     * 
+     * @param number The number to format.
+     * @return The formatted string.
+     */
+    public String formatNumber(String number) {
+        String formattedNumber = "";
+        int index = number.indexOf(".");
+        int numCount = 0;
+
+        if (index == -1) {
+            for (int i = number.length() - 1; i >= 0; i--) {
+                numCount++;
+                formattedNumber += number.charAt(i);
+
+                if (numCount % 3 == 0 && i != 0) {
+                    formattedNumber += ",";
+                }
+            }
+
+            StringBuilder sb = new StringBuilder(formattedNumber);
+            formattedNumber = sb.reverse().toString();
+            formattedNumber += ".00";
+        } else {
+            String integerPart = number.substring(0, index);
+            String decimalPart = number.substring(index + 1);
+
+            for (int i = integerPart.length() - 1; i >= 0; i--) {
+                numCount++;
+                formattedNumber += integerPart.charAt(i);
+
+                if (numCount % 3 == 0 && i != 0) {
+                    formattedNumber += ",";
+                }
+            }
+
+            StringBuilder sb = new StringBuilder(formattedNumber);
+            formattedNumber = sb.reverse().toString();
+            formattedNumber += "." + decimalPart;
+        }
+
+        return formattedNumber;
     }
 }

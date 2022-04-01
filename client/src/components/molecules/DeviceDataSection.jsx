@@ -9,31 +9,64 @@ function DeviceDataSection(props) {
   const [newDeviceName, setNewDeviceName] = useState('');
   const [newDeviceDescription, setNewDeviceDescription] = useState('');
   const [newDevicePrice, setNewDevicePrice] = useState(0);
+  const [newDeviceListPrice, setNewDeviceListPrice] = useState(0);
+  const [newPrice, setNewPrice] = useState(0);
   const [newDeviceCategory, setNewDeviceCategory] = useState('');
   const [newDeviceModelCode, setNewDeviceModelCode] = useState('');
+  const [newDeviceBrand, setNewDeviceBrand] = useState(0);
   const [newDeviceColor, setNewDeviceColor] = useState('');
   const [newDeviceWarranty, setNewDeviceWarranty] = useState(0);
   const [newDeviceExistance, setNewDeviceExistance] = useState(0);
+  const [devicesBrands, setDevicesBrands] = useState([]);
   const [changedDevice, setChangedDevice] = useState(false);
 
   // Effects
   useEffect(() => {
+    $('#device-price').val(newPrice.toFixed(2));
+  }, [newPrice]);
+
+  useEffect(() => {
+    $('main h1').text(props.device.nombre);
     if (
       Object.prototype.hasOwnProperty.call(props.device, 'nombre') &&
       props.currentImage !== ''
     ) {
-      $('#device-price').val(props.device.precio);
+      if (newPrice === 0) {
+        $('#device-price').val((props.device.precio * 1.9).toFixed(2));
+        $('#device-list-price').val(props.device.precio.toFixed(2));
+      } else {
+        $('#device-price').val(newPrice.toFixed(2));
+        $('#device-list-price').val(newDeviceListPrice.toFixed(2));
+      }
       setDevice(props.device);
     }
   }, [props]);
 
+  useEffect(async () => {
+    const brands = await axios.get(
+      'http://localhost:8080/sales-system/sales?table=marcas'
+    );
+    setDevicesBrands(brands.data.data);
+    props.setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    $('#device-brand').val(
+      devicesBrands.findIndex((brand) => brand.nombre === props.device.marca)
+    );
+  }, [devicesBrands]);
+
   // Functions
   const handleDeviceUpdate = async () => {
+    props.setLoading(true);
     let potentialNewDevice = {
       nombre: newDeviceName !== '' ? newDeviceName : device.nombre,
       descripcion:
         newDeviceDescription !== '' ? newDeviceDescription : device.descripcion,
-      precio: newDevicePrice !== 0 ? newDevicePrice : device.precio,
+      precio:
+        newDevicePrice !== 0
+          ? (newDevicePrice / 1.9).toFixed(2)
+          : device.precio,
       categoria:
         newDeviceCategory !== '' ? newDeviceCategory : device.categoria,
       codigo_modelo:
@@ -43,26 +76,59 @@ function DeviceDataSection(props) {
         newDeviceWarranty !== 0 ? newDeviceWarranty : device.tiempo_garantia,
       existencias:
         newDeviceExistance !== 0 ? newDeviceExistance : device.existencias,
+      id_marca: newDeviceBrand !== 0 ? newDeviceBrand : device.id_marca,
     };
-    console.log(potentialNewDevice);
-
     let deviceUpdate = await axios.put(
-      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?seller=${props.seller}&table=dispositivos&id=${props.deviceId}`,
+      `http://${helpers.LOCALHOST_IP}:${
+        helpers.TOMCAT_PORT
+      }/sales-system/sellers?verVendedor=${
+        props.seller
+      }&table=${props.seller.replace(' ', '_')}_dispositivos&id=${
+        props.deviceId
+      }`,
       potentialNewDevice
     );
-    console.log(deviceUpdate.data);
     if (deviceUpdate.data.success) {
       setChangedDevice(false);
+      props.device.categoria =
+        newDeviceCategory !== '' ? newDeviceCategory : device.categoria;
+      props.device.codigo_modelo =
+        newDeviceModelCode !== '' ? newDeviceModelCode : device.codigo_modelo;
+      props.device.color =
+        newDeviceColor !== '' ? newDeviceColor : device.color;
+      props.device.descripcion =
+        newDeviceDescription !== '' ? newDeviceDescription : device.descripcion;
+      props.device.existencias =
+        newDeviceExistance !== 0 ? newDeviceExistance : device.existencias;
+      props.device.marca = newDeviceBrand !== 0 ? newDeviceBrand : device.marca;
+      props.device.nombre =
+        newDeviceName !== '' ? newDeviceName : device.nombre;
+      props.device.precio =
+        newDeviceListPrice !== 0 ? newDeviceListPrice : device.precio;
+      props.device.tiempo_garantia =
+        newDeviceWarranty !== 0 ? newDeviceWarranty : device.tiempo_garantia;
+      setNewDeviceName(newDeviceName);
+      setNewDeviceDescription(newDeviceDescription);
+      setNewPrice(newDevicePrice);
+      setNewDeviceListPrice(newDeviceListPrice);
+      setNewDeviceCategory(newDeviceCategory);
+      setNewDeviceModelCode(newDeviceModelCode);
+      setNewDeviceColor(newDeviceColor);
+      setNewDeviceWarranty(newDeviceWarranty);
+      setNewDeviceExistance(newDeviceExistance);
+      setNewDeviceBrand(newDeviceBrand);
+      props.setLoading(false);
       helpers.showModal(
         'Operación exitosa',
         'El dispositivo ha sido actualizado'
       );
     } else {
+      props.setLoading(false);
       helpers.showModal('Ocurrió un error', 'Por favor, intente de nuevo.');
     }
   };
 
-  return (
+  return !props.loading ? (
     <section className="device-information-section">
       <section className="device-images">
         {Object.prototype.hasOwnProperty.call(props.device, 'fotos') ? (
@@ -71,12 +137,17 @@ function DeviceDataSection(props) {
               <img
                 key={index}
                 src={
-                  foto.substring(0, 22) !== 'data:image/png;base64,'
-                    ? `data:image/png;base64,${foto}`
-                    : foto
+                  foto.slice(0, 7) === 'http://' ||
+                  foto.slice(0, 8) === 'https://'
+                    ? foto
+                    : `http://${helpers.LOCALHOST_IP}${foto}`
                 }
                 alt={`Imagen ${index}`}
                 className={'device-image' + (index === 0 ? '-active' : '')}
+                style={{
+                  maxWidth: '90%',
+                  height: 'auto',
+                }}
                 onClick={() => {
                   $('.device-image-active').addClass('device-image');
                   $('.device-image-active').removeClass('device-image-active');
@@ -95,13 +166,16 @@ function DeviceDataSection(props) {
         <img
           className="main-device-image"
           src={
-            props.currentImage !== ''
-              ? props.currentImage.substring(0, 22) !== 'data:image/png;base64,'
-                ? `data:image/png;base64,${props.currentImage}`
-                : props.currentImage
-              : ''
+            props.currentImage.slice(0, 7) === 'http://' ||
+            props.currentImage.slice(0, 8) === 'https://'
+              ? props.currentImage
+              : `http://${helpers.LOCALHOST_IP}${props.currentImage}`
           }
           alt={props.device.nombre}
+          style={{
+            maxWidth: '85%',
+            height: 'auto',
+          }}
         />
       </section>
       <section className="device-information">
@@ -142,12 +216,13 @@ function DeviceDataSection(props) {
             </tr>
             <tr>
               <td>
-                <b>Precio:</b>
+                <b>Precio Unitario:</b>
               </td>
               <td>
                 <input
                   id="device-price"
                   type="number"
+                  step=".01"
                   className="form-control"
                   min={0}
                   defaultValue={
@@ -156,7 +231,43 @@ function DeviceDataSection(props) {
                       : 0
                   }
                   onChange={(e) => {
+                    $('#device-list-price').val(
+                      (Number(e.target.value) / 1.9).toFixed(2)
+                    );
                     setNewDevicePrice(Number(e.target.value));
+                    setNewDeviceListPrice(Number(e.target.value) / 1.9);
+                    if (
+                      Number(e.target.value) !==
+                      Number((device.precio * 1.9).toFixed(2))
+                    ) {
+                      setChangedDevice(true);
+                    } else {
+                      setChangedDevice(false);
+                    }
+                  }}
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <b>Precio de Lista:</b>
+              </td>
+              <td>
+                <input
+                  id="device-list-price"
+                  type="number"
+                  step=".01"
+                  className="form-control"
+                  min={0}
+                  defaultValue={
+                    Object.prototype.hasOwnProperty.call(props.device, 'precio')
+                      ? props.device.precio
+                      : 0
+                  }
+                  onChange={(e) => {
+                    $('#device-price').val((e.target.value * 1.9).toFixed(2));
+                    setNewDeviceListPrice(Number(e.target.value));
+                    setNewDevicePrice(Number(e.target.value) * 1.9);
                     if (Number(e.target.value) !== device.precio) {
                       setChangedDevice(true);
                     } else {
@@ -216,6 +327,39 @@ function DeviceDataSection(props) {
                     }
                   }}
                 />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <b>Marca:</b>
+              </td>
+              <td>
+                <select
+                  id="device-brand"
+                  className="form-control"
+                  defaultValue={devicesBrands.findIndex(
+                    (brand) => brand.nombre === props.device.marca
+                  )}
+                  onChange={(e) => {
+                    setNewDeviceBrand(Number(e.target.value) + 1);
+                    if (
+                      Number(e.target.value) !==
+                      devicesBrands.findIndex(
+                        (brand) => brand.nombre === props.device.marca
+                      )
+                    ) {
+                      setChangedDevice(true);
+                    } else {
+                      setChangedDevice(false);
+                    }
+                  }}
+                >
+                  {devicesBrands.map((brand, index) => (
+                    <option key={index} value={index}>
+                      {brand.nombre}
+                    </option>
+                  ))}
+                </select>
               </td>
             </tr>
             <tr>
@@ -282,6 +426,7 @@ function DeviceDataSection(props) {
         </table>
         <div className="input-group mb-3">
           <input
+            id="cart-quantity"
             type="number"
             className="form-control"
             placeholder="Cantidad"
@@ -318,7 +463,10 @@ function DeviceDataSection(props) {
         )}
       </section>
     </section>
+  ) : (
+    <></>
   );
 }
 
 export default DeviceDataSection;
+
