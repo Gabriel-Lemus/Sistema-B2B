@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 
 // Web app pages
 import Home from './components/pages/Home';
@@ -23,7 +23,7 @@ import SellersPurchases from './components/pages/SellersPurchases';
 function App() {
   return (
     <div className="App">
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route path="/" exact element={<Home />} />
           <Route path="/Login" exact element={<Login />} />
@@ -43,7 +43,7 @@ function App() {
           <Route path="/Marcas" element={<Brands />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </div>
   );
 }
