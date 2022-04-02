@@ -17,9 +17,13 @@
                     <p>Email: {{email}}</p>
                     <p>Password Hash: {{password}}</p>
                     <p>Shipping Time: {{shipping_time}} days</p>
+                    <a href="/customers/edit-pass/{{_id}}">
+                    <button class="btn btn-warning w-100 btn-sm">New Password <i class="fa-solid fa-user-lock"></i></button>
+                    </a>
+                    <p></p>
                     <form action="/customers/delete/{{_id}}?_method=DELETE" method="POST">
                         <input type="hidden" name="_method" value="DELETE">
-                        <button class="btn btn-danger w-100 btn-sm" type="submit">Delete</button>
+                        <button class="btn btn-danger w-100 btn-sm" type="submit">Delete <i class="fa-solid fa-delete-left"></i></button>
                     </form>
                 </div>
             </div>

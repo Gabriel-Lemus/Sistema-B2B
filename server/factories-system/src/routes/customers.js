@@ -63,10 +63,39 @@ router.get('/customers/edit/:id', isAuthenticated, async (req, res) => {
 });
 
 router.put('/customers/edit-customer/:id', isAuthenticated, async (req, res) => {
-    const {name, email, password, shipping_time } = req.body;
-    await Customer.findByIdAndUpdate(req.params.id,{name, email, password, shipping_time });
+    const {name, email, shipping_time } = req.body;
+    await Customer.findByIdAndUpdate(req.params.id,{name, email, shipping_time });
     req.flash('success_msg', 'Customer updated successfully');
     res.redirect('/customers');
+});
+
+router.get('/customers/edit-pass/:id', isAuthenticated, async (req, res) => {
+    const customer = await Customer.findById(req.params.id).lean();
+    res.render('customers/edit-customer-pass', {customer});
+});
+
+router.put('/customers/edit-customer-pass/:id', isAuthenticated, async (req, res) => {
+    const {password, confirm_password } = req.body;
+    const errors = [];
+    if(password != confirm_password){
+        errors.push({text: 'Password do not match'});
+    }
+    if(password.length < 4){
+        errors.push({text: 'Password must be at least 4 characters'});
+    }
+    if(errors.length > 0){
+        res.render('customers/edit-customer-pass', {
+            errors,
+            password,
+            confirm_password
+        });
+    }
+    else {
+        // OJO -> Verificar encriptado
+        await Customer.findByIdAndUpdate(req.params.id,{password });
+        req.flash('success_msg', 'Customer password updated successfully');
+        res.redirect('/customers');
+    }
 });
 
 router.delete('/customers/delete/:id', isAuthenticated, async (req, res) => {
