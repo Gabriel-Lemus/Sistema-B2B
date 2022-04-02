@@ -66,7 +66,7 @@ router.put('/customers/edit-customer/:id', isAuthenticated, async (req, res) => 
     const {name, email, password, shipping_time } = req.body;
     await Customer.findByIdAndUpdate(req.params.id,{name, email, password, shipping_time });
     req.flash('success_msg', 'Customer updated successfully');
-    res.redirect('/devices');
+    res.redirect('/customers');
 });
 
 router.delete('/customers/delete/:id', isAuthenticated, async (req, res) => {
