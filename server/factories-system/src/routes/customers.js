@@ -23,8 +23,8 @@ router.post('/customers/new-customer', isAuthenticated, async (req, res) => {
     if(password.length < 4){
         errors.push({text: 'Password must be at least 4 characters'});
     }
-    if(!shipping_time){
-        errors.push({text: 'Please write a shipping time for orders'});
+    if(shipping_time.length <= 0){
+        errors.push({text: 'Please insert a shipping time for orders'});
     }
     if(errors.length > 0){
         res.render('customers/new-customer', {
