@@ -19,6 +19,7 @@ import Sellers from './components/pages/Sellers';
 import Brands from './components/pages/Brands';
 import SellersSales from './components/pages/SellersSales';
 import SellersPurchases from './components/pages/SellersPurchases';
+import DevicesCatalogSearchWait from './components/pages/DevicesCatalogSearchWait';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="/Sign-Up" element={<SignUp />} />
           <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
           <Route path="/Catalogo-Dispositivos-Busqueda/" element={<DevicesCatalogSearch />} />
+          <Route path="/Catalogo-Dispositivos-Busqueda-Espera/" element={<DevicesCatalogSearchWait />} />
           <Route path="/Busqueda-Especializada" element={<SpecializedSearch />} />
           <Route path="/Datos-Dispositivo/:seller/:id" element={<DeviceData />} />
           <Route path="/Carrito-Compras" element={<ShoppingCart />} />
