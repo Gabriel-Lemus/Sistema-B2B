@@ -4,6 +4,7 @@ import helpers from '../../helpers/helpers';
 import { useNavigate } from 'react-router-dom';
 import TextInput from './TextInput';
 import NumberInput from './NumberInput';
+import secrets from '../../helpers/secrets';
 
 function SpecializedSearchForm(props) {
   const [name, setName] = useState('');
@@ -21,7 +22,7 @@ function SpecializedSearchForm(props) {
   useEffect(async () => {
     // Set the available brands
     const listedBrands = await axios.get(
-      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=marcas`
+      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=marcas`
     );
     setavailableBrands([
       { id_marca: 0, nombre: 'Todas las marcas' },
@@ -178,3 +179,4 @@ function SpecializedSearchForm(props) {
 }
 
 export default SpecializedSearchForm;
+

@@ -525,16 +525,6 @@ const getIndexOfObject = (arr, key, value) => {
 };
 
 /**
- * Localhost IP address.
- */
-const LOCALHOST_IP = 'localhost';
-
-/**
- * Tomcat port.
- */
-const TOMCAT_PORT = '8080';
-
-/**
  * General helpers
  */
 const helpers = {
@@ -548,8 +538,6 @@ const helpers = {
   isValidEmail,
   showModal,
   showOptionModal,
-  LOCALHOST_IP,
-  TOMCAT_PORT,
   getCryptoSalt,
   getHashedPassword,
   getFormattedCurrency,

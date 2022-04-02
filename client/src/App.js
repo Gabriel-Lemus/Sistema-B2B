@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 
 // Web app pages
 import Home from './components/pages/Home';
@@ -19,17 +19,19 @@ import Sellers from './components/pages/Sellers';
 import Brands from './components/pages/Brands';
 import SellersSales from './components/pages/SellersSales';
 import SellersPurchases from './components/pages/SellersPurchases';
+import DevicesCatalogSearchWait from './components/pages/DevicesCatalogSearchWait';
 
 function App() {
   return (
     <div className="App">
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route path="/" exact element={<Home />} />
           <Route path="/Login" exact element={<Login />} />
           <Route path="/Sign-Up" element={<SignUp />} />
           <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
           <Route path="/Catalogo-Dispositivos-Busqueda/" element={<DevicesCatalogSearch />} />
+          <Route path="/Catalogo-Dispositivos-Busqueda-Espera/" element={<DevicesCatalogSearchWait />} />
           <Route path="/Busqueda-Especializada" element={<SpecializedSearch />} />
           <Route path="/Datos-Dispositivo/:seller/:id" element={<DeviceData />} />
           <Route path="/Carrito-Compras" element={<ShoppingCart />} />
@@ -43,7 +45,7 @@ function App() {
           <Route path="/Marcas" element={<Brands />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </div>
   );
 }

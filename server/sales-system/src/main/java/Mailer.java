@@ -22,7 +22,7 @@ import javax.mail.internet.MimeMessage;
 @WebServlet("/mail")
 public class Mailer extends HttpServlet {
     // Attributes
-    private MailSecrets secrets = new MailSecrets();
+    private Secrets secrets = new Secrets();
     private ServletHelper helper = new ServletHelper();
 
     // ========================= CRUD Methods =========================

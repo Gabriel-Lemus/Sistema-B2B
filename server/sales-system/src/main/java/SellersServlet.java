@@ -22,10 +22,12 @@ public class SellersServlet extends HttpServlet {
     private String password;
     private String localhostIp;
     private String schema;
+    private Secrets secrets;
 
     // Servlet initialization
     public void init() throws ServletException {
-        conUrl = "jdbc:oracle:thin:@localhost:1521/XEPDB1";
+        secrets = new Secrets();
+        conUrl = secrets.getOracleCon();
         user = "Sales";
         password = "adminsales";
         localhostIp = "localhost";
@@ -269,7 +271,7 @@ public class SellersServlet extends HttpServlet {
                             }
                         }
 
-                        devicesQuery += ") df INNER JOIN vendedores v ON df.id_vendedor = v.id_vendedor INNER JOIN marcas m ON df.id_marca = m.id_marca";
+                        devicesQuery += ") df INNER JOIN vendedores v ON df.id_vendedor = v.id_vendedor INNER JOIN marcas m ON df.id_marca = m.id_marca ORDER BY df.id_dispositivo ASC, df.id_vendedor ASC, df.id_marca ASC";
                         ResultSet rs2 = stmt.executeQuery(devicesQuery);
                         String jsonString = "{\"success\":true,\"dispositivos\":[";
 
@@ -368,7 +370,7 @@ public class SellersServlet extends HttpServlet {
                             }
                         }
 
-                        devicesQuery += ") df INNER JOIN vendedores v ON df.id_vendedor = v.id_vendedor INNER JOIN marcas m ON df.id_marca = m.id_marca";
+                        devicesQuery += ") df INNER JOIN vendedores v ON df.id_vendedor = v.id_vendedor INNER JOIN marcas m ON df.id_marca = m.id_marca ORDER BY df.id_dispositivo ASC, df.id_vendedor ASC, df.id_marca ASC";
                         ResultSet rs2 = stmt.executeQuery(devicesQuery);
                         String jsonString = "{\"success\":true,\"dispositivos\":[";
 

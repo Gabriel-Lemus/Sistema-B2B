@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import helpers from '../../helpers/helpers';
+import secrets from '../../helpers/secrets';
 
 function SalesCatalogForm(props) {
   const [devices, setDevices] = useState([]);
@@ -14,8 +15,8 @@ function SalesCatalogForm(props) {
 
   useEffect(async () => {
     const sellerDevices = await axios.get(
-      `http://${helpers.LOCALHOST_IP}:${
-        helpers.TOMCAT_PORT
+      `http://${secrets.LOCALHOST_IP}:${
+        secrets.TOMCAT_PORT
       }/sales-system/sellers?get=true&verVendedor=${localStorage
         .getItem('userName')
         .replace(/\s/g, '_')}&table=${localStorage
@@ -23,7 +24,7 @@ function SalesCatalogForm(props) {
         .replace(/\s/g, '_')}_dispositivos`
     );
     const brands = await axios.get(
-      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=marcas`
+      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=marcas`
     );
     setIsAdmin(localStorage.getItem('isAdmin') === 'true');
     setBrands(brands.data.data);
@@ -57,8 +58,8 @@ function SalesCatalogForm(props) {
 
     for (let i = 0; i < newDevices.length; i++) {
       let deviceUpdate = await axios.put(
-        `http://${helpers.LOCALHOST_IP}:${
-          helpers.TOMCAT_PORT
+        `http://${secrets.LOCALHOST_IP}:${
+          secrets.TOMCAT_PORT
         }/sales-system/sellers?verVendedor=${seller.sellerName.replace(
           /\s/g,
           '_'
@@ -179,8 +180,8 @@ function SalesCatalogForm(props) {
       for (let i = 0; i < devicesToAdd.length; i++) {
         // Add the new device and then add the images
         let postDevice = await axios.post(
-          `http://${helpers.LOCALHOST_IP}:${
-            helpers.TOMCAT_PORT
+          `http://${secrets.LOCALHOST_IP}:${
+            secrets.TOMCAT_PORT
           }/sales-system/sellers?verVendedor=${seller.sellerName.replace(
             ' ',
             '_'
@@ -210,7 +211,7 @@ function SalesCatalogForm(props) {
             );
             formData.append('product-image', devicesToAdd[i].imagenes[j]);
             let sellerProductImgUpload = await axios.post(
-              `http://${helpers.LOCALHOST_IP}:3001/upload-product-image`,
+              `http://${secrets.LOCALHOST_IP}:3001/upload-product-image`,
               formData,
               {
                 headers: {
@@ -225,8 +226,8 @@ function SalesCatalogForm(props) {
 
             // Upload the image url
             let postImage = await axios.post(
-              `http://${helpers.LOCALHOST_IP}:${
-                helpers.TOMCAT_PORT
+              `http://${secrets.LOCALHOST_IP}:${
+                secrets.TOMCAT_PORT
               }/sales-system/sellers?verVendedor=${seller.sellerName.replace(
                 ' ',
                 '_'

@@ -22,6 +22,7 @@ import org.json.JSONObject;
 public class ServletHelperTest {
     // Attributes
     private ServletHelper helper = new ServletHelper();
+    private Secrets secrets = new Secrets();
 
     /**
      * Test the method to check if a JSON object contains the given attributes.
@@ -96,7 +97,7 @@ public class ServletHelperTest {
      */
     @Test
     void testGetQueryRowCount() {
-        String conURL = "jdbc:oracle:thin:@localhost:1521/XEPDB1";
+        String conURL = secrets.getOracleCon();
         String user = "system";
         String password = "Oracle18c";
 
@@ -117,7 +118,7 @@ public class ServletHelperTest {
      */
     @Test
     void testGetRow() {
-        String conURL = "jdbc:oracle:thin:@localhost:1521/XEPDB1";
+        String conURL = secrets.getOracleCon();
         String user = "system";
         String password = "Oracle18c";
         PrintWriter out = new PrintWriter(System.out);
@@ -211,7 +212,7 @@ public class ServletHelperTest {
      */
     @Test
     void testPrintRow() {
-        String conURL = "jdbc:oracle:thin:@localhost:1521/XEPDB1";
+        String conURL = secrets.getOracleCon();
         String user = "system";
         String password = "Oracle18c";
         StringWriter sw = new StringWriter();

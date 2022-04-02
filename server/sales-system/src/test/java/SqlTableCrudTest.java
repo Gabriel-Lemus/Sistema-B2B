@@ -15,10 +15,12 @@ import org.junit.jupiter.api.Test;
 public class SqlTableCrudTest {
     // Attributes
     private SqlTableCrud tableCrud;
+    private Secrets secrets;
 
     @BeforeEach
     public void setUp() {
-        String connectionUrl = "jdbc:oracle:thin:@localhost:1521/XEPDB1";
+        secrets = new Secrets();
+        String connectionUrl = secrets.getOracleCon();
         String user = "Sales";
         String password = "adminsales";
         String localhostIp = "localhost";

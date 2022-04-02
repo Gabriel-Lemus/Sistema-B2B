@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import helpers from '../../helpers/helpers';
+import secrets from '../../helpers/secrets';
 
 function SellersList(props) {
   const [sellers, setSellers] = useState([]);
@@ -10,7 +11,7 @@ function SellersList(props) {
 
   useEffect(async () => {
     const sellersList = await axios.get(
-      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=vendedores`
+      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=vendedores`
     );
     setSellers(sellersList.data.data);
     setNewSellersData(sellersList.data.data);
@@ -29,7 +30,7 @@ function SellersList(props) {
           es_admin: newSellersData[i].es_admin,
         };
         const updateSeller = await axios.put(
-          `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=vendedores&id=${newSellersData[i].id_vendedor}`,
+          `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=vendedores&id=${newSellersData[i].id_vendedor}`,
           newUserData
         );
 
@@ -135,3 +136,4 @@ function SellersList(props) {
 }
 
 export default SellersList;
+
