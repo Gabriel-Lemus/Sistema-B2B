@@ -18,3 +18,6 @@ Misc
 
 # Java email servlet credentials
 MailSecrets.java
+
+# Credentials for Java
+Secrets.java
