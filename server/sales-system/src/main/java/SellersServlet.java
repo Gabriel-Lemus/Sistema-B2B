@@ -22,10 +22,12 @@ public class SellersServlet extends HttpServlet {
     private String password;
     private String localhostIp;
     private String schema;
+    private Secrets secrets;
 
     // Servlet initialization
     public void init() throws ServletException {
-        conUrl = "jdbc:oracle:thin:@localhost:1521/XEPDB1";
+        secrets = new Secrets();
+        conUrl = secrets.getOracleCon();
         user = "Sales";
         password = "adminsales";
         localhostIp = "localhost";
