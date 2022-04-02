@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import helpers from '../../helpers/helpers';
 import IndividualTextInput from './IndividualTextInput';
+import secrets from '../../helpers/secrets';
 
 function SalesCatalogForm(props) {
   const [brands, setBrands] = useState([]);
@@ -13,7 +14,7 @@ function SalesCatalogForm(props) {
 
   useEffect(async () => {
     const brands = await axios.get(
-      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=marcas`
+      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=marcas`
     );
     setBrands(brands.data.data);
     setNewBrands(brands.data.data);
@@ -31,7 +32,7 @@ function SalesCatalogForm(props) {
     for (let i = 0; i < newBrands.length; i++) {
       if (!helpers.compareObjects(newBrands[i], brands[i])) {
         let brandUpdate = await axios.put(
-          `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=marcas&id=${newBrands[i].id_marca}`,
+          `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=marcas&id=${newBrands[i].id_marca}`,
           newBrands[i]
         );
 
@@ -90,7 +91,7 @@ function SalesCatalogForm(props) {
     } else {
       for (let i = 0; i < devicesToAdd.length; i++) {
         let postBrand = await axios.post(
-          `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=marcas`,
+          `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=marcas`,
           devicesToAdd[i]
         );
 

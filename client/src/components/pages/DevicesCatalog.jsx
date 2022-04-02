@@ -5,6 +5,7 @@ import DashboardTemplate from '../templates/DashboardTemplate';
 import DevicesCards from '../molecules/DevicesCards';
 import Loader from '../molecules/Loader';
 import { useNavigate } from 'react-router-dom';
+import secrets from '../../helpers/secrets';
 
 function DevicesCatalog() {
   // State
@@ -22,7 +23,7 @@ function DevicesCatalog() {
     } else {
       (async () => {
         let devicesData = await axios.get(
-          `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&dispositivos=true`
+          `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?get=true&dispositivos=true`
         );
         setDevices(devicesData.data.dispositivos);
         setLoading(false);

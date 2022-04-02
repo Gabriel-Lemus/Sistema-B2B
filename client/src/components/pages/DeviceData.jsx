@@ -6,6 +6,7 @@ import helpers from '../../helpers/helpers';
 import DeviceDataSection from '../molecules/DeviceDataSection';
 import $ from 'jquery';
 import Loader from '../molecules/Loader';
+import secrets from '../../helpers/secrets';
 
 function DeviceData() {
   let { seller, id } = useParams();
@@ -20,10 +21,10 @@ function DeviceData() {
     $('.background-div').css('height', $(document).height());
     $('#sidebarMenu').css('height', $(document.body).height());
     let deviceData = await axios.get(
-      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&verDispositivo=true&id=${id}&vendedor=${seller}`
+      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?get=true&verDispositivo=true&id=${id}&vendedor=${seller}`
     );
     let sellerIdNum = await axios.get(
-      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&sellerId=${seller}`
+      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?get=true&sellerId=${seller}`
     );
     if (deviceData.data.success) {
       setDataSuccess(true);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import helpers from '../../helpers/helpers';
+import secrets from '../../helpers/secrets';
 
 function DevicesCatalog(props) {
   return (
@@ -15,7 +16,7 @@ function DevicesCatalog(props) {
                 device.fotos[0].slice(0, 7) === 'http://' ||
                 device.fotos[0].slice(0, 8) === 'https://'
                   ? device.fotos[0]
-                  : `http://${helpers.LOCALHOST_IP}${device.fotos[0]}`
+                  : `http://${secrets.LOCALHOST_IP}${device.fotos[0]}`
               }
               alt="Imagen del dispositivo"
               style={{

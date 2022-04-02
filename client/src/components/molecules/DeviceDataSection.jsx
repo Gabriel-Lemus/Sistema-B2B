@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import $ from 'jquery';
 import helpers from '../../helpers/helpers';
 import axios from 'axios';
+import secrets from '../../helpers/secrets';
 
 function DeviceDataSection(props) {
   // State
@@ -44,7 +45,7 @@ function DeviceDataSection(props) {
 
   useEffect(async () => {
     const brands = await axios.get(
-      'http://localhost:8080/sales-system/sales?table=marcas'
+      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=marcas`
     );
     setDevicesBrands(brands.data.data);
     props.setLoading(false);
@@ -79,8 +80,8 @@ function DeviceDataSection(props) {
       id_marca: newDeviceBrand !== 0 ? newDeviceBrand : device.id_marca,
     };
     let deviceUpdate = await axios.put(
-      `http://${helpers.LOCALHOST_IP}:${
-        helpers.TOMCAT_PORT
+      `http://${secrets.LOCALHOST_IP}:${
+        secrets.TOMCAT_PORT
       }/sales-system/sellers?verVendedor=${
         props.seller
       }&table=${props.seller.replace(' ', '_')}_dispositivos&id=${
@@ -140,7 +141,7 @@ function DeviceDataSection(props) {
                   foto.slice(0, 7) === 'http://' ||
                   foto.slice(0, 8) === 'https://'
                     ? foto
-                    : `http://${helpers.LOCALHOST_IP}${foto}`
+                    : `http://${secrets.LOCALHOST_IP}${foto}`
                 }
                 alt={`Imagen ${index}`}
                 className={'device-image' + (index === 0 ? '-active' : '')}
@@ -169,7 +170,7 @@ function DeviceDataSection(props) {
             props.currentImage.slice(0, 7) === 'http://' ||
             props.currentImage.slice(0, 8) === 'https://'
               ? props.currentImage
-              : `http://${helpers.LOCALHOST_IP}${props.currentImage}`
+              : `http://${secrets.LOCALHOST_IP}${props.currentImage}`
           }
           alt={props.device.nombre}
           style={{

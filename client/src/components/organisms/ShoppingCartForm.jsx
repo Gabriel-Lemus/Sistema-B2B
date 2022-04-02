@@ -3,6 +3,7 @@ import helpers from '../../helpers/helpers';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import $ from 'jquery';
+import secrets from '../../helpers/secrets';
 
 function ShoppingCartForm(props) {
   // State
@@ -129,8 +130,8 @@ function ShoppingCartForm(props) {
             const taxes =
               distinctSellers[i].total + discountedPrice - salePrices;
             let response = await axios.post(
-              `http://${helpers.LOCALHOST_IP}:${
-                helpers.TOMCAT_PORT
+              `http://${secrets.LOCALHOST_IP}:${
+                secrets.TOMCAT_PORT
               }/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(
                 ' ',
                 '_'
@@ -154,8 +155,8 @@ function ShoppingCartForm(props) {
               id_venta: response.data.dataAdded.id_venta,
             });
             const payment = await axios.post(
-              `http://${helpers.LOCALHOST_IP}:${
-                helpers.TOMCAT_PORT
+              `http://${secrets.LOCALHOST_IP}:${
+                secrets.TOMCAT_PORT
               }/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(
                 ' ',
                 '_'
@@ -178,8 +179,8 @@ function ShoppingCartForm(props) {
 
           for (let i = 0; i < devices.length; i++) {
             let oldDeviceData = await axios.get(
-              `http://${helpers.LOCALHOST_IP}:${
-                helpers.TOMCAT_PORT
+              `http://${secrets.LOCALHOST_IP}:${
+                secrets.TOMCAT_PORT
               }/sales-system/sellers?get=true&verVendedor=${devices[
                 i
               ].vendedor.replace(' ', '_')}&table=${devices[i].vendedor.replace(
@@ -204,8 +205,8 @@ function ShoppingCartForm(props) {
               tiempo_garantia: oldDeviceData.data.data.tiempo_garantia,
             };
             let couldUpdateDevice = await axios.put(
-              `http://${helpers.LOCALHOST_IP}:${
-                helpers.TOMCAT_PORT
+              `http://${secrets.LOCALHOST_IP}:${
+                secrets.TOMCAT_PORT
               }/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(
                 ' ',
                 '_'
@@ -216,8 +217,8 @@ function ShoppingCartForm(props) {
               newDeviceData
             );
             let deviceXSale = await axios.post(
-              `http://${helpers.LOCALHOST_IP}:${
-                helpers.TOMCAT_PORT
+              `http://${secrets.LOCALHOST_IP}:${
+                secrets.TOMCAT_PORT
               }/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(
                 ' ',
                 '_'
@@ -247,7 +248,7 @@ function ShoppingCartForm(props) {
           ) {
             const parsedEmail = userEmail.replace(/\+/g, '%2b');
             const receiptEmail = await axios.post(
-              `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/mail?sendReceipt=true&recipient=${parsedEmail}`,
+              `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/mail?sendReceipt=true&recipient=${parsedEmail}`,
               {
                 name: userName,
                 subTotal: Number(getSubtotal().toFixed(2)),

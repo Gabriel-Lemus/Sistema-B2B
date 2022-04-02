@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import $ from 'jquery';
 import helpers from '../../helpers/helpers';
 
@@ -85,11 +85,11 @@ function DashboardTemplate(props) {
               <ul className="nav flex-column">
                 {props.sideBarItems.map((item, index) => (
                   <li key={index} className="nav-item">
-                    <a className="nav-link sidebar-link" href={item.reference}>
+                    <Link className="nav-link sidebar-link" to={item.reference}>
                       {item.icon}
                       &nbsp;&nbsp;
                       {item.title}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
