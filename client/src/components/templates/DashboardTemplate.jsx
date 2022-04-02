@@ -36,11 +36,14 @@ function DashboardTemplate(props) {
                 id="button-addon2"
                 onClick={() => {
                   if (searchParam !== '') {
-                    navigate('/catalogo-dispositivos-busqueda', {
-                      state: {
-                        searchParam: searchParam,
-                      },
-                    });
+                    navigate('/catalogo-dispositivos-busqueda-espera');
+                    setTimeout(() => {
+                      navigate('/catalogo-dispositivos-busqueda', {
+                        state: {
+                          searchParam: searchParam,
+                        },
+                      });
+                    }, 1);
                   }
                 }}
               >
