@@ -84,6 +84,7 @@ router.put('/customers/edit-customer-pass/:id', isAuthenticated, async (req, res
         errors.push({text: 'Password must be at least 4 characters'});
     }
     if(errors.length > 0){
+        // Verificar ruta
         res.render('customers/edit-customer-pass', {
             errors,
             password,

@@ -1,0 +1,52 @@
+<div class="col-md-4 mx-auto">
+    <div class="card">
+        <div class="card-header">
+            <h3>New Order</h3>
+        </div>
+        <div class="card-body">
+            <form class="needs-validation" novalidate action="/orders/new-order" method="POST">
+                <div class="input-group mb-3">
+                    <label for="validationOrderCustomer" class="form-label"></label>
+                    <input type="text" name="customer" class="form-control" id="validationOrderCustomer" placeholder="Customer" autofocus required>
+                    <div class="invalid-feedback">Please provide a customer.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationDelivered" class="form-label">Delivered?</label>
+                    <select class="form-select" id="validationDelivered" required>
+                    <option selected disabled value="">Choose...</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                    </select>
+                    <div class="invalid-feedback">
+                    Please select a valid option.
+                    </div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationDate" class="form-label"></label>
+                    <input type="text" name="date" class="form-control" id="validationDate" placeholder="Delivery Date" required>
+                    <div class="invalid-feedback">Please provide a delivery date.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationQuantity" class="form-label"></label>
+                    <input type="text" name="quantity" class="form-control" id="validationQuantity" placeholder="Quantity" required>
+                    <div class="invalid-feedback">Please provide a quantity.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationAmount" class="form-label"></label>
+                    <span class="input-group-text">Q</span>
+                    <input type="text" name="amount" class="form-control" id="validationAmount" placeholder="Amount" required>
+                    <div class="invalid-feedback">Please provide an amount.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationTotal" class="form-label"></label>
+                    <span class="input-group-text">Q</span>
+                    <input type="text" name="total" class="form-control" id="validationTotal" placeholder="Total" required>
+                    <div class="invalid-feedback">Please provide a total price.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <button class="btn btn-primary w-100" type="submit">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
