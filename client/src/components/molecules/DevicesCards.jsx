@@ -9,7 +9,7 @@ function DevicesCatalog(props) {
       {props.devices.map((device, index) => (
         <div className="card product-card" key={props.devices.indexOf(device)}>
           <div className="card-body product-card-body">
-            <h5 className="card-title">{device.dispositivo}</h5>
+            <h5 className="card-title">{device.nombre}</h5>
             <img
               className="product-image"
               src={
