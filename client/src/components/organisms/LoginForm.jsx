@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import helpers from '../../helpers/helpers';
 import { useNavigate } from 'react-router-dom';
 import Loader from '../molecules/Loader';
+import secrets from '../../helpers/secrets';
 
 function LoginForm() {
   // State
@@ -38,13 +39,13 @@ function LoginForm() {
       (async () => {
         const parsedEmail = email.replace(/\+/g, '%2b');
         let checkEmailExists = await axios.get(
-          `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${parsedEmail}`
+          `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${parsedEmail}`
         );
         if (checkEmailExists.data.success) {
           if (helpers.isValidEmail(email)) {
             if (checkEmailExists.data.exists) {
               let credentials = await axios.get(
-                `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&getEmail=${parsedEmail}`
+                `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&getEmail=${parsedEmail}`
               );
               if (
                 helpers.isValidPassword(
@@ -55,7 +56,7 @@ function LoginForm() {
               ) {
                 if (credentials.data.tipo_usuario === 'cliente') {
                   let client = await axios.get(
-                    `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${credentials.data.id_cliente}`
+                    `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${credentials.data.id_cliente}`
                   );
                   helpers.setLoginUserAttributes(
                     client.data.data.tipo_cliente,
@@ -66,14 +67,17 @@ function LoginForm() {
                   navigate('/Catalogo-Dispositivos');
                 } else {
                   let seller = await axios.get(
-                    `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=vendedores&id=${credentials.data.id_vendedor}`
+                    `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=vendedores&id=${credentials.data.id_vendedor}`
                   );
                   helpers.setLoginUserAttributes(
                     'vendedor',
                     credentials.data.id_vendedor,
                     seller.data.data.nombre
                   );
-                  localStorage.setItem('isAdmin', seller.data.data.es_admin === 'True' ? true : false);
+                  localStorage.setItem(
+                    'isAdmin',
+                    seller.data.data.es_admin === 'True' ? true : false
+                  );
                   setLoading(false);
                   navigate('/Catalogo-Ventas');
                 }
@@ -190,3 +194,4 @@ function LoginForm() {
 }
 
 export default LoginForm;
+

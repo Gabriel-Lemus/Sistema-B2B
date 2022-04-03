@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 function Navbar(props) {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
-      <a className="navbar-brand" href="/">
+      <Link className="navbar-brand" to="/">
         <img
           src="/logo192.png"
           width="30"
@@ -13,7 +13,7 @@ function Navbar(props) {
           alt="Sistema B2B logo"
         />
         {'Sistema B2B'}
-      </a>
+      </Link>
       <button
         className="navbar-toggler"
         type="button"

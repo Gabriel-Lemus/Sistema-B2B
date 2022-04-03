@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import helpers from '../../helpers/helpers';
+import secrets from '../../helpers/secrets';
 
 function UserProfile(props) {
   // State
@@ -15,16 +16,16 @@ function UserProfile(props) {
 
     if (localStorage.getItem('userType') !== 'vendedor') {
       user = await axios.get(
-        `http://${helpers.LOCALHOST_IP}:${
-          helpers.TOMCAT_PORT
+        `http://${secrets.LOCALHOST_IP}:${
+          secrets.TOMCAT_PORT
         }/sales-system/sales?table=clientes&id=${Number(
           localStorage.getItem('userId')
         )}`
       );
     } else {
       user = await axios.get(
-        `http://${helpers.LOCALHOST_IP}:${
-          helpers.TOMCAT_PORT
+        `http://${secrets.LOCALHOST_IP}:${
+          secrets.TOMCAT_PORT
         }/sales-system/sales?table=vendedores&id=${Number(
           localStorage.getItem('userId')
         )}`
@@ -53,7 +54,7 @@ function UserProfile(props) {
         );
         formData.append('commerce-patent', clientComPat);
         let clientCommercePatentUpload = await axios.post(
-          `http://${helpers.LOCALHOST_IP}:3001/upload-commerce-patent`,
+          `http://${secrets.LOCALHOST_IP}:3001/upload-commerce-patent`,
           formData,
           {
             headers: {
@@ -77,21 +78,21 @@ function UserProfile(props) {
               commercePatentImgURL.split('/').length - 1
             ];
           let deleteOldComPat = await axios.delete(
-            `http://localhost:3001/delete-commerce-patent/${commercePatentName}`
+            `http://${secrets.LOCALHOST_IP}:${secrets.IMAGES_SERVER}/delete-commerce-patent/${commercePatentName}`
           );
           let successfullyDeleted = deleteOldComPat.data.success;
 
           while (!successfullyDeleted) {
             deleteOldComPat = await axios.delete(
-              `http://localhost:3001/delete-commerce-patent/${commercePatentName}`
+              `http://${secrets.LOCALHOST_IP}:${secrets.IMAGES_SERVER}/delete-commerce-patent/${commercePatentName}`
             );
             successfullyDeleted = deleteOldComPat.data.success;
           }
         }
 
         let updateUserData = await axios.put(
-          `http://${helpers.LOCALHOST_IP}:${
-            helpers.TOMCAT_PORT
+          `http://${secrets.LOCALHOST_IP}:${
+            secrets.TOMCAT_PORT
           }/sales-system/sales?table=clientes&id=${Number(
             localStorage.getItem('userId')
           )}`,
@@ -112,8 +113,8 @@ function UserProfile(props) {
       if (newUserData.nombre !== '') {
         // Attempt to update the user's data
         let updateUserData = await axios.put(
-          `http://${helpers.LOCALHOST_IP}:${
-            helpers.TOMCAT_PORT
+          `http://${secrets.LOCALHOST_IP}:${
+            secrets.TOMCAT_PORT
           }/sales-system/sales?table=vendedores&id=${Number(
             localStorage.getItem('userId')
           )}`,
@@ -260,7 +261,7 @@ function UserProfile(props) {
               {userData.patente_comercio !== null &&
               userData.patente_comercio !== undefined ? (
                 <img
-                  src={`http://${helpers.LOCALHOST_IP}${userData.patente_comercio}`}
+                  src={`http://${secrets.LOCALHOST_IP}${userData.patente_comercio}`}
                   style={{
                     display: 'block',
                     marginLeft: 'auto',
@@ -391,3 +392,4 @@ function UserProfile(props) {
 }
 
 export default UserProfile;
+

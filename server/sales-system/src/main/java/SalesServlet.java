@@ -10,10 +10,12 @@ import javax.servlet.http.HttpServletResponse;
 public class SalesServlet extends HttpServlet {
     // Attributes
     private SqlSchema sqlSchema;
+    private Secrets secrets;
 
     // Servlet initialization
     public void init() throws ServletException {
-        String connectionUrl = "jdbc:oracle:thin:@localhost:1521/XEPDB1";
+        secrets = new Secrets();
+        String connectionUrl = secrets.getOracleCon();
         String user = "Sales";
         String password = "adminsales";
         String localhostIp = "localhost";

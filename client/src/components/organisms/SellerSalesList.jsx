@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import helpers from '../../helpers/helpers';
+import secrets from '../../helpers/secrets';
 
 function SellerSalesList(props) {
   const [sellerSales, setSellerSales] = useState([]);
@@ -9,7 +10,7 @@ function SellerSalesList(props) {
   useEffect(async () => {
     const sellerId = localStorage.getItem('userId');
     const sales = await axios.get(
-      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?get=true&ventas=${sellerId}`
+      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?get=true&ventas=${sellerId}`
     );
     if (sales.data.success) {
       const salesList = sales.data.compras;
@@ -25,7 +26,7 @@ function SellerSalesList(props) {
           )
         ) {
           const client = await axios.get(
-            `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${salesList[i][0].id_cliente}`
+            `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${salesList[i][0].id_cliente}`
           );
           if (client.data.success) {
             clientsDataList.push({

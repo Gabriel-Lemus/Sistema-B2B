@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import helpers from '../../helpers/helpers';
 import IndividualTextInput from './IndividualTextInput';
+import secrets from '../../helpers/secrets';
 
 function ClientsList(props) {
   const [clients, setClients] = useState([]);
@@ -13,7 +14,7 @@ function ClientsList(props) {
 
   useEffect(async () => {
     const clientsList = await axios.get(
-      `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes`
+      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=clientes`
     );
     setisAdmin(localStorage.getItem('isAdmin') === 'true');
     setClients(clientsList.data.data);
@@ -68,7 +69,7 @@ function ClientsList(props) {
               : null,
         };
         const updateClient = await axios.put(
-          `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${newClientsData[i].id_cliente}`,
+          `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${newClientsData[i].id_cliente}`,
           newUserData
         );
 
@@ -211,7 +212,7 @@ function ClientsList(props) {
                     {client.patente_comercio !== null ? (
                       <img
                         className="img-fluid"
-                        src={`http://${helpers.LOCALHOST_IP}${client.patente_comercio}`}
+                        src={`http://${secrets.LOCALHOST_IP}${client.patente_comercio}`}
                         alt="Patente de Comercio"
                         style={{ width: '150px' }}
                       />
@@ -353,7 +354,7 @@ function ClientsList(props) {
                   {client.patente_comercio !== null ? (
                     <img
                       className="img-fluid"
-                      src={`http://${helpers.LOCALHOST_IP}${client.patente_comercio}`}
+                      src={`http://${secrets.LOCALHOST_IP}${client.patente_comercio}`}
                       alt="Patente de Comercio"
                       style={{ width: '150px' }}
                     />

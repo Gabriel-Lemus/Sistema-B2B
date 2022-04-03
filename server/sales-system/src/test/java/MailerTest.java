@@ -21,7 +21,7 @@ import org.springframework.mock.web.DelegatingServletInputStream;
 public class MailerTest {
     // Attributes
     private Mailer mailer;
-    private MailSecrets secrets;
+    private Secrets secrets;
     private HttpServletRequest request;
     private HttpServletResponse response;
     private StringWriter stringWriter;
@@ -30,7 +30,7 @@ public class MailerTest {
     @BeforeEach
     public void setUp() {
         mailer = new Mailer();
-        secrets = new MailSecrets();
+        secrets = new Secrets();
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);
         stringWriter = new StringWriter();

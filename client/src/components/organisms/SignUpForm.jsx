@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import helpers from '../../helpers/helpers';
 import { useNavigate } from 'react-router-dom';
 import Loader from '../molecules/Loader';
+import secrets from '../../helpers/secrets';
 
 function SignUpForm() {
   // State
@@ -121,14 +122,14 @@ function SignUpForm() {
             // Seller check
             // Check if the email is already registered
             let emailCheck = await axios.get(
-              `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${email}`
+              `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${email}`
             );
 
             if (emailCheck.data.success) {
               if (!emailCheck.data.exists) {
                 // Attempt to register the user
                 let sellerRegistration = await axios.get(
-                  `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sellers?post=true&vendedor=${sellerName}&crear=true`
+                  `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?post=true&vendedor=${sellerName}&crear=true`
                 );
 
                 if (sellerRegistration.data.success) {
@@ -143,7 +144,7 @@ function SignUpForm() {
                   };
 
                   let userCredentialsRegistration = await axios.post(
-                    `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios`,
+                    `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios`,
                     userCredentialsTableData
                   );
 
@@ -210,14 +211,14 @@ function SignUpForm() {
             // Individual client check
             // Check if the email is already registered
             let emailCheck = await axios.get(
-              `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${email}`
+              `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${email}`
             );
 
             if (emailCheck.data.success) {
               if (!emailCheck.data.exists) {
                 // Attempt to register the user
                 let clientRegistration = await axios.post(
-                  `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes`,
+                  `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=clientes`,
                   {
                     nombre: clientName,
                     nit: null,
@@ -241,7 +242,7 @@ function SignUpForm() {
                     hash: helpers.getHashedPassword(password, salt),
                   };
                   let userCredentialsRegistration = await axios.post(
-                    `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios`,
+                    `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios`,
                     userCredentialsTableData
                   );
 
@@ -297,7 +298,7 @@ function SignUpForm() {
         } else {
           // Large customer or distributor check
           let emailCheck = await axios.get(
-            `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${email}`
+            `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${email}`
           );
 
           if (emailCheck.data.success) {
@@ -318,7 +319,7 @@ function SignUpForm() {
               );
               formData.append('commerce-patent', clientComPat);
               let clientCommercePatentUpload = await axios.post(
-                `http://${helpers.LOCALHOST_IP}:3001/upload-commerce-patent`,
+                `http://${secrets.LOCALHOST_IP}:3001/upload-commerce-patent`,
                 formData,
                 {
                   headers: {
@@ -335,7 +336,7 @@ function SignUpForm() {
 
               // Attempt to register the user
               let clientRegistration = await axios.post(
-                `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=clientes`,
+                `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=clientes`,
                 {
                   nombre: clientName,
                   nit: clientNIT,
@@ -359,7 +360,7 @@ function SignUpForm() {
                   hash: helpers.getHashedPassword(password, salt),
                 };
                 let userCredentialsRegistration = await axios.post(
-                  `http://${helpers.LOCALHOST_IP}:${helpers.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios`,
+                  `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios`,
                   userCredentialsTableData
                 );
 
