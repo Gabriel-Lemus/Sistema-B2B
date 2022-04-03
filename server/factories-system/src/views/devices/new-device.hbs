@@ -1,0 +1,65 @@
+<div class="col-md-4 mx-auto">
+    <div class="card">
+        <div class="card-header">
+            <h3>New Device</h3>
+        </div>
+        <div class="card-body">
+            <form class="needs-validation" novalidate action="/devices/new-device" method="POST">
+                <div class="input-group mb-3">
+                    <label for="validationDeviceTitle" class="form-label"></label>
+                    <input type="text" name="title" class="form-control" id="validationDeviceTitle" placeholder="Title" autofocus required>
+                    <div class="invalid-feedback">Please provide a title.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationDescription" class="form-label"></label>
+                    <textarea name="description" class="form-control" id="validationDescription" placeholder="Description" required></textarea>
+                    <div class="invalid-feedback">Please provide a description.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationModel" class="form-label"></label>
+                    <input type="text" name="model_code" class="form-control" id="validationModel" placeholder="Model Code" required>
+                    <div class="invalid-feedback">Please provide a model code.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationCategory" class="form-label"></label>
+                    <input type="text" name="category" class="form-control" id="validationCategory" placeholder="Category" required>
+                    <div class="invalid-feedback">Please provide a category.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationKind" class="form-label"></label>
+                    <input type="text" name="kind" class="form-control" id="validationKind" placeholder="Kind" required>
+                    <div class="invalid-feedback">Please provide a kind of device.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationBrand" class="form-label"></label>
+                    <input type="text" name="brand" class="form-control" id="validationBrand" placeholder="Brand" required>
+                    <div class="invalid-feedback">Please provide a brand.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationColor" class="form-label"></label>
+                    <input type="text" name="color" class="form-control" id="validationColor" placeholder="Color" required>
+                    <div class="invalid-feedback">Please provide a brand.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationWarranty" class="form-label"></label>
+                    <input type="text" name="warranty_time" class="form-control" id="validationWarranty" placeholder="Warranty Time (years)" required>
+                    <div class="invalid-feedback">Please provide a warranty time.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationShipping" class="form-label"></label>
+                    <input type="text" name="shipping_time" class="form-control" id="validationShipping" placeholder="Shipping Time (days)" required>
+                    <div class="invalid-feedback">Please provide a shipping time.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <label for="validationPrice" class="form-label"></label>
+                    <span class="input-group-text">Q</span>
+                    <input type="text" name="price" class="form-control" id="validationPrice" placeholder="Price" required>
+                    <div class="invalid-feedback">Please provide a device price.</div>
+                </div>
+                <div class="input-group mb-3">
+                    <button class="btn btn-primary w-100" type="submit">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

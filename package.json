@@ -7,7 +7,9 @@
     "startReact": "cd ./client && npm start",
     "deploySalesServlets": "cd ./server/sales-system/.helper-scripts && ./deploy-servlets.sh",
     "startFrontEnd": "cd ./client && npm start",
-    "deployFrontEnd": "cd ./client/.helper-scripts && ./deploy-front-end.sh",
+    "deployFrontEnd": "cd ./client/.helper-scripts && sudo ./deploy-front-end.sh",
+    "startImagesServer": "cd ./server/sales-system/images-server && npm run devStart",
+    "startWebservices": "cd ./server/webservices && npm run devStart",
     "sass": "cd ./client && node-sass ./public/sass/styles.scss ./public/css/styles.css --watch"
   },
   "repository": {
