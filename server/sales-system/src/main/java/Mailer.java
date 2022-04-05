@@ -19,6 +19,9 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+/**
+ * Servlet that allows to send emails for the sales system.
+ */
 @WebServlet("/mail")
 public class Mailer extends HttpServlet {
     // Attributes

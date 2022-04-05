@@ -12,6 +12,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * Servlet that manages the sellers of the system.
+ */
 @WebServlet("/sellers")
 public class SellersServlet extends HttpServlet {
     // Attributes
