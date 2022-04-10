@@ -18,6 +18,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.DelegatingServletInputStream;
 
+/**
+ * Unit testing for methods of the class {@link Mailer}.
+ */
 public class MailerTest {
     // Attributes
     private Mailer mailer;

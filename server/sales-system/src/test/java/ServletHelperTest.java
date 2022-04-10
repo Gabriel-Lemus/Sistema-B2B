@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.json.JSONObject;
 
 /**
- * Test the methods of the Servlet Helper class.
+ * Unit testing for the class {@link ServletHelper}.
  */
 public class ServletHelperTest {
     // Attributes
