@@ -35,40 +35,40 @@
 
 // Bootstrap overrides
 $body-bg: $lightestBlue;
-$dark: $darkGreen;
-$light: #b8e9d3;
+$dark: $darkBlue;
+$light: #b8e3ff;
 
 .dropdown-menu {
   .dropdown-item:hover {
     cursor: pointer;
-    color: $white;
-    background-color: $lightGreen;
+    color: $darkGray;
+    background-color: $lightBlue;
   }
   
   .dropdown-item.active {
     color: $white;
-    background-color: $green;
+    background-color: $blue;
     
     &:hover {
-      background-color: $green;
+      background-color: $blue;
     }
   }
 }
 
 .btn-primary {
-  background-color: $green !important;
-  border-color: $green !important;
+  background-color: $blue !important;
+  border-color: $blue !important;
   color: $white !important;
   
   &:hover {
-    background-color: #1a611a !important;
-    border-color: #1a611a !important;
+    background-color: #06456c !important;
+    border-color: #06456c !important;
   }
 }
 
 .btn-secondary {
-  background-color: $blue !important;
-  border-color: $blue !important;
+  background-color: $green !important;
+  border-color: $green !important;
   color: $white !important;
   
   &:hover {
