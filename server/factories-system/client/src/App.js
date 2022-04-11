@@ -29,7 +29,7 @@ function App() {
           <Route path="/" exact element={<Home />} />
           <Route path="/Login" exact element={<Login />} />
           <Route path="/Sign-Up" element={<SignUp />} />
-          <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
+          {/* <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
           <Route path="/Catalogo-Dispositivos-Busqueda/" element={<DevicesCatalogSearch />} />
           <Route path="/Catalogo-Dispositivos-Busqueda-Espera/" element={<DevicesCatalogSearchWait />} />
           <Route path="/Busqueda-Especializada" element={<SpecializedSearch />} />
@@ -42,7 +42,7 @@ function App() {
           <Route path="/Vendedores" element={<Sellers />} />
           <Route path="/Ventas" element={<SellersSales />} />
           <Route path="/Compras-B2B" element={<SellersPurchases />} />
-          <Route path="/Marcas" element={<Brands />} />
+          <Route path="/Marcas" element={<Brands />} /> */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </HashRouter>
