@@ -11,7 +11,8 @@
     "serveFactoriesSystem": "cd ./server/factories-system/client && npm run build && cd ./.helper-scripts && ./serve-factories-system.sh",
     "startImagesServer": "cd ./server/sales-system/images-server && npm run devStart",
     "startWebservices": "cd ./server/webservices && npm run devStart",
-    "sass": "cd ./client && node-sass ./public/sass/styles.scss ./public/css/styles.css --watch"
+    "sass": "cd ./client && node-sass ./public/sass/styles.scss ./public/css/styles.css --watch",
+    "factoriesSass": "cd ./server/factories-system/client && node-sass ./public/sass/styles.scss ./public/css/styles.css --watch"
   },
   "repository": {
     "type": "git",
