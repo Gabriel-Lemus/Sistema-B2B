@@ -166,17 +166,26 @@ router.get("/:schema", async (req, res) => {
     } else {
       const params = req.query;
 
-      if (params.emailExists !== undefined && schemaName === "factory") {
-        // Try to get the document with the given email
+      if (
+        params.emailExists !== undefined &&
+        params.factoryExists &&
+        schemaName === "factory"
+      ) {
         try {
-          const data = await schema.findOne(
-            { email: params.emailExists },
-            { __v: 0 }
-          );
-          const documentExists = data !== null;
+          // Try to get the document with the given email or name
+          const data = await schema.findOne({
+            $or: [
+              { email: params.emailExists },
+              { name: params.factoryExists },
+            ],
+          });
           res.status(200).send({
             success: true,
-            emailExists: documentExists,
+            factoryExists:
+              data !== null ? data.name === params.factoryExists : false,
+            emailExists:
+              data !== null ? data.email === params.emailExists : false,
+            canAddFactory: data === null,
             data,
           });
         } catch (error) {
