@@ -17,7 +17,7 @@ function Header() {
           </SubHeader>
           <button
             id="btn-get-started"
-            className="btn btn-primary btn-sl rounded-pill mt-5 font-weight-bold"
+            className="btn btn-sl rounded-pill mt-5 font-weight-bold"
             onClick={() => {
               $('html, body').animate(
                 {
@@ -29,6 +29,7 @@ function Header() {
             style={{
               backgroundColor: helpers.PALETTE.darkGreen,
               borderColor: helpers.PALETTE.darkGreen,
+              color: helpers.PALETTE.white,
               padding: '0.5rem 1rem',
             }}
           >

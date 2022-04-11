@@ -11,9 +11,9 @@ function Home() {
   const descriptiveImages = [
     {
       imageRight: true,
-      imageTitle: "Alta disponibilidad de dispositivos electrónicos",
+      imageTitle: "Gran capacidad de almacenamiento de dispositivos electrónicos",
       imageText:
-        "El sistema de ventas cuenta con una gran cantidad de dispositivos electrónicos disponibles para su compra. La búsqueda de los dispositivos electrónicos se realiza mediante su  categoría, marca, modelo y otras características.",
+        "El sistema de fábricas permite agregar los dispositivos que su compañía manufacture. Podrá enlistarlos todos con cada uno de sus características para que los clientes puedan adquirirlos fácilmente.",
       imageSrc:
         'https://st2.depositphotos.com/6198262/11688/v/950/depositphotos_116884724-stock-illustration-household-appliances-and-electronic-devices.jpg',
       imageAlt: 'Various food ingredients',
@@ -22,7 +22,7 @@ function Home() {
       imageRight: false,
       imageTitle: 'Facilidad de compras',
       imageText:
-        'Después de realizar la búsqueda de los dispositivos electrónicos, solamente es necesario agregarlos al carrito de compras y proceder a realizar el pago. ¡Es un proceso muy sencillo!',
+        'Los clientes podrán realizar la búsquda de los dispositivos que deseen; después, solamente es necesario agregarlos al carrito de compras y proceder a realizar el pago. ¡Es un proceso muy sencillo!',
       imageSrc:
         'https://thumbs.dreamstime.com/b/hand-giving-shopping-paper-taking-credit-card-monochrome-sketch-outline-seller-buyer-market-paying-products-bought-165749194.jpg',
       imageAlt: 'Person preparing a meal',
