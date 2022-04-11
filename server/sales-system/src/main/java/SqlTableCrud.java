@@ -551,6 +551,7 @@ public class SqlTableCrud {
             } else if (request.getParameterMap().containsKey("exists")) {
                 String value = request.getParameter("exists");
                 String existanceQuery = "SELECT COUNT(*) FROM " + tableName + " WHERE ";
+                String rowQuery = "SELECT * FROM " + tableName + " WHERE ";
                 boolean setFirstValue = false;
 
                 for (int i = 0; i < attributes.length; i++) {
@@ -558,8 +559,10 @@ public class SqlTableCrud {
                         if (!setFirstValue) {
                             setFirstValue = true;
                             existanceQuery += attributes[i] + " = '" + value + "'";
+                            rowQuery += attributes[i] + " = '" + value + "'";
                         } else {
                             existanceQuery += " OR " + attributes[i] + " = '" + value + "'";
+                            rowQuery += " OR " + attributes[i] + " = '" + value + "'";
                         }
                     }
                 }
@@ -569,13 +572,26 @@ public class SqlTableCrud {
                     Connection con = DriverManager.getConnection(conUrl, user, password);
                     Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                             ResultSet.CONCUR_READ_ONLY);
+                    Statement stmt2 = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
                     ResultSet rs = stmt.executeQuery(existanceQuery);
+                    ResultSet rs2 = stmt2.executeQuery(rowQuery);
 
                     // Check if the count is greater than 0
                     rs.next();
                     if (rs.getInt(1) > 0) {
                         // The value exists
-                        out.print("{\"success\":" + true + ",\"exists\":" + true + "}");
+                        out.print("{\"success\":true,\"exists\":true,\"data\":[");
+
+                        while (rs2.next()) {
+                            helper.printRow(rs2, out, attributes, types);
+
+                            if (!rs2.isLast()) {
+                                out.print(",");
+                            }
+                        }
+                        
+                        out.print("]}");
                     } else {
                         // The value does not exist
                         out.print("{\"success\":" + true + ",\"exists\":" + false + "}");
