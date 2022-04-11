@@ -143,23 +143,54 @@ router.get("/:schema", async (req, res) => {
       });
     }
   } else {
+    const paramsNumber = Object.keys(req.query).length;
     const schema = schemas[schemaName].schema;
 
-    // Try to get all documents
-    try {
-      // Get all the attributes of the documents except for __v
-      const data = await schema.find({}, { __v: 0 });
-      const documentsCount = data.length;
-      res.status(200).send({
-        success: true,
-        count: documentsCount,
-        data,
-      });
-    } catch (error) {
-      res.status(500).send({
-        success: false,
-        message: `Error getting data from ${schemaName}: ${error}`,
-      });
+    if (paramsNumber === 0) {
+      // Try to get all documents
+      try {
+        // Get all the attributes of the documents except for __v
+        const data = await schema.find({}, { __v: 0 });
+        const documentsCount = data.length;
+        res.status(200).send({
+          success: true,
+          count: documentsCount,
+          data,
+        });
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: `Error getting data from ${schemaName}: ${error}`,
+        });
+      }
+    } else {
+      const params = req.query;
+
+      if (params.emailExists !== undefined && schemaName === "factory") {
+        // Try to get the document with the given email
+        try {
+          const data = await schema.findOne(
+            { email: params.emailExists },
+            { __v: 0 }
+          );
+          const documentExists = data !== null;
+          res.status(200).send({
+            success: true,
+            emailExists: documentExists,
+            data,
+          });
+        } catch (error) {
+          res.status(500).send({
+            success: false,
+            message: `Error getting data from ${schemaName}: ${error}`,
+          });
+        }
+      } else {
+        res.status(400).send({
+          success: false,
+          message: "Please provide a valid parameter.",
+        });
+      }
     }
   }
 });
