@@ -551,8 +551,15 @@ public class SqlTableCrud {
             } else if (request.getParameterMap().containsKey("exists")) {
                 String value = request.getParameter("exists");
                 String existanceQuery = "SELECT COUNT(*) FROM " + tableName + " WHERE ";
-                String rowQuery = "SELECT * FROM " + tableName + " WHERE ";
+                String rowQuery;
                 boolean setFirstValue = false;
+
+                if (tableName == "credenciales_usuarios") {
+                    rowQuery = "SELECT v.nombre, cu.email, cu.salt, cu.hash FROM " + tableName
+                            + " cu INNER JOIN vendedores v ON cu.id_vendedor = v.id_vendedor WHERE ";
+                } else {
+                    rowQuery = "SELECT * FROM " + tableName + " WHERE ";
+                }
 
                 for (int i = 0; i < attributes.length; i++) {
                     if (types[i].equals("VARCHAR2")) {
@@ -581,17 +588,22 @@ public class SqlTableCrud {
                     rs.next();
                     if (rs.getInt(1) > 0) {
                         // The value exists
-                        out.print("{\"success\":true,\"exists\":true,\"data\":[");
+                        out.print("{\"success\":true,\"exists\":true,\"data\":");
 
                         while (rs2.next()) {
-                            helper.printRow(rs2, out, attributes, types);
+                            if (tableName == "credenciales_usuarios") {
+                                helper.printRow(rs2, out, new String[] { "nombre", "email", "salt", "hash" },
+                                        new String[] { "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2" });
+                            } else {
+                                helper.printRow(rs2, out, attributes, types);
+                            }
 
                             if (!rs2.isLast()) {
                                 out.print(",");
                             }
                         }
-                        
-                        out.print("]}");
+
+                        out.print("}");
                     } else {
                         // The value does not exist
                         out.print("{\"success\":" + true + ",\"exists\":" + false + "}");
