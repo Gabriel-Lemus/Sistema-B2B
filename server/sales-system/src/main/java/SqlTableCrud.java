@@ -590,17 +590,23 @@ public class SqlTableCrud {
                         // The value exists
                         out.print("{\"success\":true,\"exists\":true,\"data\":");
 
-                        while (rs2.next()) {
-                            if (tableName == "credenciales_usuarios") {
-                                helper.printRow(rs2, out, new String[] { "nombre", "email", "salt", "hash" },
-                                        new String[] { "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2" });
-                            } else {
-                                helper.printRow(rs2, out, attributes, types);
-                            }
+                        if (rs2.next()) {
+                            rs2.beforeFirst();
+                            
+                            while (rs2.next()) {
+                                if (tableName == "credenciales_usuarios") {
+                                    helper.printRow(rs2, out, new String[] { "nombre", "email", "salt", "hash" },
+                                            new String[] { "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2" });
+                                } else {
+                                    helper.printRow(rs2, out, attributes, types);
+                                }
 
-                            if (!rs2.isLast()) {
-                                out.print(",");
+                                if (!rs2.isLast()) {
+                                    out.print(",");
+                                }
                             }
+                        } else {
+                            out.print("[]");
                         }
 
                         out.print("}");
