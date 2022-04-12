@@ -123,6 +123,7 @@ function DeviceDataSection(props) {
                 alt={`Imagen ${index}`}
                 className={'device-image' + (index === 0 ? '-active' : '')}
                 style={{
+                  maxHeight: '175px',
                   maxWidth: '90%',
                   height: 'auto',
                 }}
@@ -151,6 +152,7 @@ function DeviceDataSection(props) {
           }
           alt={props.device.nombre}
           style={{
+            maxHeight: '700px',
             maxWidth: '85%',
             height: 'auto',
           }}
