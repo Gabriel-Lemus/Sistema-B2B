@@ -99,6 +99,9 @@ function LoginForm() {
 
           if (emailCheck.data.success) {
             const user = emailCheck.data.data;
+            const client = await axios.get(
+              `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/clients/${user.nombre}`
+            );
 
             if (emailCheck.data.userExists) {
               const salt = user.salt;
@@ -108,6 +111,7 @@ function LoginForm() {
                 localStorage.setItem('loggedIn', true);
                 localStorage.setItem('userType', userType);
                 localStorage.setItem('name', user.nombre);
+                localStorage.setItem('id', client.data.data._id);
                 setLoading(false);
                 helpers.showOptionModal(
                   'Bienvenido',
