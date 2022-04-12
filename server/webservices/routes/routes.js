@@ -41,6 +41,72 @@ router.post("/", async (req, res) => {
         message: "Error: " + error.message,
       });
     }
+  } else if (
+    params.sellerAsFactoriesClient !== undefined &&
+    params.email !== undefined
+  ) {
+    const seller = params.sellerAsFactoriesClient;
+    const email = params.email;
+    const shippingTimes = [];
+
+    // For every factory in the factories collection, add a new shipping time with the factory's id and 0 as shipping time
+    try {
+      const factories = await axios.get(
+        `http://${LOCAL_HOST_IP}:${FACTORIES_BE_PORT}/factories`
+      );
+
+      if (factories.data.success) {
+        factories.data.data.forEach((factory) => {
+          shippingTimes.push({
+            factoryId: factory._id,
+            shippingTime: 0,
+          });
+        });
+        const newClient = {
+          name: seller,
+          email: email,
+          shippingTimes: shippingTimes,
+        };
+
+        // Attempt to add the seller as a client in the factories backend
+        try {
+          const addSellerAsClient = await axios.post(
+            `http://${LOCAL_HOST_IP}:${FACTORIES_BE_PORT}/clients?seller`,
+            newClient
+          );
+
+          if (addSellerAsClient.data.success) {
+            res.status(200).json({
+              success: true,
+              message: "Seller added as client successfully.",
+              data: addSellerAsClient.data,
+            });
+          } else {
+            res.status(400).json({
+              success: false,
+              message: "Error adding seller as client.",
+              data: addSellerAsClient.data,
+            });
+          }
+        } catch (error) {
+          res.status(500).send({
+            success: false,
+            message: `Error adding new client to factories backend: ${error.message}`,
+          });
+        }
+      } else {
+        res.status(400).json({
+          success: false,
+          message: "Error getting factories from factories backend.",
+          data: factories.data,
+        });
+      }
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: `Error getting factories from factories backend: ${error.message}`,
+      });
+    }
   } else {
     res.status(400).send({
       success: false,
