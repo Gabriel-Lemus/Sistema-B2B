@@ -427,7 +427,7 @@ public class SellersServlet extends HttpServlet {
                 helper.printErrorMessage(out, e);
             }
         } else if (helper.requestContainsParameter(request, "sellerAsFactoriesClient") && helper.requestContainsParameter(request, "email")) {
-            String sellerName = request.getParameter("sellerAsFactoriesClient");
+            String sellerName = request.getParameter("sellerAsFactoriesClient").replace(" ", "%20");
             String email = request.getParameter("email");
             String localHostIP = secrets.getLocalHostIP();
             String webServerPort = secrets.getWebServerPort();
