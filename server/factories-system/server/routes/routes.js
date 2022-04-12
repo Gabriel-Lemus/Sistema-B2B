@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 // Existing schemas
-const existingSchemas = ["factories", "devices"];
+const existingSchemas = ["factories", "devices", "clients"];
 const schemas = {};
 schemas[existingSchemas[0]] = {
   schema: require("../models/factories"),
@@ -27,6 +27,12 @@ schemas[existingSchemas[1]] = {
   nonRepeatingFields: [],
   nameField: "name",
 };
+schemas[existingSchemas[2]] = {
+  schema: require("../models/clients"),
+  fields: ["name", "email", "shippingTimes"],
+  nonRepeatingFields: ["name", "email"],
+  nameField: "name",
+}
 
 // Functions
 /**
