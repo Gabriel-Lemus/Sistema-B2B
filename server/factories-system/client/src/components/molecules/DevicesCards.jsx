@@ -9,40 +9,31 @@ function DevicesCatalog(props) {
       {props.devices.map((device, index) => (
         <div className="card product-card" key={props.devices.indexOf(device)}>
           <div className="card-body product-card-body">
-            <h5 className="card-title">{device.nombre}</h5>
+            <h5 className="card-title">{device.name}</h5>
             <img
               className="product-image"
               src={
-                device.fotos[0].slice(0, 7) === 'http://' ||
-                device.fotos[0].slice(0, 8) === 'https://'
-                  ? device.fotos[0]
-                  : `http://${secrets.LOCALHOST_IP}${device.fotos[0]}`
+                device.images[0].slice(0, 7) === 'http://' ||
+                device.images[0].slice(0, 8) === 'https://'
+                  ? device.images[0]
+                  : `http://${secrets.LOCALHOST_IP}${device.images[0]}`
               }
               alt="Imagen del dispositivo"
               style={{
-                maxWidth: '80%',
-                height: 'auto',
+                height: '150px',
+                width: 'auto',
+                maxWidth: '195px',
               }}
             />
             <p className="card-text">
-              {device.descripcion.length < 25
-                ? device.descripcion
-                : `${device.descripcion.substring(0, 25)}...`}
+              {device.description.length < 25
+                ? device.description
+                : `${device.description.substring(0, 25)}...`}
               <br />
-              {localStorage.getItem('userType') === 'individual'
-                ? helpers.getFormattedCurrency('Q. ', device.precio * 1.9)
-                : localStorage.getItem('userType') === 'grande'
-                ? helpers.getFormattedCurrency(
-                    'Q. ',
-                    device.precio * 1.9 * 0.95
-                  )
-                : helpers.getFormattedCurrency(
-                    'Q. ',
-                    device.precio * 1.9 * 0.85
-                  )}
+              {helpers.getFormattedCurrency('Q. ', device.price)}
             </p>
             <Link
-              to={`/datos-dispositivo/${device.vendedor}/${device.id_dispositivo}`}
+              to={`/datos-dispositivo/${device.factoryId}/${device._id}`}
             >
               <button className="btn btn-primary">Conocer más</button>
             </Link>

@@ -8,26 +8,22 @@ import { useNavigate } from 'react-router-dom';
 import secrets from '../../helpers/secrets';
 
 function DevicesCatalog() {
-  // State
   const navigate = useNavigate();
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Effects
-  useEffect(() => {
+  useEffect(async () => {
     document.title = 'Catálogo de dispositivos';
 
     // Check if user is not logged in
     if (!helpers.isLoggedIn()) {
       navigate('/');
     } else {
-      (async () => {
-        let devicesData = await axios.get(
-          `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?get=true&dispositivos=true`
-        );
-        setDevices(devicesData.data.dispositivos);
-        setLoading(false);
-      })();
+      let devicesData = await axios.get(
+        `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/devices`
+      );
+      setDevices(devicesData.data.data);
+      setLoading(false);
     }
   }, []);
 
@@ -35,7 +31,7 @@ function DevicesCatalog() {
     <>
       <DashboardTemplate
         displaySearchBar={true}
-        sideBarItems={helpers.CLIENT_PAGES}
+        sideBarItems={helpers.SELLER_PAGES}
         pageTitle="Catálogo de dispositivos"
       >
         {devices.length === 0 ? (
@@ -56,3 +52,4 @@ function DevicesCatalog() {
 }
 
 export default DevicesCatalog;
+

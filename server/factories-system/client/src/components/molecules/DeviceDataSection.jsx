@@ -5,119 +5,96 @@ import axios from 'axios';
 import secrets from '../../helpers/secrets';
 
 function DeviceDataSection(props) {
-  // State
   const [device, setDevice] = useState({});
   const [newDeviceName, setNewDeviceName] = useState('');
   const [newDeviceDescription, setNewDeviceDescription] = useState('');
   const [newDevicePrice, setNewDevicePrice] = useState(0);
-  const [newDeviceListPrice, setNewDeviceListPrice] = useState(0);
   const [newPrice, setNewPrice] = useState(0);
   const [newDeviceCategory, setNewDeviceCategory] = useState('');
   const [newDeviceModelCode, setNewDeviceModelCode] = useState('');
-  const [newDeviceBrand, setNewDeviceBrand] = useState(0);
   const [newDeviceColor, setNewDeviceColor] = useState('');
   const [newDeviceWarranty, setNewDeviceWarranty] = useState(0);
-  const [newDeviceExistance, setNewDeviceExistance] = useState(0);
-  const [devicesBrands, setDevicesBrands] = useState([]);
+  const [newDeviceShippingTime, setNewDeviceShippingTime] = useState(0);
   const [changedDevice, setChangedDevice] = useState(false);
+  const [factoryName, setFactoryName] = useState('');
 
-  // Effects
   useEffect(() => {
     $('#device-price').val(newPrice.toFixed(2));
   }, [newPrice]);
 
   useEffect(() => {
-    $('main h1').text(props.device.nombre);
+    $('main h1').text(props.device.name);
     if (
-      Object.prototype.hasOwnProperty.call(props.device, 'nombre') &&
+      Object.prototype.hasOwnProperty.call(props.device, 'name') &&
       props.currentImage !== ''
     ) {
       if (newPrice === 0) {
-        $('#device-price').val((props.device.precio * 1.9).toFixed(2));
-        $('#device-list-price').val(props.device.precio.toFixed(2));
+        $('#device-price').val(props.device.price.toFixed(2));
       } else {
         $('#device-price').val(newPrice.toFixed(2));
-        $('#device-list-price').val(newDeviceListPrice.toFixed(2));
       }
       setDevice(props.device);
     }
   }, [props]);
 
   useEffect(async () => {
-    const brands = await axios.get(
-      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=marcas`
+    const deviceFactory = await axios.get(
+      `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/factories/${props.factoryId}`
     );
-    setDevicesBrands(brands.data.data);
+    setFactoryName(deviceFactory.data.data.name);
     props.setLoading(false);
   }, []);
-
-  useEffect(() => {
-    $('#device-brand').val(
-      devicesBrands.findIndex((brand) => brand.nombre === props.device.marca)
-    );
-  }, [devicesBrands]);
 
   // Functions
   const handleDeviceUpdate = async () => {
     props.setLoading(true);
     let potentialNewDevice = {
-      nombre: newDeviceName !== '' ? newDeviceName : device.nombre,
-      descripcion:
-        newDeviceDescription !== '' ? newDeviceDescription : device.descripcion,
-      precio:
-        newDevicePrice !== 0
-          ? (newDevicePrice / 1.9).toFixed(2)
-          : device.precio,
-      categoria:
-        newDeviceCategory !== '' ? newDeviceCategory : device.categoria,
-      codigo_modelo:
-        newDeviceModelCode !== '' ? newDeviceModelCode : device.codigo_modelo,
+      factoryId: props.factoryId,
+      name: newDeviceName !== '' ? newDeviceName : device.name,
+      description:
+        newDeviceDescription !== '' ? newDeviceDescription : device.description,
+      price: newDevicePrice !== 0 ? newDevicePrice : device.price,
+      category: newDeviceCategory !== '' ? newDeviceCategory : device.category,
+      model_code:
+        newDeviceModelCode !== '' ? newDeviceModelCode : device.modelCode,
       color: newDeviceColor !== '' ? newDeviceColor : device.color,
-      tiempo_garantia:
-        newDeviceWarranty !== 0 ? newDeviceWarranty : device.tiempo_garantia,
-      existencias:
-        newDeviceExistance !== 0 ? newDeviceExistance : device.existencias,
-      id_marca: newDeviceBrand !== 0 ? newDeviceBrand : device.id_marca,
+      warranty_time:
+        newDeviceWarranty !== 0 ? newDeviceWarranty : device.warranty,
+      shipping_time:
+        newDeviceShippingTime !== 0
+          ? newDeviceShippingTime
+          : device.shippingTime,
+      images: device.images,
     };
-    let deviceUpdate = await axios.put(
-      `http://${secrets.LOCALHOST_IP}:${
-        secrets.TOMCAT_PORT
-      }/sales-system/sellers?verVendedor=${
-        props.seller
-      }&table=${props.seller.replace(' ', '_')}_dispositivos&id=${
-        props.deviceId
-      }`,
+    const deviceUpdate = await axios.put(
+      `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/devices/${props.device._id}`,
       potentialNewDevice
     );
     if (deviceUpdate.data.success) {
       setChangedDevice(false);
-      props.device.categoria =
-        newDeviceCategory !== '' ? newDeviceCategory : device.categoria;
-      props.device.codigo_modelo =
-        newDeviceModelCode !== '' ? newDeviceModelCode : device.codigo_modelo;
+      props.device.name = newDeviceName !== '' ? newDeviceName : device.name;
+      props.device.description =
+        newDeviceDescription !== '' ? newDeviceDescription : device.description;
+      props.device.price = newDevicePrice !== 0 ? newDevicePrice : device.price;
+      props.device.category =
+        newDeviceCategory !== '' ? newDeviceCategory : device.category;
+      props.device.model_code =
+        newDeviceModelCode !== '' ? newDeviceModelCode : device.modelCode;
       props.device.color =
         newDeviceColor !== '' ? newDeviceColor : device.color;
-      props.device.descripcion =
-        newDeviceDescription !== '' ? newDeviceDescription : device.descripcion;
-      props.device.existencias =
-        newDeviceExistance !== 0 ? newDeviceExistance : device.existencias;
-      props.device.marca = newDeviceBrand !== 0 ? newDeviceBrand : device.marca;
-      props.device.nombre =
-        newDeviceName !== '' ? newDeviceName : device.nombre;
-      props.device.precio =
-        newDeviceListPrice !== 0 ? newDeviceListPrice : device.precio;
-      props.device.tiempo_garantia =
-        newDeviceWarranty !== 0 ? newDeviceWarranty : device.tiempo_garantia;
+      props.device.warranty_time =
+        newDeviceWarranty !== 0 ? newDeviceWarranty : device.warranty;
+      props.device.shipping_time = newDeviceShippingTime !== 0
+        ? newDeviceShippingTime
+        : device.shippingTime;
+      props.device.images = device.images;
       setNewDeviceName(newDeviceName);
       setNewDeviceDescription(newDeviceDescription);
       setNewPrice(newDevicePrice);
-      setNewDeviceListPrice(newDeviceListPrice);
       setNewDeviceCategory(newDeviceCategory);
       setNewDeviceModelCode(newDeviceModelCode);
       setNewDeviceColor(newDeviceColor);
       setNewDeviceWarranty(newDeviceWarranty);
-      setNewDeviceExistance(newDeviceExistance);
-      setNewDeviceBrand(newDeviceBrand);
       props.setLoading(false);
       helpers.showModal(
         'Operación exitosa',
@@ -132,16 +109,16 @@ function DeviceDataSection(props) {
   return !props.loading ? (
     <section className="device-information-section">
       <section className="device-images">
-        {Object.prototype.hasOwnProperty.call(props.device, 'fotos') ? (
-          props.device.fotos.map((foto, index) => {
+        {Object.prototype.hasOwnProperty.call(props.device, 'images') ? (
+          props.device.images.map((img, index) => {
             return (
               <img
                 key={index}
                 src={
-                  foto.slice(0, 7) === 'http://' ||
-                  foto.slice(0, 8) === 'https://'
-                    ? foto
-                    : `http://${secrets.LOCALHOST_IP}${foto}`
+                  img.slice(0, 7) === 'http://' ||
+                  img.slice(0, 8) === 'https://'
+                    ? img
+                    : `http://${secrets.LOCALHOST_IP}${img}`
                 }
                 alt={`Imagen ${index}`}
                 className={'device-image' + (index === 0 ? '-active' : '')}
@@ -154,7 +131,7 @@ function DeviceDataSection(props) {
                   $('.device-image-active').removeClass('device-image-active');
                   $('.device-image').eq(index).addClass('device-image-active');
                   $('.device-image').eq(index).removeClass('device-image');
-                  props.setCurrentImage(foto);
+                  props.setCurrentImage(img);
                 }}
               />
             );
@@ -183,14 +160,10 @@ function DeviceDataSection(props) {
         <input
           type="text"
           className="form-control mb-5"
-          defaultValue={props.device.nombre}
+          defaultValue={props.device.name}
           onChange={(e) => {
             setNewDeviceName(e.target.value);
-            if (e.target.value !== device.nombre) {
-              setChangedDevice(true);
-            } else {
-              setChangedDevice(false);
-            }
+            setChangedDevice(e.target.value !== props.device.name);
           }}
         />
         <table className="table table-responsive-md">
@@ -203,14 +176,12 @@ function DeviceDataSection(props) {
                 <input
                   type="text"
                   className="form-control"
-                  defaultValue={props.device.descripcion}
+                  defaultValue={props.device.description}
                   onChange={(e) => {
                     setNewDeviceDescription(e.target.value);
-                    if (e.target.value !== device.descripcion) {
-                      setChangedDevice(true);
-                    } else {
-                      setChangedDevice(false);
-                    }
+                    setChangedDevice(
+                      e.target.value !== props.device.description
+                    );
                   }}
                 />
               </td>
@@ -227,53 +198,15 @@ function DeviceDataSection(props) {
                   className="form-control"
                   min={0}
                   defaultValue={
-                    Object.prototype.hasOwnProperty.call(props.device, 'precio')
-                      ? props.device.precio
+                    Object.prototype.hasOwnProperty.call(props.device, 'price')
+                      ? props.device.price
                       : 0
                   }
                   onChange={(e) => {
-                    $('#device-list-price').val(
-                      (Number(e.target.value) / 1.9).toFixed(2)
-                    );
                     setNewDevicePrice(Number(e.target.value));
-                    setNewDeviceListPrice(Number(e.target.value) / 1.9);
-                    if (
-                      Number(e.target.value) !==
-                      Number((device.precio * 1.9).toFixed(2))
-                    ) {
-                      setChangedDevice(true);
-                    } else {
-                      setChangedDevice(false);
-                    }
-                  }}
-                />
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <b>Precio de Lista:</b>
-              </td>
-              <td>
-                <input
-                  id="device-list-price"
-                  type="number"
-                  step=".01"
-                  className="form-control"
-                  min={0}
-                  defaultValue={
-                    Object.prototype.hasOwnProperty.call(props.device, 'precio')
-                      ? props.device.precio
-                      : 0
-                  }
-                  onChange={(e) => {
-                    $('#device-price').val((e.target.value * 1.9).toFixed(2));
-                    setNewDeviceListPrice(Number(e.target.value));
-                    setNewDevicePrice(Number(e.target.value) * 1.9);
-                    if (Number(e.target.value) !== device.precio) {
-                      setChangedDevice(true);
-                    } else {
-                      setChangedDevice(false);
-                    }
+                    setChangedDevice(
+                      Number(e.target.value) !== props.device.price
+                    );
                   }}
                 />
               </td>
@@ -283,11 +216,7 @@ function DeviceDataSection(props) {
                 <b>Vendedor:</b>
               </td>
               <td>
-                <input
-                  type="text"
-                  className="form-control"
-                  defaultValue={props.seller}
-                />
+                <div>{factoryName}</div>
               </td>
             </tr>
             <tr>
@@ -298,14 +227,10 @@ function DeviceDataSection(props) {
                 <input
                   type="text"
                   className="form-control"
-                  defaultValue={props.device.categoria}
+                  defaultValue={props.device.category}
                   onChange={(e) => {
                     setNewDeviceCategory(e.target.value);
-                    if (e.target.value !== device.categoria) {
-                      setChangedDevice(true);
-                    } else {
-                      setChangedDevice(false);
-                    }
+                    setChangedDevice(e.target.value !== props.device.category);
                   }}
                 />
               </td>
@@ -318,49 +243,14 @@ function DeviceDataSection(props) {
                 <input
                   type="text"
                   className="form-control"
-                  defaultValue={props.device.codigo_modelo}
+                  defaultValue={props.device.model_code}
                   onChange={(e) => {
                     setNewDeviceModelCode(e.target.value);
-                    if (e.target.value !== device.codigo_modelo) {
-                      setChangedDevice(true);
-                    } else {
-                      setChangedDevice(false);
-                    }
+                    setChangedDevice(
+                      e.target.value !== props.device.model_code
+                    );
                   }}
                 />
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <b>Marca:</b>
-              </td>
-              <td>
-                <select
-                  id="device-brand"
-                  className="form-control"
-                  defaultValue={devicesBrands.findIndex(
-                    (brand) => brand.nombre === props.device.marca
-                  )}
-                  onChange={(e) => {
-                    setNewDeviceBrand(Number(e.target.value) + 1);
-                    if (
-                      Number(e.target.value) !==
-                      devicesBrands.findIndex(
-                        (brand) => brand.nombre === props.device.marca
-                      )
-                    ) {
-                      setChangedDevice(true);
-                    } else {
-                      setChangedDevice(false);
-                    }
-                  }}
-                >
-                  {devicesBrands.map((brand, index) => (
-                    <option key={index} value={index}>
-                      {brand.nombre}
-                    </option>
-                  ))}
-                </select>
               </td>
             </tr>
             <tr>
@@ -374,11 +264,7 @@ function DeviceDataSection(props) {
                   defaultValue={props.device.color}
                   onChange={(e) => {
                     setNewDeviceColor(e.target.value);
-                    if (e.target.value !== device.color) {
-                      setChangedDevice(true);
-                    } else {
-                      setChangedDevice(false);
-                    }
+                    setChangedDevice(e.target.value !== props.device.color);
                   }}
                 />
               </td>
@@ -391,34 +277,30 @@ function DeviceDataSection(props) {
                 <input
                   type="number"
                   className="form-control"
-                  defaultValue={props.device.tiempo_garantia}
+                  defaultValue={props.device.warranty_time}
                   onChange={(e) => {
                     setNewDeviceWarranty(Number(e.target.value));
-                    if (Number(e.target.value) !== device.tiempo_garantia) {
-                      setChangedDevice(true);
-                    } else {
-                      setChangedDevice(false);
-                    }
+                    setChangedDevice(
+                      Number(e.target.value) !== props.device.warranty_time
+                    );
                   }}
                 />
               </td>
             </tr>
             <tr>
               <td>
-                <b>Existencias:</b>
+                <b>Tiempo de envío (días):</b>
               </td>
               <td>
                 <input
                   type="number"
                   className="form-control"
-                  defaultValue={props.device.existencias}
+                  defaultValue={props.device.shipping_time}
                   onChange={(e) => {
-                    setNewDeviceExistance(Number(e.target.value));
-                    if (Number(e.target.value) !== device.existencias) {
-                      setChangedDevice(true);
-                    } else {
-                      setChangedDevice(false);
-                    }
+                    setNewDeviceShippingTime(Number(e.target.value));
+                    setChangedDevice(
+                      Number(e.target.value) !== props.device.shipping_time
+                    );
                   }}
                 />
               </td>
@@ -427,14 +309,13 @@ function DeviceDataSection(props) {
         </table>
         <div className="input-group mb-3">
           <input
-            id="cart-quantity"
+            id="order-quantity"
             type="number"
             className="form-control"
             placeholder="Cantidad"
             aria-label="Cantidad"
             aria-describedby="button-addon"
             min={1}
-            max={props.device.existencias}
             onChange={(e) => {
               props.setQuantity(e.target.value);
             }}
@@ -446,18 +327,27 @@ function DeviceDataSection(props) {
               id="button-addon"
               onClick={props.handleAddDevices}
             >
-              Agregar al Carrito
+              Agregar a la Orden
             </button>
           </div>
         </div>
         {!changedDevice ? (
-          <button className="btn btn-primary btn-large mb-5" disabled>
+          <button
+            className="btn btn-primary btn-large mt-3 mb-5"
+            disabled
+            style={{
+              width: '100%',
+            }}
+          >
             Actualizar Dispositivo
           </button>
         ) : (
           <button
-            className="btn btn-primary btn-large mb-5"
+            className="btn btn-primary btn-large mt-3 mb-5"
             onClick={handleDeviceUpdate}
+            style={{
+              width: '100%',
+            }}
           >
             Actualizar Dispositivo
           </button>
