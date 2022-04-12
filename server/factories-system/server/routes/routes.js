@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 // Existing schemas
-const existingSchemas = ["factories", "devices", "clients"];
+const existingSchemas = ["factories", "devices", "clients", "orders"];
 const schemas = {};
 schemas[existingSchemas[0]] = {
   schema: require("../models/factories"),
@@ -32,7 +32,13 @@ schemas[existingSchemas[2]] = {
   fields: ["name", "email", "shippingTimes"],
   nonRepeatingFields: ["name", "email"],
   nameField: "name",
-}
+};
+schemas[existingSchemas[3]] = {
+  schema: require("../models/orders"),
+  fields: ["clientId", "completed", "maxDeliveryDate", "devices"],
+  nonRepeatingFields: [],
+  nameField: "_id",
+};
 
 // Functions
 /**
@@ -71,69 +77,155 @@ router.post("/:schema", async (req, res) => {
       });
     }
   } else {
-    // Try to create the new document
-    try {
-      const body = req.body;
-      const requiredFields = schemas[schemaName].fields;
-      const missingFields = requiredFields.filter((field) => {
-        return !Object.keys(body).includes(field);
-      });
+    const paramsNumber = Object.keys(req.body).length;
 
-      // Check if the required fields are missing
-      if (missingFields.length === 0) {
-        const nonRepeatingFields = schemas[schemaName].nonRepeatingFields;
-        let nonRepeatingFieldsExist = false;
+    if (paramsNumber === 0) {
+      // Try to create the new document
+      try {
+        const body = req.body;
+        const requiredFields = schemas[schemaName].fields;
+        const missingFields = requiredFields.filter((field) => {
+          return !Object.keys(body).includes(field);
+        });
 
-        // Iterate through the non-repeating fields and check if they exist
-        for (
-          let i = 0;
-          i < schemas[schemaName].nonRepeatingFields.length;
-          i++
-        ) {
-          const field = nonRepeatingFields[i];
-          const fieldValue = body[field];
+        // Check if the required fields are missing
+        if (missingFields.length === 0) {
+          const nonRepeatingFields = schemas[schemaName].nonRepeatingFields;
+          let nonRepeatingFieldsExist = false;
 
-          if (fieldValue !== undefined) {
-            const existingDocuments = await schemas[schemaName].schema.find({
-              [field]: fieldValue,
-            });
+          // Iterate through the non-repeating fields and check if they exist
+          for (
+            let i = 0;
+            i < schemas[schemaName].nonRepeatingFields.length;
+            i++
+          ) {
+            const field = nonRepeatingFields[i];
+            const fieldValue = body[field];
 
-            if (existingDocuments.length > 0) {
-              nonRepeatingFieldsExist = true;
-              break;
+            if (fieldValue !== undefined) {
+              const existingDocuments = await schemas[schemaName].schema.find({
+                [field]: fieldValue,
+              });
+
+              if (existingDocuments.length > 0) {
+                nonRepeatingFieldsExist = true;
+                break;
+              }
             }
           }
-        }
 
-        // Check if a document with the same non-repeating field already exists
-        if (!nonRepeatingFieldsExist) {
-          const newDocument = new schemas[schemaName].schema(body);
-          await newDocument.save();
-          res.status(201).send({
-            success: true,
-            message: "Document created successfully.",
-            dataAdded: newDocument,
-          });
+          // Check if a document with the same non-repeating field already exists
+          if (!nonRepeatingFieldsExist) {
+            const newDocument = new schemas[schemaName].schema(body);
+            await newDocument.save();
+            res.status(201).send({
+              success: true,
+              message: "Document created successfully.",
+              dataAdded: newDocument,
+            });
+          } else {
+            res.status(400).send({
+              success: false,
+              message:
+                "A document with the same non-repeating fields already exists.",
+            });
+          }
         } else {
           res.status(400).send({
             success: false,
-            message:
-              "A document with the same non-repeating fields already exists.",
+            message: `The following fields are required: '${missingFields.join(
+              "', '"
+            )}'.`,
+          });
+        }
+      } catch (error) {
+        return res.status(500).send({
+          success: false,
+          error: `Error creating ${schemaName}: ${error}`,
+        });
+      }
+    } else {
+      const params = req.query;
+
+      if (params.newOrder !== undefined && schemaName === existingSchemas[3]) {
+        const order = req.body;
+        let maxDeliveryDate = null;
+
+        // Get the client's shipping times
+        const clientShippingTimes = await schemas[existingSchemas[2]].schema
+          .findOne({
+            _id: order.clientId,
+          })
+          .select("shippingTimes");
+
+        // Iterate through the devices in the order
+        for (let i = 0; i < order.devices.length; i++) {
+          const device = order.devices[i];
+          const deviceShippingTimeDays = await schemas[
+            existingSchemas[1]
+          ].schema
+            .findOne({
+              _id: device.deviceId,
+            })
+            .select("shipping_time");
+
+          // Find the client's shipping time in the clientShippingTimes array where the factoryId matches the device's factoryId
+          const clientShippingTimeDays = clientShippingTimes.shippingTimes.find(
+            (shippingTime) =>
+              shippingTime.factoryId.toString() === device.factoryId
+          ).shippingTime;
+
+          // The estimated delivery date is the device's shipping time in days plus the client's shipping time in days for the given factory
+          const estimatedDeliveryDateDays =
+            deviceShippingTimeDays.shipping_time + clientShippingTimeDays;
+          const estimatedDeliveryDate = new Date(
+            new Date().getTime() +
+              estimatedDeliveryDateDays * 24 * 60 * 60 * 1000
+          );
+
+          // Round the estimated delivery date
+          const estimatedDeliveryDateRounded = new Date(
+            estimatedDeliveryDate.getTime() +
+              24 * 60 * 60 * 1000 -
+              (estimatedDeliveryDate.getTime() % (24 * 60 * 60 * 1000))
+          );
+
+          if (i === 0) {
+            maxDeliveryDate = estimatedDeliveryDateRounded;
+          } else {
+            if (estimatedDeliveryDateRounded > maxDeliveryDate) {
+              maxDeliveryDate = estimatedDeliveryDateRounded;
+            }
+          }
+
+          // Set the device's estimated delivery date
+          device.estimatedDeliveryDate = estimatedDeliveryDateRounded;
+        }
+
+        // Set the order's max delivery date
+        order.maxDeliveryDate = maxDeliveryDate;
+
+        // Try to create the new document for the order
+        try {
+          const newOrderDocument = new schemas[schemaName].schema(order);
+          await newOrderDocument.save();
+          res.status(201).send({
+            success: true,
+            message: "Document created successfully.",
+            dataAdded: newOrderDocument,
+          });
+        } catch (error) {
+          return res.status(500).send({
+            success: false,
+            error: `Error creating creating the new order: ${error}`,
           });
         }
       } else {
         res.status(400).send({
           success: false,
-          message: `The following fields are required: '${missingFields.join(
-            "', '"
-          )}'.`,
+          message: "Please provide a valid parameter.",
         });
       }
-    } catch (error) {
-      return res.status(500).send({
-        success: false,
-        error: `Error creating ${schemaName}: ${error}`,
-      });
     }
   }
 });
