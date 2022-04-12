@@ -190,7 +190,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  width: 40%; }
+  width: 100%; }
 
 .input-row {
   display: flex;
@@ -211,6 +211,9 @@
 
 .clickable {
   cursor: pointer; }
+
+.no-underline-link {
+  text-decoration: none !important; }
 
 .factory-devices-list {
   display: flex;
