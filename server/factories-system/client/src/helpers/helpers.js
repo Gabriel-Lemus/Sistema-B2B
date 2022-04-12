@@ -41,6 +41,11 @@ const FACTORY_PAGES = [
     title: 'Catálogo de ventas',
     reference: '/catalogo-ventas',
   },
+  {
+    icon: <FiUsers />,
+    title: 'Clientes',
+    reference: '/clientes',
+  },
   // {
   //   icon: <BiPurchaseTagAlt />,
   //   title: 'Ventas',
@@ -50,11 +55,6 @@ const FACTORY_PAGES = [
   //   icon: <MdSell />,
   //   title: 'Compras',
   //   reference: '/compras-b2b',
-  // },
-  // {
-  //   icon: <FiUsers />,
-  //   title: 'Clientes',
-  //   reference: '/clientes',
   // },
   // {
   //   icon: <AiOutlineUser />,
