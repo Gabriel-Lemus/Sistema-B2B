@@ -2,14 +2,30 @@ const express = require("express");
 const router = express.Router();
 
 // Existing schemas
-const existingSchemas = ["factory"];
-const schemas = {
-  factory: {
-    schema: require("../models/factories"),
-    fields: ["name", "email", "salt", "hash"],
-    nonRepeatingFields: ["name", "email"],
-    nameField: "name",
-  },
+const existingSchemas = ["factories", "devices"];
+const schemas = {};
+schemas[existingSchemas[0]] = {
+  schema: require("../models/factories"),
+  fields: ["name", "email", "salt", "hash"],
+  nonRepeatingFields: ["name", "email"],
+  nameField: "name",
+};
+schemas[existingSchemas[1]] = {
+  schema: require("../models/devices"),
+  fields: [
+    "factoryId",
+    "name",
+    "description",
+    "price",
+    "model_code",
+    "color",
+    "category",
+    "warranty_time",
+    "shipping_time",
+    "images",
+  ],
+  nonRepeatingFields: [],
+  nameField: "name",
 };
 
 // Functions
@@ -169,7 +185,7 @@ router.get("/:schema", async (req, res) => {
       if (
         params.emailExists !== undefined &&
         params.factoryExists !== undefined &&
-        schemaName === "factory"
+        schemaName === existingSchemas[0]
       ) {
         try {
           // Try to get the document with the given email or name
@@ -194,7 +210,10 @@ router.get("/:schema", async (req, res) => {
             message: `Error getting data from ${schemaName}: ${error}`,
           });
         }
-      } else if (params.emailExists !== undefined && schemaName === "factory") {
+      } else if (
+        params.emailExists !== undefined &&
+        schemaName === existingSchemas[0]
+      ) {
         try {
           // Try to get the document with the given email
           const data = await schema.findOne({ email: params.emailExists });
@@ -203,6 +222,60 @@ router.get("/:schema", async (req, res) => {
             emailExists: data !== null,
             data,
           });
+        } catch (error) {
+          res.status(500).send({
+            success: false,
+            message: `Error getting data from ${schemaName}: ${error}`,
+          });
+        }
+      } else if (
+        params.factoryDevices !== undefined &&
+        schemaName === existingSchemas[1]
+      ) {
+        const factoryName = params.factoryDevices;
+
+        // Check if the factory exists
+        try {
+          const factory = await schemas.factories.schema.findOne({
+            name: factoryName,
+          });
+
+          if (factory !== null) {
+            // Aggregate all the devices of the factory
+            const devices = await schemas.devices.schema.aggregate([
+              {
+                $match: {
+                  factoryId: factory._id.toString(),
+                },
+              },
+              {
+                $project: {
+                  _id: 1,
+                  name: 1,
+                  description: 1,
+                  price: 1,
+                  model_code: 1,
+                  color: 1,
+                  category: 1,
+                  warranty_time: 1,
+                  shipping_time: 1,
+                  images: 1,
+                },
+              },
+              { $sort: { _id: 1 } },
+            ]);
+
+            res.status(200).send({
+              success: true,
+              count: devices.length,
+              data: devices,
+            });
+          } else {
+            res.status(400).send({
+              success: false,
+              message: `The factory '${factoryName}' does not exist.`,
+            });
+          }
         } catch (error) {
           res.status(500).send({
             success: false,
@@ -267,11 +340,67 @@ router.get("/:schema/:name", async (req, res) => {
 });
 
 // ================================== Update ==================================
-router.put("/", (req, res) => {
-  res.status(400).send({
-    success: false,
-    message: "Please provide the name of the schema as a parameter.",
-  });
+router.put("/", async (req, res) => {
+  const params = req.query;
+  const paramsNumber = Object.keys(req.query).length;
+
+  if (paramsNumber !== 0) {
+    if (
+      params.deviceId !== undefined &&
+      params.schema !== undefined &&
+      params.schema === existingSchemas[1]
+    ) {
+      const deviceId = params.deviceId;
+      const schema = schemas[params.schema].schema;
+
+      // Check if the device exists
+      try {
+        const device = await schema.findOne({ _id: deviceId });
+
+        if (device !== null) {
+          // Iterate through the body and update the device
+          for (const [key, value] of Object.entries(req.body)) {
+            device[key] = value;
+          }
+
+          // Update the device
+          try {
+            await device.save();
+            res.status(200).send({
+              success: true,
+              message: "The device has been updated.",
+              newDeviceData: device,
+            });
+          } catch (error) {
+            res.status(500).send({
+              success: false,
+              message: `Error updating the device: ${error}`,
+            });
+          }
+        } else {
+          res.status(400).send({
+            success: false,
+            message: `The device with id '${deviceId}' does not exist.`,
+          });
+        }
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: `Error updating data from ${params.schema}: ${error}`,
+        });
+      }
+    } else {
+      res.status(400).send({
+        success: false,
+        message: "Incorrect parameters.",
+      });
+    }
+  } else {
+    res.status(400).send({
+      success: false,
+      message: "Please provide a valid parameter.",
+    });
+  }
 });
 
 router.put("/:schema/:name", async (req, res) => {
@@ -329,10 +458,46 @@ router.put("/:schema/:name", async (req, res) => {
 
 // ================================== Delete ==================================
 router.delete("/", async (req, res) => {
-  res.status(400).send({
-    success: false,
-    message: "Please provide the name of the schema as a parameter.",
-  });
+  const params = req.query;
+  const paramsNumber = Object.keys(params).length;
+
+  if (paramsNumber === 0) {
+    res.status(400).send({
+      success: false,
+      message: "Please provide the name of the schema as a parameter.",
+    });
+  } else {
+    if (params.deviceId !== undefined) {
+      // Attempt to delete the device with the given id
+      try {
+        const deviceDelete = await schemas.devices.schema.findOneAndDelete({
+          _id: params.deviceId,
+        });
+
+        if (deviceDelete !== null) {
+          res.status(200).send({
+            success: true,
+            message: `The device with id '${params.deviceId}' has been deleted.`,
+          });
+        } else {
+          res.status(404).send({
+            success: false,
+            message: `The device with id '${params.deviceId}' does not exist.`,
+          });
+        }
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: `Error deleting data from devices: ${error}`,
+        });
+      }
+    } else {
+      res.status(400).send({
+        success: false,
+        message: "Please provide a valid parameter.",
+      });
+    }
+  }
 });
 
 router.delete("/:schema/:name", async (req, res) => {
