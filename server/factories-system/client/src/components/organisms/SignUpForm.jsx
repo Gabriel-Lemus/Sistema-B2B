@@ -8,7 +8,6 @@ import Loader from '../molecules/Loader';
 import secrets from '../../helpers/secrets';
 
 function SignUpForm() {
-  // State
   const [factoryName, setFactoryName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,7 +15,6 @@ function SignUpForm() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Use effect
   useEffect(() => {
     // Check if user is logged in
     if (
@@ -25,11 +23,10 @@ function SignUpForm() {
     ) {
       navigate('/Catalogo-Ventas');
     } else if (helpers.isLoggedIn()) {
-      // navigate('/Catalogo-Ventas');
+      navigate('/Catalogo-Dispositivos');
     }
   }, []);
 
-  // Handlers
   /**
    * Handle the validation and submission of the credentials when the sign up button is clicked.
    */
@@ -81,7 +78,6 @@ function SignUpForm() {
                 'Se ha registrado exitosamente, ahora será redirigido a su catálogo de dispositivos.',
                 () => {
                   navigate('/Catalogo-Ventas');
-                  navigate('/');
                 }
               );
             }

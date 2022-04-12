@@ -22,7 +22,7 @@ function LoginForm() {
     ) {
       navigate('/Catalogo-Ventas');
     } else if (helpers.isLoggedIn()) {
-      // navigate('/Catalogo-Ventas');
+      navigate('/Catalogo-Dispositivos');
     }
 
     $('#usertype-dropdown-menu-options').children().eq(0).tooltip({
@@ -113,8 +113,7 @@ function LoginForm() {
                   'Bienvenido',
                   'Enseguida será redirigido a la página principal.',
                   () => {
-                    // navigate('/Catalogo-Dispositivos');
-                    navigate('/');
+                    navigate('/Catalogo-Dispositivos');
                   }
                 );
               } else {
