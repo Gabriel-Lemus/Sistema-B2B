@@ -8,7 +8,7 @@ schemas[existingSchemas[0]] = {
   schema: require("../models/factories"),
   fields: ["name", "email", "salt", "hash"],
   nonRepeatingFields: ["name", "email"],
-  nameField: "name",
+  nameField: "_id",
 };
 schemas[existingSchemas[1]] = {
   schema: require("../models/devices"),
@@ -25,7 +25,7 @@ schemas[existingSchemas[1]] = {
     "images",
   ],
   nonRepeatingFields: [],
-  nameField: "name",
+  nameField: "_id",
 };
 schemas[existingSchemas[2]] = {
   schema: require("../models/clients"),
