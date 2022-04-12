@@ -9,8 +9,8 @@ import NotFound from './components/pages/NotFound';
 import SalesCatalog from './components/pages/SalesCatalog';
 import Clients from './components/pages/Clients';
 import DevicesCatalog from './components/pages/DevicesCatalog';
-import DevicesCatalogSearch from './components/pages/DevicesCatalogSearch';
 import DeviceData from './components/pages/DeviceData';
+import DevicesCatalogSearch from './components/pages/DevicesCatalogSearch';
 import ShoppingCart from './components/pages/ShoppingCart';
 import UserProfile from './components/pages/UserProfile';
 import Sales from './components/pages/Sales';
@@ -31,6 +31,8 @@ function App() {
           <Route path="/Sign-Up" element={<SignUp />} />
           <Route path="/Catalogo-Ventas" element={<SalesCatalog />} />
           <Route path="/Clientes" element={<Clients />} />
+          <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
+          <Route path="/Datos-Dispositivo/:factoryId/:id" element={<DeviceData />} />
           {/* <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
           <Route path="/Catalogo-Dispositivos-Busqueda/" element={<DevicesCatalogSearch />} />
           <Route path="/Catalogo-Dispositivos-Busqueda-Espera/" element={<DevicesCatalogSearchWait />} />
