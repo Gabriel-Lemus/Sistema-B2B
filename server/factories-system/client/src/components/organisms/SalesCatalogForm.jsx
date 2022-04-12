@@ -6,45 +6,40 @@ import secrets from '../../helpers/secrets';
 function SalesCatalogForm(props) {
   const [devices, setDevices] = useState([]);
   const [newDevices, setNewDevices] = useState([]);
+  const [devicesImages, setDevicesImages] = useState([]);
   const [catalogChanged, setCatalogChanged] = useState(false);
   const [newDevicesToAdd, setNewDevicesToAdd] = useState([]);
   const [canAddNewDevices, setCanAddNewDevices] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [brands, setBrands] = useState([]);
-  const [seller, setSeller] = useState({});
 
   useEffect(async () => {
-    const sellerDevices = await axios.get(
-      `http://${secrets.LOCALHOST_IP}:${
-        secrets.TOMCAT_PORT
-      }/sales-system/sellers?get=true&verVendedor=${localStorage
-        .getItem('userName')
-        .replace(/\s/g, '_')}&table=${localStorage
-        .getItem('userName')
-        .replace(/\s/g, '_')}_dispositivos`
+    const factoryName = localStorage.getItem('name');
+    const factoryDevices = await axios.get(
+      `http://localhost:3002/devices?factoryDevices=${factoryName}`
     );
-    const brands = await axios.get(
-      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=marcas`
-    );
-    setIsAdmin(localStorage.getItem('isAdmin') === 'true');
-    setBrands(brands.data.data);
-    setDevices(sellerDevices.data.data);
-    setNewDevices(sellerDevices.data.data);
-    setSeller({
-      id: localStorage.getItem('userId'),
-      sellerName: localStorage.getItem('userName'),
-    });
+    setDevices(factoryDevices.data.data);
+    setNewDevices(factoryDevices.data.data);
     props.setLoading(false);
   }, []);
 
-  // Functions
-  const equivalentDevices = (arr1, arr2) => {
-    if (arr1.length !== arr2.length) {
+  const copyFileList = (fileList) => {
+    const newFileList = [];
+    for (let i = 0; i < fileList.length; i++) {
+      const newFileListArray = [];
+      for (let j = 0; j < fileList[i].length; j++) {
+        newFileListArray.push(fileList[i][j]);
+      }
+      newFileList.push(newFileListArray);
+    }
+    return newFileList;
+  };
+
+  const compareArraysOfObjects = (array1, array2) => {
+    if (array1.length !== array2.length) {
       return false;
     }
 
-    for (let i = 0; i < arr1.length; i++) {
-      if (!helpers.compareObjects(arr1[i], arr2[i])) {
+    for (let i = 0; i < array1.length; i++) {
+      if (!helpers.compareObjects(array1[i], array2[i])) {
         return false;
       }
     }
@@ -52,165 +47,173 @@ function SalesCatalogForm(props) {
     return true;
   };
 
-  const handleUpdateDevices = async () => {
-    props.setLoading(true);
-    let couldUpdateAllDevices = true;
+  const canAddNewDevice = (e, device) => {
+    return (
+      e.target.value.length > 0 &&
+      device.description.length > 0 &&
+      device.price > 0 &&
+      device.model_code.length > 0 &&
+      device.color.length > 0 &&
+      device.category.length > 0 &&
+      device.warranty_time > 0 &&
+      device.shipping_time > 0 &&
+      device.images.length > 0
+    );
+  };
 
-    for (let i = 0; i < newDevices.length; i++) {
-      let deviceUpdate = await axios.put(
-        `http://${secrets.LOCALHOST_IP}:${
-          secrets.TOMCAT_PORT
-        }/sales-system/sellers?verVendedor=${seller.sellerName.replace(
-          /\s/g,
-          '_'
-        )}&table=${seller.sellerName.replace(/\s/g, '_')}_dispositivos&id=${
-          newDevices[i].id_dispositivo
-        }`,
-        newDevices[i]
+  const checkDeviceData = (device, idx) => {
+    if (devicesImages[idx] !== undefined && devicesImages.length !== 0) {
+      return (
+        device.name !== '' &&
+        device.description !== '' &&
+        device.price > 0 &&
+        device.model_code !== '' &&
+        device.color !== '' &&
+        device.category !== '' &&
+        device.warranty_time > 0 &&
+        device.shipping_time > 0 &&
+        devicesImages[idx].length > 2
+      );
+    } else {
+      return false;
+    }
+  };
+
+  const handleDeviceDelete = async (deviceId) => {
+    props.setLoading(true);
+
+    // Attempt to delete the device
+    try {
+      const deleteDeviceRes = await axios.delete(
+        `http://localhost:3002/?deviceId=${deviceId}`
       );
 
-      if (!deviceUpdate.data.success) {
-        couldUpdateAllDevices = false;
-        break;
+      if (deleteDeviceRes.data.success) {
+        const newDevices = devices.filter((device) => device._id !== deviceId);
+        setDevices(newDevices);
+        setNewDevices(newDevices);
+        setCatalogChanged(false);
+        props.setLoading(false);
+      }
+    } catch (error) {
+      props.setLoading(false);
+      helpers.showModal(
+        'Ocurrió un error',
+        'Hubo un error al tratar de eliminar el dispositivo. Por favor, intente nuevamente.'
+      );
+    }
+  };
+
+  const handleUpdateDevices = async () => {
+    props.setLoading(true);
+
+    // Iterate through the new devices and update the ones that have changed
+    for (let i = 0; i < newDevices.length; i++) {
+      if (
+        !helpers.compareObjects(
+          { ...devices[i], images: null },
+          { ...newDevices[i], images: null }
+        )
+      ) {
+        try {
+          const updateDeviceRes = await axios.put(
+            `http://localhost:3002/?deviceId=${newDevices[i]._id}&schema=devices`,
+            newDevices[i]
+          );
+
+          if (!updateDeviceRes.data.success) {
+            props.setLoading(false);
+            helpers.showModal(
+              'Ocurrió un error',
+              'Hubo un error al tratar de actualizar los datos de los dispositivos. Por favor, intente nuevamente.'
+            );
+          }
+        } catch (error) {
+          props.setLoading(false);
+          helpers.showModal(
+            'Ocurrió un error',
+            'Hubo un error al tratar de actualizar los dispositivos. Por favor, intente nuevamente.'
+          );
+        }
       }
     }
 
-    if (couldUpdateAllDevices) {
-      setCatalogChanged(false);
-      setDevices(newDevices);
-      setNewDevices(newDevices);
-      props.setLoading(false);
-      helpers.showModal(
-        'Operación exitosa',
-        'Se han actualizado los dispositivos.'
-      );
-    } else {
-      props.setLoading(false);
-      helpers.showModal(
-        'Error',
-        'No se pudieron actualizar los dispositivos. Por favor, inténtelo de nuevo.'
-      );
-    }
+    // All the devices were updated successfully
+    setDevices(newDevices);
+    setNewDevices(newDevices);
+    setCatalogChanged(false);
+    props.setLoading(false);
+    helpers.showModal(
+      'Operación exitosa',
+      'Los datos de los dispositivos fueron actualizados correctamente.'
+    );
   };
 
   const handleAddNewDeviceRow = () => {
     setNewDevicesToAdd([
       ...newDevicesToAdd,
       {
-        categoria: '',
-        codigo_modelo: '',
+        factoryId: localStorage.getItem('id'),
+        name: '',
+        description: '',
+        price: 0,
+        model_code: '',
         color: '',
-        descripcion: '',
-        existencias: 0,
-        id_dispositivo: devices.length + newDevicesToAdd.length + 1,
-        id_marca: 1,
-        id_vendedor: localStorage.getItem('userId'),
-        nombre: '',
-        precio: 0,
-        tiempo_garantia: 0,
-        imagenes: [],
+        category: '',
+        warranty_time: 0,
+        shipping_time: 0,
+        images: [],
       },
     ]);
   };
 
   const handlePostNewDevices = async () => {
     props.setLoading(true);
-    let devicesToAdd = [];
-    let enoughImages;
-    let enoughData;
-    let correctImagesExtension = true;
+    let canAddDevices = true;
+    let addedDevices = [];
+    let addedDeviceResponse;
 
+    // Iterate through the newDevicesToAdd array and check if all the fields are filled
     for (let i = 0; i < newDevicesToAdd.length; i++) {
-      if (
-        newDevicesToAdd[i].nombre !== '' &&
-        newDevicesToAdd[i].descripcion !== '' &&
-        newDevicesToAdd[i].existencias !== 0 &&
-        newDevicesToAdd[i].precio !== 0 &&
-        newDevicesToAdd[i].codigo_modelo !== '' &&
-        newDevicesToAdd[i].color !== '' &&
-        newDevicesToAdd[i].categoria !== '' &&
-        newDevicesToAdd[i].tiempo_garantia !== 0
-      ) {
-        devicesToAdd.push(newDevicesToAdd[i]);
-        enoughData = true;
-      } else {
-        enoughData = false;
+      if (!checkDeviceData(newDevicesToAdd[i], i)) {
+        canAddDevices = false;
         break;
-      }
-
-      if (newDevicesToAdd[i].imagenes.length >= 3) {
-        enoughImages = true;
-      } else {
-        enoughImages = false;
-        break;
-      }
-
-      // Check if images have correct extension: jpg, jpeg or png
-      for (let j = 0; j < newDevicesToAdd[i].imagenes.length; j++) {
-        if (
-          !newDevicesToAdd[i].imagenes[j].name.endsWith('.jpg') &&
-          !newDevicesToAdd[i].imagenes[j].name.endsWith('.jpeg') &&
-          !newDevicesToAdd[i].imagenes[j].name.endsWith('.png')
-        ) {
-          correctImagesExtension = false;
-          break;
-        }
       }
     }
 
-    if (!correctImagesExtension) {
-      props.setLoading(false);
-      helpers.showModal(
-        'Formato incorrecto',
-        'Las extensiones de las imágenes deben ser jpg, jpeg o png.'
-      );
-    } else if (!enoughData) {
-      props.setLoading(false);
-      helpers.showModal(
-        'No se pudieron agregar los dispositivos',
-        'No hay suficientes datos para agregar los dispositivos Por favor, ingrese todos los datos solicitados.'
-      );
-    } else if (!enoughImages) {
-      props.setLoading(false);
-      helpers.showModal(
-        'Faltan imágenes',
-        'Por favor, agregue un mínimo de 3 imágenes de sus dispositivos.'
-      );
-    } else {
-      for (let i = 0; i < devicesToAdd.length; i++) {
-        // Add the new device and then add the images
-        let postDevice = await axios.post(
-          `http://${secrets.LOCALHOST_IP}:${
-            secrets.TOMCAT_PORT
-          }/sales-system/sellers?verVendedor=${seller.sellerName.replace(
-            ' ',
-            '_'
-          )}&table=${seller.sellerName.replace(' ', '_')}_dispositivos`,
-          devicesToAdd[i]
-        );
+    // If all the fields are filled, then add the new devices
+    if (canAddDevices) {
+      // Iterate through the devices
+      for (let i = 0; i < newDevicesToAdd.length; i++) {
+        let correctImagesExtension = true;
 
-        if (!postDevice.data.success) {
-          props.setLoading(false);
-          helpers.showModal(
-            'Error',
-            'No se pudieron agregar los dispositivos. Por favor, inténtelo de nuevo.'
-          );
-          break;
-        } else {
-          const deviceId = postDevice.data.dataAdded.id_dispositivo;
+        // Check if the images have the correct format: jpg, jpeg or png
+        for (let j = 0; j < devicesImages[i].length; j++) {
+          if (
+            !devicesImages[i][j].name.endsWith('.jpg') &&
+            !devicesImages[i][j].name.endsWith('.jpeg') &&
+            !devicesImages[i][j].name.endsWith('.png')
+          ) {
+            correctImagesExtension = false;
+            break;
+          }
+        }
 
-          // Upload the images
-          for (let j = 0; j < devicesToAdd[i].imagenes.length; j++) {
+        // If the images have the correct format, then upload them
+        if (correctImagesExtension) {
+          let imagesUrls = [];
+
+          for (let j = 0; j < devicesImages[i].length; j++) {
             let formData = new FormData();
             formData.append(
               'fileName',
               `${helpers.replaceWhiteSpaces(
-                localStorage.getItem('userName'),
+                localStorage.getItem('name'),
                 '-'
               )}-${Date.now()}-product-image.jpg`
             );
-            formData.append('product-image', devicesToAdd[i].imagenes[j]);
-            let sellerProductImgUpload = await axios.post(
+            formData.append('product-image', devicesImages[i][j]);
+            let factoryDeviceImgRes = await axios.post(
               `http://${secrets.LOCALHOST_IP}:3001/upload-product-image`,
               formData,
               {
@@ -219,860 +222,635 @@ function SalesCatalogForm(props) {
                 },
               }
             );
-            let imageUrl = sellerProductImgUpload.data.imgURL.slice(
-              sellerProductImgUpload.data.imgURL.indexOf(':') + 1
+            let imageUrl = factoryDeviceImgRes.data.imgURL.slice(
+              factoryDeviceImgRes.data.imgURL.indexOf(':') + 1
             );
             imageUrl = imageUrl.slice(imageUrl.indexOf(':'));
+            imagesUrls.push(imageUrl);
+          }
 
-            // Upload the image url
-            let postImage = await axios.post(
-              `http://${secrets.LOCALHOST_IP}:${
-                secrets.TOMCAT_PORT
-              }/sales-system/sellers?verVendedor=${seller.sellerName.replace(
-                ' ',
-                '_'
-              )}&table=${seller.sellerName.replace(
-                ' ',
-                '_'
-              )}_fotos_dispositivos`,
+          // Add the new device to the database
+          try {
+            const addDeviceRes = await axios.post(
+              `http://localhost:3002/devices`,
               {
-                id_dispositivo: deviceId,
-                foto: imageUrl,
+                ...newDevicesToAdd[i],
+                images: imagesUrls,
               }
             );
+            addedDeviceResponse = addDeviceRes;
+
+            if (!addDeviceRes.data.success) {
+              props.setLoading(false);
+              helpers.showModal(
+                'Ocurrió un error',
+                'Hubo un error al tratar de agregar los dispositivos. Por favor, intente nuevamente.'
+              );
+            }
+          } catch (error) {
+            props.setLoading(false);
+            helpers.showModal(
+              'Ocurrió un error',
+              'Hubo un error al tratar de agregar los dispositivos. Por favor, intente nuevamente.'
+            );
           }
+
+          addedDevices.push({
+            ...addedDeviceResponse.data.dataAdded,
+            images: imagesUrls,
+          });
+
+          // All the images were uploaded successfully
+          setNewDevicesToAdd([]);
+          setCatalogChanged(false);
+          setDevices([...devices, ...addedDevices]);
+          setNewDevices([...devices, ...addedDevices]);
+          setDevicesImages([]);
+          props.setLoading(false);
+          helpers.showModal(
+            'Operación exitosa',
+            'Los dispositivos fueron agregados correctamente.'
+          );
+        } else {
+          props.setLoading(false);
+          helpers.showModal(
+            'Archivos inválidos',
+            'Por favor, asegúrese de que todas las imágenes tengan el formato .jpg, .jpeg o .png.'
+          );
         }
       }
-
-      setNewDevicesToAdd([]);
-      setDevices([...devices, ...devicesToAdd]);
+    } else {
       props.setLoading(false);
       helpers.showModal(
-        'Operación exitosa',
-        'Se han agregado los dispositivos.'
+        'Datos incompletos',
+        'Por favor, complete todos los campos para poder agregar los dispositivos.'
       );
     }
   };
 
   return !props.loading ? (
-    <>
-      {isAdmin ? (
-        <section className="sales-catalog mt-4">
-          <h4>
-            {seller.sellerName.charAt(0).toUpperCase() +
-              seller.sellerName.slice(1)}
-          </h4>
-          <section className="devices">
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Dispositivo</th>
-                  <th scope="col">Descripción</th>
-                  <th scope="col">Existencias</th>
-                  <th scope="col">Precio (Q.)</th>
-                  <th scope="col">Código de Modelo</th>
-                  <th scope="col">Color</th>
-                  <th scope="col">Categoría</th>
-                  <th scope="col">Marca</th>
-                  <th scope="col">Años de Garantía</th>
-                </tr>
-              </thead>
-              <tbody>
-                {devices.map((device) => (
-                  <tr key={device.id_dispositivo}>
-                    <th scope="row">{device.id_dispositivo}</th>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.nombre}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevices)
-                          );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].nombre = e.target.value;
-                          setNewDevices(potentialNewDevices);
-                          if (
-                            !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.descripcion}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevices)
-                          );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].descripcion = e.target.value;
-                          setNewDevices(potentialNewDevices);
-                          if (
-                            !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min={0}
-                        className="form-control"
-                        defaultValue={device.existencias}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevices)
-                          );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].existencias = Number(e.target.value);
-                          setNewDevices(potentialNewDevices);
-                          if (
-                            !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min={0}
-                        className="form-control"
-                        defaultValue={device.precio}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevices)
-                          );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].precio = Number(e.target.value);
-                          setNewDevices(potentialNewDevices);
-                          if (
-                            !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.codigo_modelo}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevices)
-                          );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].codigo_modelo = e.target.value;
-                          setNewDevices(potentialNewDevices);
-                          if (
-                            !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.color}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevices)
-                          );
-                          potentialNewDevices[device.id_dispositivo - 1].color =
-                            e.target.value;
-                          setNewDevices(potentialNewDevices);
-                          if (
-                            !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.categoria}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevices)
-                          );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].categoria = e.target.value;
-                          setNewDevices(potentialNewDevices);
-                          if (
-                            !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <select
-                        className="form-control"
-                        defaultValue={device.id_marca}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevices)
-                          );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].id_marca = Number(e.target.value);
-                          setNewDevices(potentialNewDevices);
-                          if (
-                            !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
-                        }}
-                      >
-                        {brands.map((brand) => (
-                          <option key={brand.id_marca} value={brand.id_marca}>
-                            {brand.nombre}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min={0}
-                        className="form-control"
-                        defaultValue={device.tiempo_garantia}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevices)
-                          );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].tiempo_garantia = Number(e.target.value);
-                          setNewDevices(potentialNewDevices);
-                          if (
-                            !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
-                        }}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {!catalogChanged ? (
-              <button className="btn btn-primary" disabled>
-                Guardar Cambios
-              </button>
-            ) : (
-              <button className="btn btn-primary" onClick={handleUpdateDevices}>
-                Guardar Cambios
-              </button>
-            )}
-          </section>
-          <section className="new-devices">
-            <h2 className="mt-5">Agregar Nuevo Dispositivo</h2>
-            <button className="btn btn-primary" onClick={handleAddNewDeviceRow}>
-              Nuevo Dispositivo
-            </button>
-            <table id="newDevicesTable" className="table table-striped">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Dispositivo</th>
-                  <th scope="col">Descripción</th>
-                  <th scope="col">Existencias</th>
-                  <th scope="col">Precio (Q.)</th>
-                  <th scope="col">Código de Modelo</th>
-                  <th scope="col">Color</th>
-                  <th scope="col">Categoría</th>
-                  <th scope="col">Marca</th>
-                  <th scope="col">Años de Garantía</th>
-                  <th scope="col">Imágenes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {newDevicesToAdd.map((device) => (
-                  <tr key={device.id_dispositivo}>
-                    <th scope="row">{device.id_dispositivo}</th>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.nombre}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].nombre = e.target.value;
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.descripcion}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].descripcion = e.target.value;
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min={0}
-                        className="form-control"
-                        defaultValue={device.existencias}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].existencias = Number(e.target.value);
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min={0}
-                        className="form-control"
-                        defaultValue={device.precio}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].precio = Number(e.target.value);
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.codigo_modelo}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].codigo_modelo = e.target.value;
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.color}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].color = e.target.value;
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.categoria}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].categoria = e.target.value;
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <select
-                        className="form-control"
-                        defaultValue={device.id_marca}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].id_marca = Number(e.target.value);
-                          setNewDevices(potentialNewDevices);
-                        }}
-                      >
-                        {brands.map((brand) => (
-                          <option key={brand.id_marca} value={brand.id_marca}>
-                            {brand.nombre}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min={0}
-                        className="form-control"
-                        defaultValue={device.tiempo_garantia}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].tiempo_garantia = Number(e.target.value);
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="file"
-                        multiple
-                        className="form-control"
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].imagenes = e.target.files;
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.files.length > 3) {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {newDevicesToAdd.length === 0 && !canAddNewDevices ? (
-              <button className="btn btn-primary" disabled>
-                Guardar Nuevos Dispositivos
-              </button>
-            ) : (
-              <button
-                className="btn btn-primary"
-                onClick={handlePostNewDevices}
-              >
-                Guardar Nuevos Dispositivos
-              </button>
-            )}
-          </section>
-        </section>
-      ) : (
-        <section className="sales-catalog mt-4">
-          <h4>
-            {seller.sellerName.charAt(0).toUpperCase() +
-              seller.sellerName.slice(1)}
-          </h4>
-          <section className="devices">
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Dispositivo</th>
-                  <th scope="col">Descripción</th>
-                  <th scope="col">Existencias</th>
-                  <th scope="col">Precio (Q.)</th>
-                  <th scope="col">Código de Modelo</th>
-                  <th scope="col">Color</th>
-                  <th scope="col">Categoría</th>
-                  <th scope="col">Marca</th>
-                  <th scope="col">Años de Garantía</th>
-                </tr>
-              </thead>
-              <tbody>
-                {devices.map((device) => (
-                  <tr key={device.id_dispositivo}>
-                    <th scope="row">{device.id_dispositivo}</th>
-                    <td>{device.nombre}</td>
-                    <td>{device.descripcion}</td>
-                    <td>{device.existencias}</td>
-                    <td>{device.precio}</td>
-                    <td>{device.codigo_modelo}</td>
-                    <td>{device.color}</td>
-                    <td>{device.categoria}</td>
-                    <td>
-                      {
-                        brands.filter(
-                          (brand) => brand.id_marca === device.id_marca
-                        )[0].nombre
+    <section className="sales-catalog">
+      <section className="new-factory-devices">
+        <h3 className="mt-5">Agregar nuevo dispositivo</h3>
+        <button
+          className="btn btn-primary"
+          onClick={handleAddNewDeviceRow}
+          style={{
+            marginTop: '1rem',
+            width: '100%',
+            marginLeft: '10px',
+            marginRight: '10px',
+          }}
+        >
+          Agregar dispositivo
+        </button>
+        <table id="newDevicesTable" className="table table-striped mt-3">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Dispositivo</th>
+              <th scope="col">Descripción</th>
+              <th scope="col">Precio (Q.)</th>
+              <th scope="col">Código de Modelo</th>
+              <th scope="col">Color</th>
+              <th scope="col">Categoría</th>
+              <th scope="col">Marca</th>
+              <th scope="col">Años de Garantía</th>
+              <th scope="col">Tiempo de Envío (días)</th>
+              <th scope="col">Imágenes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {newDevicesToAdd.map((device, index) => (
+              <tr key={index}>
+                <th scope="row">{index + 1}</th>
+                <td>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={device.name}
+                    onChange={(e) => {
+                      let potentialNewDevices = JSON.parse(
+                        JSON.stringify(newDevicesToAdd)
+                      );
+                      potentialNewDevices[index].name = e.target.value;
+                      setNewDevicesToAdd(potentialNewDevices);
+                      setCanAddNewDevices(
+                        canAddNewDevice(e, potentialNewDevices[index])
+                      );
+                    }}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={device.description}
+                    onChange={(e) => {
+                      let potentialNewDevices = JSON.parse(
+                        JSON.stringify(newDevicesToAdd)
+                      );
+                      potentialNewDevices[index].description = e.target.value;
+                      setNewDevicesToAdd(potentialNewDevices);
+                      setCanAddNewDevices(
+                        canAddNewDevice(e, potentialNewDevices[index])
+                      );
+                    }}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={device.price}
+                    onChange={(e) => {
+                      let potentialNewDevices = JSON.parse(
+                        JSON.stringify(newDevicesToAdd)
+                      );
+                      potentialNewDevices[index].price = Number(e.target.value);
+                      setNewDevicesToAdd(potentialNewDevices);
+                      setCanAddNewDevices(
+                        canAddNewDevice(e, potentialNewDevices[index])
+                      );
+                    }}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={device.model_code}
+                    onChange={(e) => {
+                      let potentialNewDevices = JSON.parse(
+                        JSON.stringify(newDevicesToAdd)
+                      );
+                      potentialNewDevices[index].model_code = e.target.value;
+                      setNewDevicesToAdd(potentialNewDevices);
+                      setCanAddNewDevices(
+                        canAddNewDevice(e, potentialNewDevices[index])
+                      );
+                    }}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={device.color}
+                    onChange={(e) => {
+                      let potentialNewDevices = JSON.parse(
+                        JSON.stringify(newDevicesToAdd)
+                      );
+                      potentialNewDevices[index].color = e.target.value;
+                      setNewDevicesToAdd(potentialNewDevices);
+                      setCanAddNewDevices(
+                        canAddNewDevice(e, potentialNewDevices[index])
+                      );
+                    }}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={device.category}
+                    onChange={(e) => {
+                      let potentialNewDevices = JSON.parse(
+                        JSON.stringify(newDevicesToAdd)
+                      );
+                      potentialNewDevices[index].category = e.target.value;
+                      setNewDevicesToAdd(potentialNewDevices);
+                      setCanAddNewDevices(
+                        canAddNewDevice(e, potentialNewDevices[index])
+                      );
+                    }}
+                  />
+                </td>
+                <td>
+                  <div>{localStorage.getItem('name')}</div>
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={device.warranty_time}
+                    onChange={(e) => {
+                      let potentialNewDevices = JSON.parse(
+                        JSON.stringify(newDevicesToAdd)
+                      );
+                      potentialNewDevices[index].warranty_time = Number(
+                        e.target.value
+                      );
+                      setNewDevicesToAdd(potentialNewDevices);
+                      setCanAddNewDevices(
+                        canAddNewDevice(e, potentialNewDevices[index])
+                      );
+                    }}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={device.shipping_time}
+                    onChange={(e) => {
+                      let potentialNewDevices = JSON.parse(
+                        JSON.stringify(newDevicesToAdd)
+                      );
+                      potentialNewDevices[index].shipping_time = Number(
+                        e.target.value
+                      );
+                      setNewDevicesToAdd(potentialNewDevices);
+                      setCanAddNewDevices(
+                        canAddNewDevice(e, potentialNewDevices[index])
+                      );
+                    }}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="file"
+                    className="form-control"
+                    multiple
+                    onChange={(e) => {
+                      let potentialNewImages = copyFileList(devicesImages);
+
+                      if (potentialNewImages[index] === undefined) {
+                        potentialNewImages[index] = [];
+
+                        for (let i = 0; i < e.target.files.length; i++) {
+                          potentialNewImages[index].push(e.target.files[i]);
+                        }
+                      } else {
+                        // Remove the old images and add the new ones
+                        potentialNewImages[index] = [];
+
+                        for (let i = 0; i < e.target.files.length; i++) {
+                          potentialNewImages[index][i] = e.target.files[i];
+                        }
                       }
-                    </td>
-                    <td>{device.tiempo_garantia}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-          <section className="new-devices">
-            <h2 className="mt-5">Agregar Nuevo Dispositivo</h2>
-            <button className="btn btn-primary" onClick={handleAddNewDeviceRow}>
-              Nuevo Dispositivo
-            </button>
-            <table id="newDevicesTable" className="table table-striped">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Dispositivo</th>
-                  <th scope="col">Descripción</th>
-                  <th scope="col">Existencias</th>
-                  <th scope="col">Precio (Q.)</th>
-                  <th scope="col">Código de Modelo</th>
-                  <th scope="col">Color</th>
-                  <th scope="col">Categoría</th>
-                  <th scope="col">Marca</th>
-                  <th scope="col">Años de Garantía</th>
-                  <th scope="col">Imágenes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {newDevicesToAdd.map((device) => (
-                  <tr key={device.id_dispositivo}>
-                    <th scope="row">{device.id_dispositivo}</th>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.nombre}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].nombre = e.target.value;
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
+                      setDevicesImages(potentialNewImages);
+                      setCanAddNewDevices(
+                        canAddNewDevice(e, newDevicesToAdd[index])
+                      );
+                    }}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {newDevicesToAdd.length === 0 && !canAddNewDevices ? (
+          <button
+            className="btn btn-primary disabled-btn"
+            disabled
+            style={{
+              width: '100%',
+              marginleft: '10px',
+              marginRight: '-10px',
+            }}
+          >
+            No ha agregado ningún dispositivo
+          </button>
+        ) : (
+          <button
+            className="btn btn-primary"
+            onClick={handlePostNewDevices}
+            style={{
+              width: '100%',
+              marginleft: '10px',
+              marginRight: '-10px',
+            }}
+          >
+            Agregar dispositivos
+          </button>
+        )}
+      </section>
+      <section className="factory-devices mt-4">
+        <div className="small-separator"></div>
+        <h3>Dispositivos</h3>
+        <section className="factory-devices-list">
+          {newDevices.length !== 0 ? (
+            newDevices.map((device, index) => (
+              <div className="device-card" key={index}>
+                <input
+                  type="text"
+                  className="form-control text-input"
+                  style={{ backgroundColor: helpers.PALETTE.lightGray }}
+                  value={device.name}
+                  onChange={(e) => {
+                    let potentialNewDevices = JSON.parse(
+                      JSON.stringify(newDevices)
+                    );
+                    potentialNewDevices[index].name = e.target.value;
+                    setNewDevices(potentialNewDevices);
+                    setCatalogChanged(
+                      !compareArraysOfObjects(
+                        devices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        ),
+                        potentialNewDevices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        )
+                      )
+                    );
+                  }}
+                ></input>
+                <div
+                  id={`image-Carousel-${index}`}
+                  className="carousel slide"
+                  data-ride="carousel"
+                >
+                  <ol className="carousel-indicators">
+                    {device.images.map((image, index2) => (
+                      <li
+                        data-target={`#image-Carousel-${index}`}
+                        data-slide-to={index2}
+                        className={index === 0 ? 'active' : ''}
+                        key={index2}
+                        style={{
+                          border: 'none',
+                          color: '#ff00ff',
+                          backgroundColor: '#777',
                         }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.descripcion}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].descripcion = e.target.value;
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min={0}
-                        className="form-control"
-                        defaultValue={device.existencias}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].existencias = Number(e.target.value);
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min={0}
-                        className="form-control"
-                        defaultValue={device.precio}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].precio = Number(e.target.value);
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.codigo_modelo}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].codigo_modelo = e.target.value;
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.color}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].color = e.target.value;
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        defaultValue={device.categoria}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].categoria = e.target.value;
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <select
-                        className="form-control"
-                        defaultValue={device.id_marca}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].id_marca = Number(e.target.value);
-                          setNewDevices(potentialNewDevices);
-                        }}
+                      ></li>
+                    ))}
+                  </ol>
+                  <div className="carousel-inner">
+                    {device.images.map((image, index) => (
+                      <div
+                        className={`carousel-item ${
+                          index === 0 ? 'active' : ''
+                        }`}
+                        key={index}
                       >
-                        {brands.map((brand) => (
-                          <option key={brand.id_marca} value={brand.id_marca}>
-                            {brand.nombre}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min={0}
-                        className="form-control"
-                        defaultValue={device.tiempo_garantia}
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].tiempo_garantia = Number(e.target.value);
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="file"
-                        multiple
-                        className="form-control"
-                        onChange={(e) => {
-                          let potentialNewDevices = JSON.parse(
-                            JSON.stringify(newDevicesToAdd)
-                          );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].imagenes = e.target.files;
-                          setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.files.length > 3) {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
-                        }}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {newDevicesToAdd.length === 0 && !canAddNewDevices ? (
-              <button className="btn btn-primary" disabled>
-                Guardar Nuevos Dispositivos
-              </button>
-            ) : (
-              <button
-                className="btn btn-primary"
-                onClick={handlePostNewDevices}
-              >
-                Guardar Nuevos Dispositivos
-              </button>
-            )}
-          </section>
+                        <img
+                          className="d-block device-card-image"
+                          src={`http://${secrets.LOCALHOST_IP}${image}`}
+                          alt={`${device.name} image ${index + 1}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    className="carousel-control-prev"
+                    type="button"
+                    data-target={`#image-Carousel-${index}`}
+                    data-slide="prev"
+                    style={{
+                      border: 'none',
+                      color: '#ff00ff',
+                      backgroundColor: '#000',
+                    }}
+                  >
+                    <span
+                      className="carousel-control-prev-icon"
+                      aria-hidden="true"
+                    ></span>
+                    <span className="sr-only">Previous</span>
+                  </button>
+                  <button
+                    className="carousel-control-next"
+                    type="button"
+                    data-target={`#image-Carousel-${index}`}
+                    data-slide="next"
+                    style={{
+                      border: 'none',
+                      color: '#ff00ff',
+                      backgroundColor: '#000',
+                    }}
+                  >
+                    <span
+                      className="carousel-control-next-icon"
+                      aria-hidden="true"
+                    ></span>
+                    <span className="sr-only">Next</span>
+                  </button>
+                </div>
+                <b className="text-left mt-4">Descripción:</b>
+                <input
+                  type="text"
+                  className="form-control text-input"
+                  style={{ backgroundColor: helpers.PALETTE.lightGray }}
+                  value={device.description}
+                  onChange={(e) => {
+                    let potentialNewDevices = JSON.parse(
+                      JSON.stringify(newDevices)
+                    );
+                    potentialNewDevices[index].description = e.target.value;
+                    setNewDevices(potentialNewDevices);
+                    setCatalogChanged(
+                      !compareArraysOfObjects(
+                        devices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        ),
+                        potentialNewDevices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        )
+                      )
+                    );
+                  }}
+                ></input>
+                <b className="text-left">Precio:</b>
+                <input
+                  type="number"
+                  className="form-control text-input"
+                  style={{ backgroundColor: helpers.PALETTE.lightGray }}
+                  step="0.01"
+                  value={device.price}
+                  onChange={(e) => {
+                    let potentialNewDevices = JSON.parse(
+                      JSON.stringify(newDevices)
+                    );
+                    potentialNewDevices[index].price = Number(e.target.value);
+                    setNewDevices(potentialNewDevices);
+                    setCatalogChanged(
+                      !compareArraysOfObjects(
+                        devices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        ),
+                        potentialNewDevices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        )
+                      )
+                    );
+                  }}
+                ></input>
+                <b className="text-left">Código de modelo:</b>
+                <input
+                  type="text"
+                  className="form-control text-input"
+                  style={{ backgroundColor: helpers.PALETTE.lightGray }}
+                  value={device.model_code}
+                  onChange={(e) => {
+                    let potentialNewDevices = JSON.parse(
+                      JSON.stringify(newDevices)
+                    );
+                    potentialNewDevices[index].model_code = e.target.value;
+                    setNewDevices(potentialNewDevices);
+                    setCatalogChanged(
+                      !compareArraysOfObjects(
+                        devices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        ),
+                        potentialNewDevices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        )
+                      )
+                    );
+                  }}
+                ></input>
+                <b className="text-left">Color:</b>
+                <input
+                  type="text"
+                  className="form-control text-input"
+                  style={{ backgroundColor: helpers.PALETTE.lightGray }}
+                  value={device.color}
+                  onChange={(e) => {
+                    let potentialNewDevices = JSON.parse(
+                      JSON.stringify(newDevices)
+                    );
+                    potentialNewDevices[index].color = e.target.value;
+                    setNewDevices(potentialNewDevices);
+                    setCatalogChanged(
+                      !compareArraysOfObjects(
+                        devices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        ),
+                        potentialNewDevices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        )
+                      )
+                    );
+                  }}
+                ></input>
+                <b className="text-left">Categoría:</b>
+                <input
+                  type="text"
+                  className="form-control text-input"
+                  style={{ backgroundColor: helpers.PALETTE.lightGray }}
+                  value={device.category}
+                  onChange={(e) => {
+                    let potentialNewDevices = JSON.parse(
+                      JSON.stringify(newDevices)
+                    );
+                    potentialNewDevices[index].category = e.target.value;
+                    setNewDevices(potentialNewDevices);
+                    setCatalogChanged(
+                      !compareArraysOfObjects(
+                        devices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        ),
+                        potentialNewDevices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        )
+                      )
+                    );
+                  }}
+                ></input>
+                <b className="text-left">Tiempo de garantía (años):</b>
+                <input
+                  type="number"
+                  className="form-control text-input"
+                  style={{ backgroundColor: helpers.PALETTE.lightGray }}
+                  value={device.warranty_time}
+                  min="1"
+                  onChange={(e) => {
+                    let potentialNewDevices = JSON.parse(
+                      JSON.stringify(newDevices)
+                    );
+                    potentialNewDevices[index].warranty_time = Number(
+                      e.target.value
+                    );
+                    setNewDevices(potentialNewDevices);
+                    setCatalogChanged(
+                      !compareArraysOfObjects(
+                        devices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        ),
+                        potentialNewDevices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        )
+                      )
+                    );
+                  }}
+                ></input>
+                <b className="text-left">Tiempo de envío (días):</b>
+                <input
+                  type="number"
+                  className="form-control text-input"
+                  style={{ backgroundColor: helpers.PALETTE.lightGray }}
+                  value={device.shipping_time}
+                  min="1"
+                  onChange={(e) => {
+                    let potentialNewDevices = JSON.parse(
+                      JSON.stringify(newDevices)
+                    );
+                    potentialNewDevices[index].shipping_time = Number(
+                      e.target.value
+                    );
+                    setNewDevices(potentialNewDevices);
+                    setCatalogChanged(
+                      !compareArraysOfObjects(
+                        devices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        ),
+                        potentialNewDevices.map((device) =>
+                          Object.assign({}, device, { images: undefined })
+                        )
+                      )
+                    );
+                  }}
+                ></input>
+                <button
+                  className="btn btn-danger"
+                  onClick={() => {
+                    handleDeviceDelete(device._id);
+                  }}
+                >
+                  Eliminar
+                </button>
+              </div>
+            ))
+          ) : (
+            <div className="alert alert-info text-center" role="alert">
+              <h5>Aún no ha registrado ningún dispositivo.</h5>
+            </div>
+          )}
         </section>
-      )}
-    </>
+        {catalogChanged ? (
+          <button
+            className="btn btn-primary"
+            onClick={handleUpdateDevices}
+            style={{
+              marginTop: '1rem',
+              width: '100%',
+              marginLeft: '10px',
+              marginRight: '10px',
+            }}
+          >
+            Guardar cambios
+          </button>
+        ) : (
+          <button
+            className="btn btn-primary disabled-btn"
+            disabled
+            style={{
+              marginTop: '1rem',
+              width: '100%',
+              marginLeft: '10px',
+              marginRight: '10px',
+            }}
+          >
+            Dispositivos sin cambios
+          </button>
+        )}
+      </section>
+    </section>
   ) : (
     <></>
   );
 }
 
 export default SalesCatalogForm;
+
