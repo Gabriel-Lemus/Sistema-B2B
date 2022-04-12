@@ -69,8 +69,8 @@ const FACTORY_PAGES = [
 const SELLER_PAGES = [
   {
     icon: <FiBook />,
-    title: 'Catálogo de ventas',
-    reference: '/catalogo-ventas',
+    title: 'Catálogo de dispositivos',
+    reference: '/catalogo-dispositivos',
   },
   // {
   //   icon: <BiPurchaseTagAlt />,
