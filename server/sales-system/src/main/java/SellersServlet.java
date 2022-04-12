@@ -9,6 +9,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -418,6 +424,23 @@ public class SellersServlet extends HttpServlet {
                             "There are no sellers in the database.");
                 }
             } catch (Exception e) {
+                helper.printErrorMessage(out, e);
+            }
+        } else if (helper.requestContainsParameter(request, "sellerAsFactoriesClient") && helper.requestContainsParameter(request, "email")) {
+            String sellerName = request.getParameter("sellerAsFactoriesClient");
+            String email = request.getParameter("email");
+            String localHostIP = secrets.getLocalHostIP();
+            String webServerPort = secrets.getWebServerPort();
+            HttpClient client = HttpClientBuilder.create().build();
+            HttpPost postNewClient = new HttpPost("http://" + localHostIP + ":" + webServerPort + "/?sellerAsFactoriesClient=" + sellerName + "&email=" + email);
+            
+            try {
+                HttpResponse postNewClientresponse = client.execute(postNewClient);
+                String postNewClientResponseBody = EntityUtils.toString(postNewClientresponse.getEntity());
+                JSONObject postNewClientResponseJson = new JSONObject(postNewClientResponseBody);
+
+                out.print(postNewClientResponseJson.toString());
+            } catch (IOException e) {
                 helper.printErrorMessage(out, e);
             }
         } else {
