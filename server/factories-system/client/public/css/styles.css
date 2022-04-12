@@ -293,6 +293,12 @@
   width: 90% !important;
   margin: 0 auto; }
 
+.clients-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; }
+
 .sidebar-link {
   color: #0583d2 !important; }
 
