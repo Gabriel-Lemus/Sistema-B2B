@@ -53,29 +53,29 @@ public class SellersServlet extends HttpServlet {
                 new String[][] {
                         { "id_dispositivo", "id_vendedor", "id_marca", "nombre", "descripcion", "existencias", "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia" },
                         { "id_foto", "id_dispositivo", "foto" },
-                        { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precios_venta", "cantidad_dispositivos", "impuestos", "descuentos", "total_venta" },
+                        { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precio_venta", "cantidad_dispositivos", "impuestos", "descuentos", "total_venta" },
                         { "id_pago", "id_venta", "id_cliente", "id_vendedor", "fecha_pago", "total" },
-                        { "id_pedido", "id_cliente", "id_vendedor", "fecha_pedido", "precio_pedido", "cantidad_dispositivos", "impuestos", "descuentos", "total_pedido" },
+                        { "id_pedido", "id_cliente", "id_vendedor", "fecha_pedido", "precio_pedido", "cantidad_dispositivos", "impuestos", "descuentos", "total_pedido", "fecha_entrega" },
                         { "id_dispositivo_x_venta", "id_venta", "id_dispositivo", "cantidad_dispositivos" },
-                        { "id_dispositivo_x_pedido", "id_pedido", "id_dispositivo", "cantidad_dispositivos" },
+                        { "id_dispositivo_x_pedido", "id_pedido", "id_dispositivo", "cantidad_dispositivos", "entregado" },
                 },
                 new String[][] {
                         { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER" },
                         { "INTEGER", "INTEGER", "VARCHAR" },
                         { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT" },
-                        { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
+                        { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT", "DATE" },
                         { "INTEGER", "INTEGER", "INTEGER", "INTEGER" },
-                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER" },
+                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "VARCHAR2" },
                 },
                 new boolean[][] {
                         { false, false, false, false, false, false, false, false, false, false, false },
                         { false, false, false },
                         { false, false, false, false, false, false, false, false, false },
                         { false, false, false, false, false, false },
-                        { false, false, false, false, false, false },
+                        { false, false, false, false, false, false, false },
                         { false, false, false, false },
-                        { false, false, false, false },
+                        { false, false, false, false, false },
                 },
                 new int[] { 100, 100, 100, 100, 100, 100, 100 });
     }
@@ -593,7 +593,7 @@ public class SellersServlet extends HttpServlet {
     
                         if (sellers.size() > 1) {
                             for (int i = 0; i < sellers.size(); i++) {
-                                salesQuery += "SELECT v.id_venta, v.id_cliente, dv.id_vendedor, v.fecha_venta, v.precios_venta, v.cantidad_dispositivos dispositivos_totales, v.impuestos, v.descuentos, v.total_venta, dv.id_dispositivo, dv.id_marca, dv.nombre, dv.descripcion, dv.existencias, dv.precio, dv.codigo_modelo, dv.color, dv.categoria, dv.tiempo_garantia, dv.cantidad_dispositivos dispositivos_adquiridos FROM " + sellers.get(i).replace(" ", "_") + "_ventas v, (SELECT d.*, dv.id_venta, dv.cantidad_dispositivos from " + sellers.get(i).replace(" ", "_") + "_dispositivos d, " + sellers.get(i).replace(" ", "_") + "_dispositivos_x_ventas dv WHERE d.id_dispositivo = dv.id_dispositivo) dv WHERE v.id_venta = dv.id_venta";
+                                salesQuery += "SELECT v.id_venta, v.id_cliente, dv.id_vendedor, v.fecha_venta, v.precio_venta, v.cantidad_dispositivos dispositivos_totales, v.impuestos, v.descuentos, v.total_venta, dv.id_dispositivo, dv.id_marca, dv.nombre, dv.descripcion, dv.existencias, dv.precio, dv.codigo_modelo, dv.color, dv.categoria, dv.tiempo_garantia, dv.cantidad_dispositivos dispositivos_adquiridos FROM " + sellers.get(i).replace(" ", "_") + "_ventas v, (SELECT d.*, dv.id_venta, dv.cantidad_dispositivos from " + sellers.get(i).replace(" ", "_") + "_dispositivos d, " + sellers.get(i).replace(" ", "_") + "_dispositivos_x_ventas dv WHERE d.id_dispositivo = dv.id_dispositivo) dv WHERE v.id_venta = dv.id_venta";
     
                                 if (i < sellers.size() - 1) {
                                     salesQuery += " UNION ALL ";
@@ -607,7 +607,7 @@ public class SellersServlet extends HttpServlet {
                             if (rs2.next()) {
                                 rs2.previous();
     
-                                String[] attrs = { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precios_venta",
+                                String[] attrs = { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precio_venta",
                                         "dispositivos_totales", "impuestos", "descuentos", "total_venta", "id_dispositivo",
                                         "id_marca", "nombre", "descripcion", "existencias", "precio", "codigo_modelo",
                                         "color", "categoria", "tiempo_garantia", "dispositivos_adquiridos" };
@@ -632,7 +632,7 @@ public class SellersServlet extends HttpServlet {
                             }
                         } else {
                             salesQuery += "SELECT * FROM (";
-                            salesQuery += "SELECT v.id_venta, v.id_cliente, dv.id_vendedor, v.fecha_venta, v.precios_venta, v.cantidad_dispositivos dispositivos_totales, v.impuestos, v.descuentos, v.total_venta, dv.id_dispositivo, dv.id_marca, dv.nombre, dv.descripcion, dv.existencias, dv.precio, dv.codigo_modelo, dv.color, dv.categoria, dv.tiempo_garantia, dv.cantidad_dispositivos dispositivos_adquiridos FROM " + sellers.get(0).replace(" ", "_") + "_ventas v, (SELECT d.*, dv.id_venta, dv.cantidad_dispositivos from " + sellers.get(0).replace(" ", "_") + "_dispositivos d, " + sellers.get(0).replace(" ", "_") + "_dispositivos_x_ventas dv WHERE d.id_dispositivo = dv.id_dispositivo) dv WHERE v.id_venta = dv.id_venta";
+                            salesQuery += "SELECT v.id_venta, v.id_cliente, dv.id_vendedor, v.fecha_venta, v.precio_venta, v.cantidad_dispositivos dispositivos_totales, v.impuestos, v.descuentos, v.total_venta, dv.id_dispositivo, dv.id_marca, dv.nombre, dv.descripcion, dv.existencias, dv.precio, dv.codigo_modelo, dv.color, dv.categoria, dv.tiempo_garantia, dv.cantidad_dispositivos dispositivos_adquiridos FROM " + sellers.get(0).replace(" ", "_") + "_ventas v, (SELECT d.*, dv.id_venta, dv.cantidad_dispositivos from " + sellers.get(0).replace(" ", "_") + "_dispositivos d, " + sellers.get(0).replace(" ", "_") + "_dispositivos_x_ventas dv WHERE d.id_dispositivo = dv.id_dispositivo) dv WHERE v.id_venta = dv.id_venta";
                             salesQuery += ") s WHERE s.id_cliente = " + clientId;
                         }
                     } else {
@@ -655,14 +655,14 @@ public class SellersServlet extends HttpServlet {
                     String salesQuery = "";
 
                     if (rs.next()) {
-                        salesQuery += "SELECT v.id_venta, v.id_cliente, dv.id_vendedor, v.fecha_venta, v.precios_venta, v.cantidad_dispositivos dispositivos_totales, v.impuestos, v.descuentos, v.total_venta, dv.id_dispositivo, dv.id_marca, dv.nombre, dv.descripcion, dv.existencias, dv.precio, dv.codigo_modelo, dv.color, dv.categoria, dv.tiempo_garantia, dv.cantidad_dispositivos dispositivos_adquiridos FROM " + rs.getString("nombre").replace(" ", "_") + "_ventas v, (SELECT d.*, dv.id_venta, dv.cantidad_dispositivos from " + rs.getString("nombre").replace(" ", "_") + "_dispositivos d, " + rs.getString("nombre").replace(" ", "_") + "_dispositivos_x_ventas dv WHERE d.id_dispositivo = dv.id_dispositivo) dv WHERE v.id_venta = dv.id_venta ORDER BY v.fecha_venta ASC, v.id_venta ASC";
+                        salesQuery += "SELECT v.id_venta, v.id_cliente, dv.id_vendedor, v.fecha_venta, v.precio_venta, v.cantidad_dispositivos dispositivos_totales, v.impuestos, v.descuentos, v.total_venta, dv.id_dispositivo, dv.id_marca, dv.nombre, dv.descripcion, dv.existencias, dv.precio, dv.codigo_modelo, dv.color, dv.categoria, dv.tiempo_garantia, dv.cantidad_dispositivos dispositivos_adquiridos FROM " + rs.getString("nombre").replace(" ", "_") + "_ventas v, (SELECT d.*, dv.id_venta, dv.cantidad_dispositivos from " + rs.getString("nombre").replace(" ", "_") + "_dispositivos d, " + rs.getString("nombre").replace(" ", "_") + "_dispositivos_x_ventas dv WHERE d.id_dispositivo = dv.id_dispositivo) dv WHERE v.id_venta = dv.id_venta ORDER BY v.fecha_venta ASC, v.id_venta ASC";
                         ResultSet rs2 = stmt.executeQuery(salesQuery);
                         String jsonString = "{\"success\":true,\"compras\":[";
     
                         if (rs2.next()) {
                             rs2.previous();
     
-                            String[] attrs = { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precios_venta",
+                            String[] attrs = { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precio_venta",
                                     "dispositivos_totales", "impuestos", "descuentos", "total_venta", "id_dispositivo",
                                     "id_marca", "nombre", "descripcion", "existencias", "precio", "codigo_modelo",
                                     "color", "categoria", "tiempo_garantia", "dispositivos_adquiridos" };
