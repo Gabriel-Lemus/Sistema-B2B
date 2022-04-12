@@ -13,7 +13,6 @@ const override = css`
 `;
 
 function Loader(props) {
-  // Effects
   useEffect(() => {
     setTimeout(() => {
       $('.background-div').css('height', $(document).height());
@@ -23,7 +22,7 @@ function Loader(props) {
   return (
     <div className="background-div">
       <DotLoader
-        color={helpers.PALETTE.blue}
+        color={helpers.PALETTE.green}
         loading={props.loading}
         css={override}
         size={275}
