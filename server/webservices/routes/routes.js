@@ -71,7 +71,7 @@ router.post("/", async (req, res) => {
         // Attempt to add the seller as a client in the factories backend
         try {
           const addSellerAsClient = await axios.post(
-            `http://${LOCAL_HOST_IP}:${FACTORIES_BE_PORT}/clients?seller`,
+            `http://${LOCAL_HOST_IP}:${FACTORIES_BE_PORT}/clients?registerSeller=true`,
             newClient
           );
 
