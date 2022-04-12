@@ -103,7 +103,7 @@ function OrdersForm(props) {
   ) : (
     <section className="shopping-cart-section">
       <section className="cart-info">
-        <h3 className="mb-4">Información del Carrito</h3>
+        <h3 className="mb-4">Información de la Orden</h3>
         <ul className="list-group shopping-cart-list">
           {devices.map((device, index) => (
             <Link
