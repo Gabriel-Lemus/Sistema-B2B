@@ -12,8 +12,8 @@ function SalesCatalog() {
       <DashboardTemplate
         displaySearchBar={false}
         sideBarItems={
-          localStorage.getItem('isAdmin') === 'true'
-            ? helpers.ADMIN_PAGES
+          localStorage.getItem('userType') === 'fabricante'
+            ? helpers.FACTORY_PAGES
             : helpers.SELLER_PAGES
         }
         pageTitle="Catálogo de Ventas"
