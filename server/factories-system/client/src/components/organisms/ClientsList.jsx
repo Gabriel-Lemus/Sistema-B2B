@@ -6,394 +6,174 @@ import secrets from '../../helpers/secrets';
 
 function ClientsList(props) {
   const [clients, setClients] = useState([]);
-  const [newClientsData, setNewClientsData] = useState([]);
+  const [newClients, setNewClients] = useState([]);
   const [canChangeData, setCanChangeData] = useState(false);
-  const [isAdmin, setisAdmin] = useState(false);
-  const clientTypes = ['Individual', 'Grande', 'Distribuidor'];
-  const suscriptionsOptions = ['Sí', 'No'];
+  const [factoryId, setFactoryId] = useState(0);
 
   useEffect(async () => {
-    const clientsList = await axios.get(
-      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=clientes`
+    const clients = await axios.get(
+      `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/clients`
     );
-    setisAdmin(localStorage.getItem('isAdmin') === 'true');
-    setClients(clientsList.data.data);
-    setNewClientsData(clientsList.data.data);
+    setClients(clients.data.data);
+    setNewClients(clients.data.data);
+    setFactoryId(localStorage.getItem('id'));
     props.setLoading(false);
   }, []);
 
-  const handleUpdateClientsData = async () => {
-    props.setLoading(true);
-    let couldUpdateAllClients = true;
+  const compareShippingTimes = (a, b) => {
+    if (a.length !== b.length) {
+      return false;
+    }
 
-    // Iterate through the newClientsData array and update the clients data if they have changed
-    for (let i = 0; i < newClientsData.length; i++) {
-      if (!helpers.compareObjects(clients[i], newClientsData[i])) {
-        let newUserData = {
-          nombre:
-            newClientsData[i].nombre !== null && newClientsData[i].nombre !== ''
-              ? newClientsData[i].nombre
-              : null,
-          nit:
-            newClientsData[i].nit !== null && newClientsData[i].nit !== ''
-              ? newClientsData[i].nit
-              : null,
-          email:
-            newClientsData[i].email !== null && newClientsData[i].email !== ''
-              ? newClientsData[i].email
-              : null,
-          telefono:
-            newClientsData[i].telefono !== null &&
-            newClientsData[i].telefono !== ''
-              ? newClientsData[i].telefono
-              : null,
-          patente_comercio:
-            newClientsData[i].patente_comercio !== null &&
-            newClientsData[i].patente_comercio !== ''
-              ? newClientsData[i].patente_comercio
-              : null,
-          tipo_cliente:
-            newClientsData[i].tipo_cliente !== null &&
-            newClientsData[i].tipo_cliente !== ''
-              ? newClientsData[i].tipo_cliente
-              : null,
-          tiene_suscripcion:
-            newClientsData[i].tiene_suscripcion !== null &&
-            newClientsData[i].tiene_suscripcion !== ''
-              ? newClientsData[i].tiene_suscripcion
-              : null,
-          vencimiento_suscripcion:
-            newClientsData[i].vencimiento_suscripcion !== null &&
-            newClientsData[i].vencimiento_suscripcion !== ''
-              ? newClientsData[i].vencimiento_suscripcion
-              : null,
-        };
-        const updateClient = await axios.put(
-          `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${newClientsData[i].id_cliente}`,
-          newUserData
-        );
-
-        if (!updateClient.data.success) {
-          couldUpdateAllClients = false;
-          break;
+    for (let i = 0; i < a.length; i++) {
+      for (let j = 0; j < a[i].shippingTimes.length; j++) {
+        if (a[i].shippingTimes[j].factoryId === factoryId) {
+          if (
+            !helpers.compareObjects(
+              a[i].shippingTimes[j],
+              b[i].shippingTimes[j]
+            )
+          ) {
+            return false;
+          }
         }
       }
     }
 
-    if (couldUpdateAllClients) {
-      helpers.showModal(
-        'Operación Exitosa',
-        'Se han actualizado los datos de los clientes.'
-      );
+    return true;
+  };
+
+  const compareIndividualShippingTimes = (a, b) => {
+    if (a.length !== b.length) {
+      return false;
+    }
+
+    for (let i = 0; i < a.length; i++) {
+      if (!helpers.compareObjects(a[i], b[i])) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleUpdateClientsData = async () => {
+    props.setLoading(true);
+    let couldUpdateAll = true;
+
+    // Iterate through the clients array and update the ones that were changed
+    for (let i = 0; i < clients.length; i++) {
+      if (
+        !compareIndividualShippingTimes(
+          clients[i].shippingTimes,
+          newClients[i].shippingTimes
+        )
+      ) {
+        const updateClientRes = await axios.put(
+          `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/clients/${clients[i].name}`,
+          newClients[i]
+        );
+
+        if (!updateClientRes.data.success) {
+          couldUpdateAll = false;
+        }
+      }
+    }
+
+    if (couldUpdateAll) {
+      setClients(newClients);
+      setNewClients(newClients);
       setCanChangeData(false);
-      setClients(newClientsData);
-      setNewClientsData(newClientsData);
       props.setLoading(false);
+      helpers.showModal(
+        'Operacion exitosa',
+        'Los tiempos de envío de los clientes han sido actualizados.'
+      );
     } else {
+      props.setLoading(false);
       helpers.showModal(
         'Error',
-        'No se pudieron actualizar los datos de los clientes.'
+        'Hubo un error al actualizar los tiempos de envío de los clientes. Por favor, inténlo de nuevo.'
       );
-      props.setLoading(false);
     }
   };
 
   return !props.loading ? (
-    <>
-      {isAdmin ? (
-        <>
-          <table className="table table-striped">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Nombre</th>
-                <th scope="col">NIT</th>
-                <th scope="col">Email</th>
-                <th scope="col">Teléfono</th>
-                <th scope="col">Patente Comercio</th>
-                <th scope="col">Tipo Cliente</th>
-                <th scope="col">¿Tiene Suscripción?</th>
-                <th scope="col">Vencimiento Suscripción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {newClientsData.map((client, index) => (
-                <tr key={index}>
-                  <th scope="row">{index + 1}</th>
-                  <td>
-                    <IndividualTextInput
-                      placeholder="Nombre"
-                      label={client.nombre}
-                      value={client.nombre}
-                      type="text"
-                      onChangeCallback={(e) => {
-                        let potentialNewClients = JSON.parse(
-                          JSON.stringify(newClientsData)
-                        );
-                        potentialNewClients[index].nombre = e.target.value;
-                        setNewClientsData(potentialNewClients);
-                        if (
-                          !helpers.compareObjects(clients, potentialNewClients)
-                        ) {
-                          setCanChangeData(true);
-                        } else {
-                          setCanChangeData(false);
-                        }
-                      }}
-                    />
-                  </td>
-                  <td>
-                    <IndividualTextInput
-                      placeholder="NIT"
-                      label={client.nit}
-                      value={client.nit || ''}
-                      type="text"
-                      onChangeCallback={(e) => {
-                        let potentialNewClients = JSON.parse(
-                          JSON.stringify(newClientsData)
-                        );
-                        potentialNewClients[index].nit = e.target.value;
-                        setNewClientsData(potentialNewClients);
-                        if (
-                          !helpers.compareObjects(clients, potentialNewClients)
-                        ) {
-                          setCanChangeData(true);
-                        } else {
-                          setCanChangeData(false);
-                        }
-                      }}
-                    />
-                  </td>
-                  <td>
-                    <IndividualTextInput
-                      placeholder="Email"
-                      label={client.email}
-                      value={client.email || ''}
-                      type="email"
-                      onChangeCallback={(e) => {
-                        let potentialNewClients = JSON.parse(
-                          JSON.stringify(newClientsData)
-                        );
-                        potentialNewClients[index].email = e.target.value;
-                        setNewClientsData(potentialNewClients);
-                        if (
-                          !helpers.compareObjects(clients, potentialNewClients)
-                        ) {
-                          setCanChangeData(true);
-                        } else {
-                          setCanChangeData(false);
-                        }
-                      }}
-                    />
-                  </td>
-                  <td>
-                    <IndividualTextInput
-                      placeholder="Teléfono"
-                      label={client.telefono}
-                      value={client.telefono || ''}
-                      type="text"
-                      onChangeCallback={(e) => {
-                        let potentialNewClients = JSON.parse(
-                          JSON.stringify(newClientsData)
-                        );
-                        potentialNewClients[index].telefono = e.target.value;
-                        setNewClientsData(potentialNewClients);
-                        if (
-                          !helpers.compareObjects(clients, potentialNewClients)
-                        ) {
-                          setCanChangeData(true);
-                        } else {
-                          setCanChangeData(false);
-                        }
-                      }}
-                    />
-                  </td>
-                  <td>
-                    {client.patente_comercio !== null ? (
-                      <img
-                        className="img-fluid"
-                        src={`http://${secrets.LOCALHOST_IP}${client.patente_comercio}`}
-                        alt="Patente de Comercio"
-                        style={{ width: '150px' }}
-                      />
-                    ) : (
-                      <></>
-                    )}
-                  </td>
-                  <td>
-                    <select
-                      className="form-control"
-                      value={
-                        client.tipo_cliente === 'individual'
-                          ? 0
-                          : client.tipo_cliente === 'grande'
-                          ? 1
-                          : 2
-                      }
-                      onChange={(e) => {
-                        let potentialNewClients = JSON.parse(
-                          JSON.stringify(newClientsData)
-                        );
-                        potentialNewClients[index].tipo_cliente =
-                          clientTypes[e.target.value].toLowerCase();
-                        setNewClientsData(potentialNewClients);
-                        if (
-                          !helpers.compareObjects(clients, potentialNewClients)
-                        ) {
-                          setCanChangeData(true);
-                        } else {
-                          setCanChangeData(false);
-                        }
-                      }}
-                    >
-                      {clientTypes.map((type, index) => (
-                        <option key={index} value={index}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <select
-                      className="form-control"
-                      value={suscriptionsOptions.indexOf(
-                        client.tiene_suscripcion === 'True' ? 'Sí' : 'No'
-                      )}
-                      onChange={(e) => {
-                        let potentialNewClients = JSON.parse(
-                          JSON.stringify(newClientsData)
-                        );
-                        potentialNewClients[index].tiene_suscripcion =
-                          suscriptionsOptions[e.target.value];
-                        setNewClientsData(potentialNewClients);
-                        if (
-                          !helpers.compareObjects(clients, potentialNewClients)
-                        ) {
-                          setCanChangeData(true);
-                        } else {
-                          setCanChangeData(false);
-                        }
-                      }}
-                    >
-                      {suscriptionsOptions.map((option, index) => (
-                        <option key={index} value={index}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <input
-                      type="date"
-                      className="form-control"
-                      value={
-                        client.vencimiento_suscripcion !== null
-                          ? client.vencimiento_suscripcion.split(' ')[0]
-                          : ''
-                      }
-                      onChange={(e) => {
-                        let potentialNewClients = JSON.parse(
-                          JSON.stringify(newClientsData)
-                        );
-                        potentialNewClients[index].vencimiento_suscripcion =
-                          e.target.value +
-                          ' ' +
-                          client.vencimiento_suscripcion.split(' ')[1];
-                        setNewClientsData(potentialNewClients);
-                        if (
-                          !helpers.compareObjects(clients, potentialNewClients)
-                        ) {
-                          setCanChangeData(true);
-                        } else {
-                          setCanChangeData(false);
-                        }
-                      }}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {!canChangeData ? (
-            <button className="btn btn-primary" disabled>
-              Guardar Cambios
-            </button>
-          ) : (
-            <button
-              className="btn btn-primary"
-              onClick={handleUpdateClientsData}
-            >
-              Guardar Cambios
-            </button>
-          )}
-        </>
-      ) : (
-        <table className="table table-striped">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Nombre</th>
-              <th scope="col">NIT</th>
-              <th scope="col">Email</th>
-              <th scope="col">Teléfono</th>
-              <th scope="col">Patente Comercio</th>
-              <th scope="col">Tipo Cliente</th>
-              <th scope="col">¿Tiene Suscripción?</th>
-              <th scope="col">Vencimiento Suscripción</th>
+    <section className="clients-section">
+      <table className="table table-striped mt-3">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Correo electrónico</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Tiempo de envío (días)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {newClients.map((client, index) => (
+            <tr key={index}>
+              <th scope="row">{index + 1}</th>
+              <td>{client.email}</td>
+              <td>{client.name}</td>
+              <td>
+                <input
+                  type="number"
+                  className="form-control text-input"
+                  min={0}
+                  value={
+                    client.shippingTimes.find(
+                      (shippingTime) => shippingTime.factoryId === factoryId
+                    ).shippingTime
+                  }
+                  onChange={(e) => {
+                    const potentialNewShippingTimes = JSON.parse(
+                      JSON.stringify(newClients[index].shippingTimes)
+                    );
+                    potentialNewShippingTimes.find(
+                      (shippingTime) => shippingTime.factoryId === factoryId
+                    ).shippingTime = Number(e.target.value);
+                    const potentialNewClientData = JSON.parse(
+                      JSON.stringify(newClients)
+                    );
+                    potentialNewClientData[index].shippingTimes =
+                      potentialNewShippingTimes;
+                    setNewClients(potentialNewClientData);
+                    setCanChangeData(
+                      !compareShippingTimes(clients, potentialNewClientData)
+                    );
+                  }}
+                />
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {newClientsData.map((client, index) => (
-              <tr key={index}>
-                <th scope="row">{index + 1}</th>
-                <td>{client.nombre}</td>
-                <td>{client.nit || ''}</td>
-                <td>{client.email || ''}</td>
-                <td>{client.telefono || ''}</td>
-                <td>
-                  {client.patente_comercio !== null ? (
-                    <img
-                      className="img-fluid"
-                      src={`http://${secrets.LOCALHOST_IP}${client.patente_comercio}`}
-                      alt="Patente de Comercio"
-                      style={{ width: '150px' }}
-                    />
-                  ) : (
-                    <></>
-                  )}
-                </td>
-                <td>
-                  {
-                    clientTypes[
-                      client.tipo_cliente === 'individual'
-                        ? 0
-                        : client.tipo_cliente === 'grande'
-                        ? 1
-                        : 2
-                    ]
-                  }
-                </td>
-                <td>
-                  {
-                    suscriptionsOptions[
-                      client.tiene_suscripcion === 'True' ? 0 : 1
-                    ]
-                  }
-                </td>
-                <td>
-                  {client.vencimiento_suscripcion !== null
-                    ? client.vencimiento_suscripcion.split(' ')[0]
-                    : ''}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          ))}
+        </tbody>
+      </table>
+      {canChangeData ? (
+        <button
+          className="btn btn-primary mt-3"
+          onClick={handleUpdateClientsData}
+          style={{
+            width: '100%',
+          }}
+        >
+          Actualizar tiempos de envío
+        </button>
+      ) : (
+        <button
+          className="btn btn-primary disabled-btn mt-3"
+          disabled
+          style={{
+            width: '100%',
+          }}
+        >
+          Tiempos de envío sin cambios
+        </button>
       )}
-    </>
+    </section>
   ) : (
     <></>
   );
 }
 
 export default ClientsList;
+
