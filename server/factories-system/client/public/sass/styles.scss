@@ -36,7 +36,7 @@
 // Bootstrap overrides
 $body-bg: $lightestBlue;
 $dark: $darkBlue;
-$light: #b8e3ff;
+$light: #8accf8;
 
 .dropdown-menu {
   .dropdown-item:hover {
@@ -75,6 +75,14 @@ $light: #b8e3ff;
     background-color: $darkBlue !important;
     border-color: $darkBlue !important;
   }
+}
+
+.alert-info {
+  background-color: #fefcc5 !important;
+  border-color: #fefcc5 !important;
+  color: $darkGray !important;
+  margin: 0 -10px 0 10px;
+  width: 100%;
 }
 
 // Global styles
