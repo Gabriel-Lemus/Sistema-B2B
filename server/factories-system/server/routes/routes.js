@@ -220,6 +220,24 @@ router.post("/:schema", async (req, res) => {
             error: `Error creating creating the new order: ${error}`,
           });
         }
+      } else if (params.registerSeller !== undefined) {
+        const seller = req.body;
+
+        // Try to create the new document for the seller
+        try {
+          const newSellerDocument = new schemas[schemaName].schema(seller);
+          await newSellerDocument.save();
+          res.status(201).send({
+            success: true,
+            message: "Client document created successfully.",
+            dataAdded: newSellerDocument,
+          });
+        } catch (error) {
+          return res.status(500).send({
+            success: false,
+            error: `Error creating creating the new seller: ${error}`,
+          });
+        }
       } else {
         res.status(400).send({
           success: false,
