@@ -33,29 +33,34 @@ const PALETTE = {
 };
 
 /**
- * Client pages
+ * Factory pages
  */
-const CLIENT_PAGES = [
+const FACTORY_PAGES = [
   {
     icon: <FiBook />,
-    title: 'Catálogo de dispositivos',
-    reference: '/catalogo-dispositivos',
+    title: 'Catálogo de ventas',
+    reference: '/catalogo-ventas',
   },
-  {
-    icon: <BiPurchaseTagAlt />,
-    title: 'Compras',
-    reference: '/compras',
-  },
-  {
-    icon: <AiOutlineShoppingCart />,
-    title: 'Carrito de Compras',
-    reference: '/carrito-compras',
-  },
-  {
-    icon: <AiOutlineUser />,
-    title: 'Perfil',
-    reference: '/perfil',
-  },
+  // {
+  //   icon: <BiPurchaseTagAlt />,
+  //   title: 'Ventas',
+  //   reference: '/ventas',
+  // },
+  // {
+  //   icon: <MdSell />,
+  //   title: 'Compras',
+  //   reference: '/compras-b2b',
+  // },
+  // {
+  //   icon: <FiUsers />,
+  //   title: 'Clientes',
+  //   reference: '/clientes',
+  // },
+  // {
+  //   icon: <AiOutlineUser />,
+  //   title: 'Perfil',
+  //   reference: '/perfil',
+  // },
 ];
 
 /**
@@ -67,42 +72,27 @@ const SELLER_PAGES = [
     title: 'Catálogo de ventas',
     reference: '/catalogo-ventas',
   },
-  {
-    icon: <BiPurchaseTagAlt />,
-    title: 'Ventas',
-    reference: '/ventas',
-  },
-  {
-    icon: <MdSell />,
-    title: 'Compras',
-    reference: '/compras-b2b',
-  },
-  {
-    icon: <FiUsers />,
-    title: 'Clientes',
-    reference: '/clientes',
-  },
-  {
-    icon: <AiOutlineUser />,
-    title: 'Perfil',
-    reference: '/perfil',
-  },
+  // {
+  //   icon: <BiPurchaseTagAlt />,
+  //   title: 'Ventas',
+  //   reference: '/ventas',
+  // },
+  // {
+  //   icon: <MdSell />,
+  //   title: 'Compras',
+  //   reference: '/compras-b2b',
+  // },
+  // {
+  //   icon: <FiUsers />,
+  //   title: 'Clientes',
+  //   reference: '/clientes',
+  // },
+  // {
+  //   icon: <AiOutlineUser />,
+  //   title: 'Perfil',
+  //   reference: '/perfil',
+  // },
 ];
-
-/**
- * Admin pages
- */
-const ADMIN_PAGES = [...SELLER_PAGES];
-ADMIN_PAGES.splice(ADMIN_PAGES.length - 1, 0, {
-  icon: <AiOutlineDollar />,
-  title: 'Vendedores',
-  reference: '/vendedores',
-});
-ADMIN_PAGES.splice(ADMIN_PAGES.length - 1, 0, {
-  icon: <AiOutlineCopyrightCircle />,
-  title: 'Marcas',
-  reference: '/marcas',
-});
 
 /**
  * Get the copyright text with the current year.
@@ -530,9 +520,8 @@ const getIndexOfObject = (arr, key, value) => {
  */
 const helpers = {
   PALETTE,
-  CLIENT_PAGES,
+  FACTORY_PAGES,
   SELLER_PAGES,
-  ADMIN_PAGES,
   getCopyrightText,
   getAuthors,
   getThousandSeparators,
