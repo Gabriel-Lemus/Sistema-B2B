@@ -5,111 +5,153 @@ import helpers from '../../helpers/helpers';
 import { useNavigate } from 'react-router-dom';
 import Loader from '../molecules/Loader';
 import secrets from '../../helpers/secrets';
+import $ from 'jquery';
 
 function LoginForm() {
-  // State
+  const [userType, setUserType] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Effects
   useEffect(() => {
     // Check if user is logged in
     if (
       helpers.isLoggedIn() &&
-      localStorage.getItem('userType') !== 'vendedor'
+      localStorage.getItem('userType') !== 'fabricante'
     ) {
-      navigate('/Catalogo-Dispositivos');
-    } else if (helpers.isLoggedIn()) {
       navigate('/Catalogo-Ventas');
+    } else if (helpers.isLoggedIn()) {
+      // navigate('/Catalogo-Ventas');
     }
+
+    $('#usertype-dropdown-menu-options').children().eq(0).tooltip({
+      placement: 'right',
+      trigger: 'hover',
+      title: 'Permite el registro de dispositivos electrónicos para su venta.',
+    });
+    $('#usertype-dropdown-menu-options').children().eq(1).tooltip({
+      placement: 'right',
+      trigger: 'hover',
+      title:
+        'Permite realizar compras de los dispositivos electrónicos que ofrecen los fabricantes.',
+    });
   }, []);
 
   // Handlers
-  const handleCredentialsSubmission = () => {
+  const handleCredentialsSubmission = async () => {
     setLoading(true);
-    if (email === '' || password === '') {
-      setLoading(false);
-      helpers.showModal(
-        'Campos vacíos',
-        'Por favor, ingrese su correo electrónico y contraseña.'
-      );
-    } else {
-      (async () => {
-        const parsedEmail = email.replace(/\+/g, '%2b');
-        let checkEmailExists = await axios.get(
-          `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${parsedEmail}`
-        );
-        if (checkEmailExists.data.success) {
-          if (helpers.isValidEmail(email)) {
-            if (checkEmailExists.data.exists) {
-              let credentials = await axios.get(
-                `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&getEmail=${parsedEmail}`
-              );
-              if (
-                helpers.isValidPassword(
-                  password,
-                  credentials.data.salt,
-                  credentials.data.hash
-                )
-              ) {
-                if (credentials.data.tipo_usuario === 'cliente') {
-                  let client = await axios.get(
-                    `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${credentials.data.id_cliente}`
-                  );
-                  helpers.setLoginUserAttributes(
-                    client.data.data.tipo_cliente,
-                    client.data.data.id_cliente,
-                    client.data.data.nombre
-                  );
-                  setLoading(false);
-                  navigate('/Catalogo-Dispositivos');
-                } else {
-                  let seller = await axios.get(
-                    `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=vendedores&id=${credentials.data.id_vendedor}`
-                  );
-                  helpers.setLoginUserAttributes(
-                    'vendedor',
-                    credentials.data.id_vendedor,
-                    seller.data.data.nombre
-                  );
-                  localStorage.setItem(
-                    'isAdmin',
-                    seller.data.data.es_admin === 'True' ? true : false
-                  );
-                  setLoading(false);
-                  navigate('/Catalogo-Ventas');
-                }
+
+    // Check the user has selected a user type
+    if (userType !== '') {
+      // Check that all the fields are filled
+      if (email !== '' && password !== '') {
+        if (userType === 'fabricante') {
+          // Check that a user with the given email exists
+          const emailCheck = await axios.get(
+            `http://localhost:3002/factories?emailExists=${email}`
+          );
+
+          if (emailCheck.data.success) {
+            if (emailCheck.data.emailExists) {
+              const userData = emailCheck.data.data;
+              const salt = userData.salt;
+              const hash = userData.hash;
+
+              if (helpers.isValidPassword(password, salt, hash)) {
+                localStorage.setItem('loggedIn', true);
+                localStorage.setItem('userType', userType);
+                localStorage.setItem('name', userData.name);
+                localStorage.setItem('id', userData._id);
+                setLoading(false);
+                helpers.showOptionModal(
+                  'Bienvenido',
+                  'Enseguida será redirigido a la página principal.',
+                  () => {
+                    navigate('/Catalogo-Ventas');
+                  }
+                );
               } else {
                 setLoading(false);
                 helpers.showModal(
-                  'Credenciales incorrectas',
-                  'Por favor, asegúrese de haber ingresado su correo electrónico y contraseña correctamente.'
+                  'Credenciales inválidas',
+                  'Correo electrónico o contraseña incorrectos. Por favor, asegúrese de haberlas escrito correctamente.'
                 );
               }
             } else {
               setLoading(false);
               helpers.showModal(
-                'Correo electrónico no registrado',
-                'El correo electrónico ingresado no se encuentra registrado. Por favor, asegúrese de haber ingresado el correo electrónico correctamente.'
+                'Credenciales inválidas',
+                'Correo electrónico o contraseña incorrectos. Por favor, asegúrese de haberlas escrito correctamente.'
               );
             }
           } else {
             setLoading(false);
             helpers.showModal(
-              'Correo electrónico inválido',
-              'Por favor, asegúrese de ingresar un correo electrónico válido.'
+              'Error',
+              'Ocurrió un error. Por favor inténtelo de nuevo más tarde.'
             );
           }
         } else {
-          setLoading(false);
-          helpers.showModal(
-            'Error',
-            'Ocurrió un error. Por favor, intente nuevamente.'
+          const emailCheck = await axios.get(
+            `http://localhost:3003/?sellerEmail=${email}`
           );
+
+          if (emailCheck.data.success) {
+            const user = emailCheck.data.data;
+
+            if (emailCheck.data.userExists) {
+              const salt = user.salt;
+              const hash = user.hash;
+
+              if (helpers.isValidPassword(password, salt, hash)) {
+                localStorage.setItem('loggedIn', true);
+                localStorage.setItem('userType', userType);
+                localStorage.setItem('name', user.nombre);
+                setLoading(false);
+                helpers.showOptionModal(
+                  'Bienvenido',
+                  'Enseguida será redirigido a la página principal.',
+                  () => {
+                    // navigate('/Catalogo-Dispositivos');
+                    navigate('/');
+                  }
+                );
+              } else {
+                setLoading(false);
+                helpers.showModal(
+                  'Credenciales inválidas',
+                  'Correo electrónico o contraseña incorrectos. Por favor, asegúrese de haberlas escrito correctamente.'
+                );
+              }
+            } else {
+              setLoading(false);
+              helpers.showModal(
+                'Credenciales inválidas',
+                'Correo electrónico o contraseña incorrectos. Por favor, asegúrese de haberlas escrito correctamente.'
+              );
+            }
+          } else {
+            setLoading(false);
+            helpers.showModal(
+              'Error',
+              'Ocurrió un error. Por favor inténtelo de nuevo más tarde.'
+            );
+          }
         }
-      })();
+      } else {
+        setLoading(false);
+        helpers.showModal(
+          'Datos incompletos',
+          'Por favor, ingrese todos los campos solicitados.'
+        );
+      }
+    } else {
+      setLoading(false);
+      helpers.showModal(
+        'Tipo de usuario no seleccionado',
+        'Por favor, seleccione un tipo de usuario.'
+      );
     }
   };
 
@@ -128,6 +170,81 @@ function LoginForm() {
         <h1 className="h3 mb-3 font-weight-normal text-center">
           Iniciar Sesión
         </h1>
+        <label className="text">Tipo de Usuario</label>
+        <section
+          className="center"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <div
+            className="dropdown"
+            style={{
+              width: '100%',
+            }}
+          >
+            <button
+              id="userTypeDropdown"
+              className="btn btn-primary dropdown-toggle"
+              type="button"
+              data-toggle="dropdown"
+              aria-expanded="false"
+              style={{
+                backgroundColor: helpers.PALETTE.blue,
+                borderColor: helpers.PALETTE.blue,
+                width: '100%',
+              }}
+            >
+              Tipo de Usuario
+            </button>
+            <div
+              style={{
+                height: '10px',
+              }}
+            ></div>
+            <div
+              id="usertype-dropdown-menu-options"
+              className="dropdown-menu"
+              aria-labelledby="userTypeDropdown"
+            >
+              <a
+                className="dropdown-item"
+                onClick={() => {
+                  setUserType('fabricante');
+                  $('#userTypeDropdown').text('Fabricante');
+                  $('#usertype-dropdown-menu-options')
+                    .children()
+                    .removeClass('active');
+                  $('#usertype-dropdown-menu-options')
+                    .children()
+                    .eq(0)
+                    .addClass('active');
+                }}
+              >
+                Fabricante
+              </a>
+              <a
+                className="dropdown-item"
+                onClick={() => {
+                  setUserType('vendedor');
+                  $('#userTypeDropdown').text('Vendedor');
+                  $('#usertype-dropdown-menu-options')
+                    .children()
+                    .removeClass('active');
+                  $('#usertype-dropdown-menu-options')
+                    .children()
+                    .eq(1)
+                    .addClass('active');
+                }}
+              >
+                Vendedor
+              </a>
+            </div>
+          </div>
+        </section>
         <label htmlFor="inputEmail" className="email-input-label">
           Correo Electrónico
         </label>

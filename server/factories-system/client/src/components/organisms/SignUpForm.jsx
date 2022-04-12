@@ -23,7 +23,7 @@ function SignUpForm() {
       helpers.isLoggedIn() &&
       localStorage.getItem('userType') !== 'fabricante'
     ) {
-      // navigate('/Catalogo-Dispositivos');
+      navigate('/Catalogo-Ventas');
     } else if (helpers.isLoggedIn()) {
       // navigate('/Catalogo-Ventas');
     }
@@ -49,7 +49,7 @@ function SignUpForm() {
         if (helpers.isValidEmail(email)) {
           // Check that the email is not already registered
           const vacantEmail = await axios.get(
-            `http://localhost:3002/factory?emailExists=${email}&factoryExists=${factoryName}`
+            `http://localhost:3002/factories?emailExists=${email}&factoryExists=${factoryName}`
           );
 
           if (vacantEmail.data.canAddFactory) {
@@ -62,20 +62,25 @@ function SignUpForm() {
               hash,
             };
             const newFactoryResponse = await axios.post(
-              `http://localhost:3002/factory`,
+              `http://localhost:3002/factories`,
               newFactory
             );
+            const addFactoryAsBrand = await axios.post(
+              `http://localhost:3003/?newBrand=${factoryName}`,
+              {}
+            );
 
-            if (newFactoryResponse.data.success) {
+            if (newFactoryResponse.data.success && addFactoryAsBrand.data.success) {
               localStorage.setItem('loggedIn', true);
               localStorage.setItem('userType', 'fabricante');
               localStorage.setItem('name', factoryName);
+              localStorage.setItem('id', newFactoryResponse.data.dataAdded._id);
               setLoading(false);
               helpers.showOptionModal(
                 'Registro exitoso',
                 'Se ha registrado exitosamente, ahora será redirigido a su catálogo de dispositivos.',
                 () => {
-                  // navigate('/Catalogo-Dispositivos');
+                  navigate('/Catalogo-Ventas');
                   navigate('/');
                 }
               );
