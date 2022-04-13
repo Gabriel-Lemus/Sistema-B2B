@@ -13,6 +13,8 @@ import {
 import { BiPurchaseTagAlt } from 'react-icons/bi';
 import { FiBook, FiUsers } from 'react-icons/fi';
 import { MdSell } from 'react-icons/md';
+import { RiCheckboxMultipleLine } from 'react-icons/ri';
+import { HiOutlineClipboardCheck } from 'react-icons/hi';
 
 /**
  * Color palette
@@ -80,6 +82,21 @@ const SELLER_PAGES = [
     icon: <FiUsers />,
     title: 'Clientes',
     reference: '/clientes',
+  },
+  {
+    icon: <FiBook />,
+    title: 'Dispositivos de fábricas',
+    reference: '/catalogo-dispositivos-fabricas',
+  },
+  {
+    icon: <RiCheckboxMultipleLine />,
+    title: 'Órdenes a fábricas',
+    reference: '/ordenes-a-fabricas',
+  },
+  {
+    icon: <HiOutlineClipboardCheck />,
+    title: 'Gestión de órdenes a fabr.',
+    reference: '/gestion-ordenes-a-fabricas',
   },
   {
     icon: <AiOutlineUser />,
@@ -491,6 +508,43 @@ const formatDate = (date) => {
 };
 
 /**
+ * Format date and time from YYYY-MM-DD HH:mm:ss to day of the week, date de month del year
+ * @param {string} date The date to be formatted.
+ * @return {string} The formatted date.
+ */
+ const formatDate2 = (date) => {
+  let formattedDate = '';
+
+  if (date) {
+    const months = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ];
+
+    let dateObj = new Date(date);
+    let dayOfWeek = getDayOfWeek(dateObj);
+    let day =
+      dateObj.getDate() < 10 ? `0${dateObj.getDate()}` : dateObj.getDate();
+    let month = months[dateObj.getMonth()];
+    let year = dateObj.getFullYear();
+
+    formattedDate = `${dayOfWeek}, ${day} de ${month} del ${year}`;
+  }
+
+  return formattedDate;
+};
+
+/**
  * Iterate through an array of objects and check if a given value is present in an object.
  * @param {object[]} arr The array of objects.
  * @param {string} key The key to be checked.
@@ -551,6 +605,7 @@ const helpers = {
   isValidPassword,
   isValidCardExpirationDate,
   formatDate,
+  formatDate2,
   isValueInArray,
   getIndexOfObject,
 };
