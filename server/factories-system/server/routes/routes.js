@@ -1,6 +1,10 @@
 const express = require("express");
-const mongoose = require("mongoose");
+const axios = require("axios");
 const router = express.Router();
+
+// Environment variables
+const LOCALHOST_IP = process.env.LOCALHOST_IP;
+const WEBSERVICES_PORT = process.env.WEBSERVICES_PORT;
 
 // Existing schemas
 const existingSchemas = ["factories", "devices", "clients", "orders"];
@@ -743,8 +747,22 @@ router.put("/", async (req, res) => {
       const orderId = params.payOrder;
 
       try {
+        // Array that will contain the information of the devices that have been paid for
+        let orderDevices = [];
+
+        // Get the order given its id
         const order = await schemas[existingSchemas[3]].schema.findOne({
           _id: orderId,
+        });
+
+        // Get the client's information
+        const client = await schemas[existingSchemas[2]].schema.findOne({
+          _id: order.clientId.toString(),
+        });
+
+        // Get the factories' information
+        const factories = await schemas[existingSchemas[0]].schema.find({
+          _id: { $in: order.devices.map((device) => device.factoryId) },
         });
 
         // Pay the order
@@ -756,17 +774,60 @@ router.put("/", async (req, res) => {
           order.devices[i].canBeDisplayed = true;
         }
 
-        try {
-          await order.save();
-          res.status(200).send({
-            success: true,
-            message: "The order has been paid.",
-            newOrderData: order,
-          });
-        } catch (error) {
+        // Get the devices data that belong to the order
+        const factoriesDevices = await schemas[existingSchemas[1]].schema.find({
+          _id: { $in: order.devices.map((device) => device.deviceId) },
+        });
+
+        // Populate the orderDevices array with the devices of the order
+        for (let i = 0; i < order.devices.length; i++) {
+          for (let j = 0; j < factoriesDevices.length; j++) {
+            if (
+              order.devices[i].deviceId.toString() ===
+              factoriesDevices[j]._id.toString()
+            ) {
+              // Add the devices data from factoriesDevices as well as the quantity from the order
+              orderDevices.push({
+                ...factoriesDevices[j]._doc,
+                quantity: order.devices[i].quantity,
+                brand: factories.find(
+                  (factory) =>
+                    factory._id.toString() ===
+                    order.devices[i].factoryId.toString()
+                ).name,
+              });
+            }
+          }
+        }
+
+        // Send the paid order to the webservice so that it can be sent to the sales backend
+        const newDevicesOrder = {
+          clientName: client.name,
+          devices: orderDevices,
+        };
+        const uploadDevicesToWebServer = await axios.post(
+          `http://${LOCALHOST_IP}:${WEBSERVICES_PORT}/?paidOrder=true`,
+          newDevicesOrder
+        );
+
+        if (uploadDevicesToWebServer.data.success) {
+          try {
+            await order.save();
+            res.status(200).send({
+              success: true,
+              message: "The order has been paid.",
+              newOrderData: order,
+            });
+          } catch (error) {
+            res.status(500).send({
+              success: false,
+              message: `Error updating the order: ${error}`,
+            });
+          }
+        } else {
           res.status(500).send({
             success: false,
-            message: `Error updating the order: ${error}`,
+            message: `Error uploading the order to the webservice: ${uploadDevicesToWebServer.data.message}`,
           });
         }
       } catch (error) {
