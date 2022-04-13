@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 
 // Existing schemas
@@ -398,6 +399,113 @@ router.get("/:schema", async (req, res) => {
             message: `Error getting data from ${schemaName}: ${error}`,
           });
         }
+      } else if (
+        params.clientOrders !== undefined &&
+        schemaName === existingSchemas[3]
+      ) {
+        const clientId = params.clientOrders;
+        const deliveredOrders = [];
+        const pendingOrders = [];
+        const cancelledOrders = [];
+
+        // Get all the orders of the client
+        try {
+          const orders = await schemas.orders.schema.find({
+            clientId: clientId,
+          });
+
+          for (let i = 0; i < orders.length; i++) {
+            const order = JSON.parse(JSON.stringify(orders[i]));
+
+            // Iterate through the devices in the order and add the device's name to the order
+            for (let j = 0; j < order.devices.length; j++) {
+              const deviceId = order.devices[j].deviceId;
+              const device = await schemas.devices.schema.findOne({
+                _id: deviceId,
+              });
+
+              order.devices[j].name = device.name;
+            }
+
+            if (order.completed && !order.canceled) {
+              deliveredOrders.push(order);
+            } else if (!order.canceled) {
+              pendingOrders.push(order);
+            } else {
+              cancelledOrders.push(order);
+            }
+          }
+
+          res.status(200).send({
+            success: true,
+            deliveredOrdersNumber: deliveredOrders.length,
+            deliveredOrders,
+            pendingOrdersNo: pendingOrders.length,
+            pendingOrders,
+            cancelledOrdersNo: cancelledOrders.length,
+            cancelledOrders,
+          });
+        } catch (error) {
+          res.status(500).send({
+            success: false,
+            message: `Error getting data from ${schemaName}: ${error}`,
+          });
+        }
+      } else if (
+        params.nonDeliveredOrders !== undefined &&
+        schemaName === existingSchemas[3]
+      ) {
+        const factoryId = params.nonDeliveredOrders;
+        const nonDeliveredOrders = [];
+
+        try {
+          // Get all the orders
+          const allOrders = await schemas.orders.schema.find({});
+
+          // Iterate through the orders
+          for (let i = 0; i < allOrders.length; i++) {
+            // Iterate through the devices in the order
+            for (let j = 0; j < allOrders[i].devices.length; j++) {
+              // Check if the device belongs to the factory
+              const deviceId = allOrders[i].devices[j].deviceId;
+              const device = await schemas.devices.schema.findOne({
+                _id: deviceId,
+              });
+
+              if (device.factoryId.toString() === factoryId) {
+                // Check if the order is completed
+                if (
+                  !allOrders[i].completed &&
+                  !allOrders[i].devices[j].delivered
+                ) {
+                  // Get the name of the client
+                  const client = await schemas.clients.schema.findOne({
+                    _id: allOrders[i].clientId,
+                  });
+
+                  // Add the order to the list of non-delivered orders, with the id of the client
+                  nonDeliveredOrders.push({
+                    client: { id: allOrders[i].clientId, name: client.name },
+                    orderId: allOrders[i]._id,
+                    orderDevice: allOrders[i].devices[j],
+                    deviceData: device,
+                  });
+                }
+              }
+            }
+          }
+
+          res.status(200).send({
+            success: true,
+            nonDeliveredOrdersNo: nonDeliveredOrders.length,
+            nonDeliveredOrders,
+          });
+        } catch (error) {
+          res.status(500).send({
+            success: false,
+            message: `Error getting data from ${schemaName}: ${error}`,
+          });
+        }
       } else {
         res.status(400).send({
           success: false,
@@ -503,6 +611,168 @@ router.put("/", async (req, res) => {
         res.status(500).send({
           success: false,
           message: `Error updating data from ${params.schema}: ${error}`,
+        });
+      }
+    } else if (params.updateOrders !== undefined) {
+      const orders = req.body.orders;
+      let changedOrders = [];
+
+      // Iterate through the orders and update them
+      for (let i = 0; i < orders.length; i++) {
+        const orderId = req.body.orders[i]._id;
+        const schema = schemas[existingSchemas[3]].schema;
+
+        // Check if the order exists
+        try {
+          let order = await schema.findOne({ _id: orderId });
+
+          if (order !== null) {
+            // Iterate through the body and update the order
+            for (const [key, value] of Object.entries(req.body.orders[i])) {
+              if (key !== "devices") {
+                order[key] = value;
+              } else {
+                order[key] = JSON.parse(JSON.stringify(value));
+              }
+            }
+
+            // Check if the order has any device with the toDelete property set to true
+            for (let j = 0; j < order.devices.length; j++) {
+              if (
+                order.devices[j].toDelete ||
+                order.devices[j].quantity === 0
+              ) {
+                // Remove the device from the order
+                order.devices.splice(j, 1);
+                j--;
+              }
+            }
+
+            // If the order is left with no devices, set the canceled property to true
+            if (order.devices.length === 0) {
+              order.canceled = true;
+            }
+
+            // Update the order
+            try {
+              await order.save();
+              changedOrders.push(order);
+            } catch (error) {
+              res.status(500).send({
+                success: false,
+                message: `Error updating the order: ${error}`,
+              });
+            }
+          } else {
+            res.status(400).send({
+              success: false,
+              message: `The order with id '${orderId}' does not exist.`,
+            });
+          }
+        } catch (error) {
+          res.status(500).send({
+            success: false,
+            message: `Error updating data from ${existingSchemas[3]}: ${error}`,
+          });
+        }
+      }
+
+      res.status(200).send({
+        success: true,
+        message: "The orders have been updated.",
+        changedOrders,
+      });
+    } else if (
+      params.deliverOrder !== undefined &&
+      params.deviceId !== undefined
+    ) {
+      const orderId = params.deliverOrder;
+      const deviceId = params.deviceId;
+
+      try {
+        const order = await schemas[existingSchemas[3]].schema.findOne({
+          _id: orderId,
+        });
+        const x = 5;
+
+        // Update the device in the devices array in the order
+        for (let i = 0; i < order.devices.length; i++) {
+          if (order.devices[i]._id.toString() === deviceId) {
+            order.devices[i].delivered = true;
+            order.devices[i].deliveredDate = new Date();
+            break;
+          }
+        }
+
+        // Check if all the devices in the order have been delivered so that the order can be marked as completed
+        let allDelivered = true;
+        for (let i = 0; i < order.devices.length; i++) {
+          if (!order.devices[i].delivered) {
+            allDelivered = false;
+            break;
+          }
+        }
+
+        // If all the devices have been delivered, set the order as completed
+        if (allDelivered) {
+          order.completed = true;
+          order.deliveredDate = new Date();
+        }
+
+        // Update the order
+        try {
+          await order.save();
+          res.status(200).send({
+            success: true,
+            message: "The order has been updated.",
+            newOrderData: order,
+          });
+        } catch (error) {
+          res.status(500).send({
+            success: false,
+            message: `Error updating the order: ${error}`,
+          });
+        }
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: `Error updating data from ${existingSchemas[3]}: ${error}`,
+        });
+      }
+    } else if (params.payOrder !== undefined) {
+      const orderId = params.payOrder;
+
+      try {
+        const order = await schemas[existingSchemas[3]].schema.findOne({
+          _id: orderId,
+        });
+
+        // Pay the order
+        order.completelyPayed = true;
+
+        // Iterate through the devices of the order and set the payed and canBeDisplayed properties to true
+        for (let i = 0; i < order.devices.length; i++) {
+          order.devices[i].payed = true;
+          order.devices[i].canBeDisplayed = true;
+        }
+
+        try {
+          await order.save();
+          res.status(200).send({
+            success: true,
+            message: "The order has been paid.",
+            newOrderData: order,
+          });
+        } catch (error) {
+          res.status(500).send({
+            success: false,
+            message: `Error updating the order: ${error}`,
+          });
+        }
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: `Error updating data from ${existingSchemas[3]}: ${error}`,
         });
       }
     } else {
