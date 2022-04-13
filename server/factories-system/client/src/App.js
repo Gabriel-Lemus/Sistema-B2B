@@ -34,15 +34,15 @@ function App() {
           <Route path="/Sign-Up" element={<SignUp />} />
 
           {/* Factories system clients/sales system sellers pages */}
+          <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
+          <Route path="/Ordenes" element={<Orders />} />
+          <Route path="/Gestion-Ordenes" element={<OrdersControl />} />
+          <Route path="/Datos-Dispositivo/:factoryId/:id" element={<DeviceData />} />
+
+          {/* Factories pages */}
           <Route path="/Catalogo-Ventas" element={<SalesCatalog />} />
           <Route path="/Clientes" element={<Clients />} />
           <Route path="/Ordenes-Fabricas" element={<FactoryOrders />} />
-
-          {/* Factories pages */}
-          <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
-          <Route path="/Datos-Dispositivo/:factoryId/:id" element={<DeviceData />} />
-          <Route path="/Ordenes" element={<Orders />} />
-          <Route path="/Gestion-Ordenes" element={<OrdersControl />} />
 
           {/* <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
           <Route path="/Catalogo-Dispositivos-Busqueda/" element={<DevicesCatalogSearch />} />
