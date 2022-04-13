@@ -20,6 +20,10 @@ import Brands from './components/pages/Brands';
 import SellersSales from './components/pages/SellersSales';
 import SellersPurchases from './components/pages/SellersPurchases';
 import DevicesCatalogSearchWait from './components/pages/DevicesCatalogSearchWait';
+import FactoriesDevicesCatalog from './components/pages/FactoriesDevicesCatalog';
+import OrderToFactories from './components/pages/OrderToFactories';
+import FactoriesOrdersControl from './components/pages/FactoriesOrdersControl';
+import FactoriesDeviceData from './components/pages/FactoriesDeviceData';
 
 function App() {
   return (
@@ -48,6 +52,10 @@ function App() {
           <Route path="/Ventas" element={<SellersSales />} />
           <Route path="/Compras-B2B" element={<SellersPurchases />} />
           <Route path="/Marcas" element={<Brands />} />
+          <Route path="/Catalogo-Dispositivos-Fabricas" element={<FactoriesDevicesCatalog />} />
+          <Route path="/Datos-Dispositivo-Fabricas/:factoryId/:id" element={<FactoriesDeviceData />} />
+          <Route path="/Ordenes-A-Fabricas" element={<OrderToFactories />} />
+          <Route path="/Gestion-Ordenes-A-Fabricas" element={<FactoriesOrdersControl />} />
 
           {/* 404 page */}
           <Route path="*" element={<NotFound />} />
