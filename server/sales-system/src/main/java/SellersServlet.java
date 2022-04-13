@@ -311,13 +311,44 @@ public class SellersServlet extends HttpServlet {
                             con.close();
                         }
                     } else {
-                        devicesQuery = "SELECT * FROM " + sellers.get(0) + "_dispositivos WHERE ";
+                        devicesQuery = "SELECT d.id_dispositivo, d.nombre, d.descripcion, d.existencias, d.precio, d.codigo_modelo, d.color, d.categoria, d.tiempo_garantia, f.foto, v.id_vendedor, v.nombre vendedor, m.id_marca, m.nombre marca FROM (SELECT * FROM " + sellers.get(0).replace(" ", "_") + "_dispositivos d WHERE ";
                         
                         for (int i = 0; i < setFields.size(); i++) {
                             devicesQuery += setFields.get(i);
                             if (i < setFields.size() - 1) {
-                                devicesQuery += " AND ";
+                                devicesQuery += " OR ";
                             }
+                        }
+
+                        devicesQuery += " ) d INNER JOIN " + sellers.get(0).replace(" ", "_") + "_fotos_dispositivos f ON d.id_dispositivo = f.id_dispositivo INNER JOIN vendedores v ON d.id_vendedor = v.id_vendedor INNER JOIN marcas m ON d.id_marca = m.id_marca ORDER BY d.id_dispositivo ASC, d.id_vendedor ASC, d.id_marca ASC";
+                        ResultSet rs2 = stmt.executeQuery(devicesQuery);
+                        String jsonString = "{\"success\":true,\"dispositivos\":[";
+
+                        if (rs2.next()) {
+                            rs2.previous();
+
+                            String[] attrs = { "id_dispositivo", "id_vendedor",
+                            "id_marca", "nombre", "descripcion", "existencias",
+                            "precio", "codigo_modelo", "color", "categoria",
+                            "tiempo_garantia", "foto", "vendedor", "marca" };
+                            String[] types = { "VARCHAR2", "INTEGER", "INTEGER",
+                            "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT",
+                            "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER",
+                            "VARCHAR2", "VARCHAR2", "VARCHAR2" };
+
+                            while (rs2.next()) {
+                                jsonString += helper.getRow(rs2, out, attrs, types);
+
+                                if (rs2.isLast()) {
+                                    jsonString += "]}";
+                                } else {
+                                    jsonString += ",";
+                                }
+                            }
+
+                            out.print(formatDevices(jsonString));
+                            out.flush();
+                            con.close();
                         }
                     }
                 } else {
@@ -410,13 +441,44 @@ public class SellersServlet extends HttpServlet {
                             con.close();
                         }
                     } else {
-                        devicesQuery = "SELECT * FROM " + sellers.get(0) + "_dispositivos WHERE ";
+                        devicesQuery = "SELECT d.id_dispositivo, d.nombre, d.descripcion, d.existencias, d.precio, d.codigo_modelo, d.color, d.categoria, d.tiempo_garantia, f.foto, v.id_vendedor, v.nombre vendedor, m.id_marca, m.nombre marca FROM (SELECT * FROM " + sellers.get(0).replace(" ", "_") + "_dispositivos d WHERE ";
                         
                         for (int i = 0; i < setFields.size(); i++) {
                             devicesQuery += setFields.get(i);
                             if (i < setFields.size() - 1) {
                                 devicesQuery += " AND ";
                             }
+                        }
+
+                        devicesQuery += " ) d INNER JOIN " + sellers.get(0).replace(" ", "_") + "_fotos_dispositivos f ON d.id_dispositivo = f.id_dispositivo INNER JOIN vendedores v ON d.id_vendedor = v.id_vendedor INNER JOIN marcas m ON d.id_marca = m.id_marca ORDER BY d.id_dispositivo ASC, d.id_vendedor ASC, d.id_marca ASC";
+                        ResultSet rs2 = stmt.executeQuery(devicesQuery);
+                        String jsonString = "{\"success\":true,\"dispositivos\":[";
+
+                        if (rs2.next()) {
+                            rs2.previous();
+
+                            String[] attrs = { "id_dispositivo", "id_vendedor",
+                            "id_marca", "nombre", "descripcion", "existencias",
+                            "precio", "codigo_modelo", "color", "categoria",
+                            "tiempo_garantia", "foto", "vendedor", "marca" };
+                            String[] types = { "VARCHAR2", "INTEGER", "INTEGER",
+                            "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT",
+                            "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER",
+                            "VARCHAR2", "VARCHAR2", "VARCHAR2" };
+
+                            while (rs2.next()) {
+                                jsonString += helper.getRow(rs2, out, attrs, types);
+
+                                if (rs2.isLast()) {
+                                    jsonString += "]}";
+                                } else {
+                                    jsonString += ",";
+                                }
+                            }
+
+                            out.print(formatDevices(jsonString));
+                            out.flush();
+                            con.close();
                         }
                     }
                 } else {
@@ -633,8 +695,8 @@ public class SellersServlet extends HttpServlet {
                             + schema + "." + vendedor
                             + "_dispositivos d, "
                             + schema + "." + vendedor
-                            + "_fotos_dispositivos f WHERE d.id_dispositivo = f.id_dispositivo AND d.id_dispositivo = "
-                            + dispositivoId + ") df "
+                            + "_fotos_dispositivos f WHERE d.id_dispositivo = f.id_dispositivo AND d.id_dispositivo = '"
+                            + dispositivoId + "') df "
                             + "INNER JOIN vendedores v ON df.id_vendedor = v.id_vendedor INNER JOIN marcas m on df.id_marca = m.id_marca";
                     ResultSet rs = stmt.executeQuery(deviceQuery);
 
