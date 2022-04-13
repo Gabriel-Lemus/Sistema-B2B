@@ -107,6 +107,38 @@ router.post("/", async (req, res) => {
         message: `Error getting factories from factories backend: ${error.message}`,
       });
     }
+  } else if (params.paidOrder !== undefined) {
+    // Upload the devices from a paid order in the factories system to the sales backend
+    const order = req.body;
+    const clientName = order.clientName;
+    const devices = order.devices;
+
+    // Send the devices to the factories backend
+    try {
+      const addDevices = await axios.post(
+        `http://${LOCAL_HOST_IP}:${SALES_BE_PORT}/sales-system/sellers?addPaidOrderDevices=${clientName}`,
+        devices
+      );
+
+      if (addDevices.data.success) {
+        res.status(200).json({
+          success: true,
+          message: "Devices added successfully",
+          data: addDevices.data,
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: `Error adding devices: ${addDevices.data.message}`,
+          data: addDevices.data,
+        });
+      }
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: `Error uploading devices to factories backend: ${error.message}`,
+      });
+    }
   } else {
     res.status(400).send({
       success: false,
