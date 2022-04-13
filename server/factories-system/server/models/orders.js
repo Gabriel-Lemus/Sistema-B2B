@@ -4,6 +4,9 @@ const OrderSchema = new mongoose.Schema({
   clientId: { type: mongoose.Schema.Types.ObjectId, ref: "Client" },
   completed: { type: Boolean, required: true },
   maxDeliveryDate: { type: Date, required: true },
+  deliveredDate: { type: Date, required: false },
+  canceled: { type: Boolean, required: true },
+  completelyPayed: { type: Boolean, required: false },
   devices: [
     {
       factoryId: { type: mongoose.Schema.Types.ObjectId, ref: "Factory" },
