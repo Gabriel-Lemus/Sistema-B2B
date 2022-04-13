@@ -37,6 +37,7 @@ function OrdersForm(props) {
       clientId: localStorage.getItem('id'),
       completed: false,
       maxDeliveryDate: null,
+      canceled: false,
       devices: [
         ...devices.map((device) => ({
           factoryId: device.factoryId,
