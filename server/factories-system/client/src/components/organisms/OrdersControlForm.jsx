@@ -364,7 +364,7 @@ function OrdersForm(props) {
                                   className="form-check-input remove-device-checkbox"
                                 />
                               ) : (
-                                <div>Dispositivo ya entregado</div>
+                                <div>Dispositivo(s) ya entregado</div>
                               )}
                             </div>
                           </td>
