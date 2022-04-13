@@ -271,6 +271,108 @@ router.post("/:schema", async (req, res) => {
             error: `Error creating creating the new seller: ${error}`,
           });
         }
+      } else if (
+        params.newOrderNoClientName !== undefined &&
+        schemaName === existingSchemas[3]
+      ) {
+        let order = req.body;
+        let maxDeliveryDate = null;
+        const clientName = order.clientId;
+
+        // Get the client's id based on their name
+        order.clientId = await schemas[existingSchemas[2]].schema
+          .findOne({
+            name: clientName,
+          })
+          .select("_id");
+
+        // Get the client's shipping times
+        const clientShippingTimes = await schemas[existingSchemas[2]].schema
+          .findOne({
+            _id: order.clientId,
+          })
+          .select("shippingTimes");
+
+        // Iterate through the devices in the order
+        for (let i = 0; i < order.devices.length; i++) {
+          const device = order.devices[i];
+          const deviceShippingTimeDays = await schemas[
+            existingSchemas[1]
+          ].schema
+            .findOne({
+              _id: device.deviceId,
+            })
+            .select("shipping_time");
+
+          // Find the client's shipping time in the clientShippingTimes array where the factoryId matches the device's factoryId
+          const clientShippingTimeDays = clientShippingTimes.shippingTimes.find(
+            (shippingTime) =>
+              shippingTime.factoryId.toString() === device.factoryId
+          ).shippingTime;
+
+          // The estimated delivery date is the device's shipping time in days plus the client's shipping time in days for the given factory
+          const estimatedDeliveryDateDays =
+            deviceShippingTimeDays.shipping_time + clientShippingTimeDays;
+          const estimatedDeliveryDate = new Date(
+            new Date().getTime() +
+              estimatedDeliveryDateDays * 24 * 60 * 60 * 1000
+          );
+
+          // Round the estimated delivery date
+          const estimatedDeliveryDateRounded = new Date(
+            estimatedDeliveryDate.getTime() +
+              24 * 60 * 60 * 1000 -
+              (estimatedDeliveryDate.getTime() % (24 * 60 * 60 * 1000))
+          );
+
+          if (i === 0) {
+            maxDeliveryDate = estimatedDeliveryDateRounded;
+          } else {
+            if (estimatedDeliveryDateRounded > maxDeliveryDate) {
+              maxDeliveryDate = estimatedDeliveryDateRounded;
+            }
+          }
+
+          // Set the device's estimated delivery date
+          device.estimatedDeliveryDate = estimatedDeliveryDateRounded;
+        }
+
+        // Set the order's max delivery date
+        order.maxDeliveryDate = maxDeliveryDate;
+
+        // Try to create the new document for the order
+        try {
+          const newOrderDocument = new schemas[schemaName].schema(order);
+          await newOrderDocument.save();
+          res.status(201).send({
+            success: true,
+            message: "Document created successfully.",
+            dataAdded: newOrderDocument,
+          });
+        } catch (error) {
+          return res.status(500).send({
+            success: false,
+            error: `Error creating creating the new order: ${error}`,
+          });
+        }
+      } else if (params.registerSeller !== undefined) {
+        const seller = req.body;
+
+        // Try to create the new document for the seller
+        try {
+          const newSellerDocument = new schemas[schemaName].schema(seller);
+          await newSellerDocument.save();
+          res.status(201).send({
+            success: true,
+            message: "Client document created successfully.",
+            dataAdded: newSellerDocument,
+          });
+        } catch (error) {
+          return res.status(500).send({
+            success: false,
+            error: `Error creating creating the new seller: ${error}`,
+          });
+        }
       } else {
         res.status(400).send({
           success: false,
@@ -439,6 +541,71 @@ router.get("/:schema", async (req, res) => {
         const deliveredOrders = [];
         const pendingOrders = [];
         const cancelledOrders = [];
+
+        // Get all the orders of the client
+        try {
+          const orders = await schemas.orders.schema.find({
+            clientId: clientId,
+          });
+
+          for (let i = 0; i < orders.length; i++) {
+            const order = JSON.parse(JSON.stringify(orders[i]));
+
+            // Iterate through the devices in the order and add the device's name to the order
+            for (let j = 0; j < order.devices.length; j++) {
+              const deviceId = order.devices[j].deviceId;
+              const device = await schemas.devices.schema.findOne({
+                _id: deviceId,
+              });
+
+              order.devices[j].name = device.name;
+            }
+
+            if (order.completed && !order.canceled) {
+              deliveredOrders.push(order);
+            } else if (!order.canceled) {
+              pendingOrders.push(order);
+            } else {
+              cancelledOrders.push(order);
+            }
+          }
+
+          res.status(200).send({
+            success: true,
+            deliveredOrdersNumber: deliveredOrders.length,
+            deliveredOrders,
+            pendingOrdersNo: pendingOrders.length,
+            pendingOrders,
+            cancelledOrdersNo: cancelledOrders.length,
+            cancelledOrders,
+          });
+        } catch (error) {
+          res.status(500).send({
+            success: false,
+            message: `Error getting data from ${schemaName}: ${error}`,
+          });
+        }
+      } else if (
+        params.clientOrdersNoClientId !== undefined &&
+        schemaName === existingSchemas[3]
+      ) {
+        let clientId = params.clientOrdersNoClientId;
+        const deliveredOrders = [];
+        const pendingOrders = [];
+        const cancelledOrders = [];
+
+        // Get the client's id based on the name
+        try {
+          clientId = await schemas.clients.schema.findOne({
+            name: clientId,
+          });
+          clientId = clientId._id.toString();
+        } catch (error) {
+          res.status(500).send({
+            success: false,
+            message: `Error getting data from ${schemaName}: ${error}`,
+          });          
+        }
 
         // Get all the orders of the client
         try {

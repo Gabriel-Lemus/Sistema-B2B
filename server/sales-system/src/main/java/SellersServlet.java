@@ -11,7 +11,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
@@ -656,6 +659,30 @@ public class SellersServlet extends HttpServlet {
                 helper.printJsonMessage(out, false, "error",
                         "There is no seller with the name " + sellerName + ".");
             }
+        } else if (helper.requestContainsParameter(request, "newOrder")) {
+            String bodyStr = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
+            JSONObject order = new JSONObject(bodyStr);
+            String localHostIP = secrets.getLocalHostIP();
+            String webServerPort = secrets.getWebServerPort();
+            HttpClient client = HttpClientBuilder.create().build();
+            HttpPost postNewOrder = new HttpPost("http://" + localHostIP + ":" + webServerPort + "/?newOrder=true");
+
+            try {
+                // Add the order as the body of the request
+                StringEntity entity = new StringEntity(order.toString());
+                postNewOrder.setEntity(entity);
+                postNewOrder.setHeader("Accept", "application/json");
+                postNewOrder.setHeader("Content-type", "application/json");
+
+                // Send the request
+                HttpResponse postNewOrderResponse = client.execute(postNewOrder);
+                String responseBody = EntityUtils.toString(postNewOrderResponse.getEntity());
+                JSONObject postNewOrderResponseJson = new JSONObject(responseBody);
+
+                out.println(postNewOrderResponseJson.toString());
+            } catch (Exception e) {
+                helper.printErrorMessage(out, e);
+            }
         } else {
             helper.printJsonMessage(out, false, "error",
                     "The request does not contain the required parameters.");
@@ -905,6 +932,53 @@ public class SellersServlet extends HttpServlet {
                 } catch (Exception e) {
                     helper.printErrorMessage(out, e);
                 }
+            } else if (helper.requestContainsParameter(request, "getFactoriesDevices")) {
+                String localHostIP = secrets.getLocalHostIP();
+                String webServerPort = secrets.getWebServerPort();
+                HttpClient client = HttpClientBuilder.create().build();
+                HttpGet getFactoriesDevices = new HttpGet("http://" + localHostIP + ":" + webServerPort + "/?getFactoriesDevices=true");
+
+                try {
+                    HttpResponse getNewClientresponse = client.execute(getFactoriesDevices);
+                    String getNewClientResponseBody = EntityUtils.toString(getNewClientresponse.getEntity());
+                    JSONObject getNewClientResponseJson = new JSONObject(getNewClientResponseBody);
+
+                    out.print(getNewClientResponseJson.toString());
+                } catch (IOException e) {
+                    helper.printErrorMessage(out, e);
+                }
+            } else if (helper.requestContainsParameter(request, "getFactoryDevice")) {
+                String deviceId = request.getParameter("getFactoryDevice");
+                String localHostIP = secrets.getLocalHostIP();
+                String webServerPort = secrets.getWebServerPort();
+                HttpClient client = HttpClientBuilder.create().build();
+                HttpGet getFactoriesDevices = new HttpGet("http://" + localHostIP + ":" + webServerPort + "/?getFactoryDevice=" + deviceId);
+
+                try {
+                    HttpResponse getNewClientresponse = client.execute(getFactoriesDevices);
+                    String getNewClientResponseBody = EntityUtils.toString(getNewClientresponse.getEntity());
+                    JSONObject getNewClientResponseJson = new JSONObject(getNewClientResponseBody);
+
+                    out.print(getNewClientResponseJson.toString());
+                } catch (IOException e) {
+                    helper.printErrorMessage(out, e);
+                }
+            } else if (helper.requestContainsParameter(request, "clientOrdersNoClientId")) {
+                String clientName = request.getParameter("clientOrdersNoClientId");
+                String localHostIP = secrets.getLocalHostIP();
+                String webServerPort = secrets.getWebServerPort();
+                HttpClient client = HttpClientBuilder.create().build();
+                HttpGet getFactoriesDevices = new HttpGet("http://" + localHostIP + ":" + webServerPort + "/?clientOrdersNoClientId=" + clientName);
+
+                try {
+                    HttpResponse getNewClientresponse = client.execute(getFactoriesDevices);
+                    String getNewClientResponseBody = EntityUtils.toString(getNewClientresponse.getEntity());
+                    JSONObject getNewClientResponseJson = new JSONObject(getNewClientResponseBody);
+
+                    out.print(getNewClientResponseJson.toString());
+                } catch (IOException e) {
+                    helper.printErrorMessage(out, e);
+                }
             } else {
                 helper.printJsonMessage(out, false, "error",
                         "The request does not contain the required parameters.");
@@ -936,6 +1010,47 @@ public class SellersServlet extends HttpServlet {
             String vendedor = request.getParameter("verVendedor").replace(" ", "_");
             setSchema(vendedor);
             sqlSchema.handlePut(request, response);
+        } else if (helper.requestContainsParameter(request, "updateOrders")) {
+            String localHostIP = secrets.getLocalHostIP();
+            String webServerPort = secrets.getWebServerPort();
+            String bodyStr = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
+            JSONObject body = new JSONObject(bodyStr);
+            HttpClient client = HttpClientBuilder.create().build();
+            HttpPut updateOrders = new HttpPut("http://" + localHostIP + ":" + webServerPort + "/?updateOrders=true");
+            updateOrders.setEntity(new StringEntity(body.toString()));
+            updateOrders.setHeader("Accept", "application/json");
+            updateOrders.setHeader("Content-type", "application/json");
+
+            try {
+                HttpResponse updateOrdersResponse = client.execute(updateOrders);
+                String updateOrdersResponseBody = EntityUtils.toString(updateOrdersResponse.getEntity());
+                JSONObject updateOrdersResponseJson = new JSONObject(updateOrdersResponseBody);
+
+                out.print(updateOrdersResponseJson.toString());
+            } catch (IOException e) {
+                helper.printErrorMessage(out, e);
+            }
+        } else if (helper.requestContainsParameter(request, "payOrder")) {
+            String orderId = request.getParameter("payOrder");
+            String localHostIP = secrets.getLocalHostIP();
+            String webServerPort = secrets.getWebServerPort();
+            String bodyStr = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
+            JSONObject body = new JSONObject(bodyStr);
+            HttpClient client = HttpClientBuilder.create().build();
+            HttpPut payOrders = new HttpPut("http://" + localHostIP + ":" + webServerPort + "/?payOrder=" + orderId);
+            payOrders.setEntity(new StringEntity(body.toString()));
+            payOrders.setHeader("Accept", "application/json");
+            payOrders.setHeader("Content-type", "application/json");
+
+            try {
+                HttpResponse payOrdersResponse = client.execute(payOrders);
+                String payOrdersResponseBody = EntityUtils.toString(payOrdersResponse.getEntity());
+                JSONObject payOrdersResponseJson = new JSONObject(payOrdersResponseBody);
+
+                out.print(payOrdersResponseJson.toString());
+            } catch (IOException e) {
+                helper.printErrorMessage(out, e);
+            }
         } else {
             helper.printJsonMessage(out, false, "error",
                     "The request does not contain the required parameters.");
