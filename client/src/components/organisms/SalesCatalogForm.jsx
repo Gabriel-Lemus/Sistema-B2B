@@ -279,9 +279,9 @@ function SalesCatalogForm(props) {
                 </tr>
               </thead>
               <tbody>
-                {devices.map((device) => (
-                  <tr key={device.id_dispositivo}>
-                    <th scope="row">{device.id_dispositivo}</th>
+                {devices.map((device, index) => (
+                  <tr key={index}>
+                    <th scope="row">{index + 1}</th>
                     <td>
                       <input
                         type="text"
