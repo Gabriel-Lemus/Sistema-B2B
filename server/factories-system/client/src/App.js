@@ -8,10 +8,12 @@ import SignUp from './components/pages/SignUp';
 import NotFound from './components/pages/NotFound';
 import SalesCatalog from './components/pages/SalesCatalog';
 import Clients from './components/pages/Clients';
+import FactoryOrders from './components/pages/FactoryOrders';
 import DevicesCatalog from './components/pages/DevicesCatalog';
 import DeviceData from './components/pages/DeviceData';
+import Orders from './components/pages/Orders';
+import OrdersControl from './components/pages/OrdersControl';
 import DevicesCatalogSearch from './components/pages/DevicesCatalogSearch';
-import ShoppingCart from './components/pages/ShoppingCart';
 import UserProfile from './components/pages/UserProfile';
 import Sales from './components/pages/Sales';
 import SpecializedSearch from './components/pages/SpecializedSearch';
@@ -31,8 +33,11 @@ function App() {
           <Route path="/Sign-Up" element={<SignUp />} />
           <Route path="/Catalogo-Ventas" element={<SalesCatalog />} />
           <Route path="/Clientes" element={<Clients />} />
+          <Route path="/Ordenes-Fabricas" element={<FactoryOrders />} />
           <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
           <Route path="/Datos-Dispositivo/:factoryId/:id" element={<DeviceData />} />
+          <Route path="/Ordenes" element={<Orders />} />
+          <Route path="/Gestion-Ordenes" element={<OrdersControl />} />
           {/* <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
           <Route path="/Catalogo-Dispositivos-Busqueda/" element={<DevicesCatalogSearch />} />
           <Route path="/Catalogo-Dispositivos-Busqueda-Espera/" element={<DevicesCatalogSearchWait />} />
