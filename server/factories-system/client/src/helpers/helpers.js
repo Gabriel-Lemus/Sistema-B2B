@@ -4,15 +4,10 @@ import $ from 'jquery';
 import CryptoJS from 'crypto-js';
 
 // React icons
-import {
-  AiOutlineUser,
-  AiOutlineShoppingCart,
-  AiOutlineDollar,
-  AiOutlineCopyrightCircle,
-} from 'react-icons/ai';
-import { BiPurchaseTagAlt } from 'react-icons/bi';
 import { FiBook, FiUsers } from 'react-icons/fi';
-import { MdSell } from 'react-icons/md';
+import { RiCheckboxMultipleLine } from 'react-icons/ri';
+import { HiOutlineClipboardCheck } from 'react-icons/hi';
+import { AiOutlineCheckSquare } from 'react-icons/ai';
 
 /**
  * Color palette
@@ -46,21 +41,16 @@ const FACTORY_PAGES = [
     title: 'Clientes',
     reference: '/clientes',
   },
-  // {
-  //   icon: <BiPurchaseTagAlt />,
-  //   title: 'Ventas',
-  //   reference: '/ventas',
-  // },
-  // {
-  //   icon: <MdSell />,
-  //   title: 'Compras',
-  //   reference: '/compras-b2b',
-  // },
-  // {
-  //   icon: <AiOutlineUser />,
-  //   title: 'Perfil',
-  //   reference: '/perfil',
-  // },
+  {
+    icon: <HiOutlineClipboardCheck />,
+    title: 'Gestión de órdenes',
+    reference: '/ordenes-fabricas',
+  },
+  {
+    icon: <AiOutlineCheckSquare />,
+    title: 'Órdenes entregadas',
+    reference: '/ordenes-fabricas-entregadas',
+  },
 ];
 
 /**
@@ -72,26 +62,16 @@ const SELLER_PAGES = [
     title: 'Catálogo de dispositivos',
     reference: '/catalogo-dispositivos',
   },
-  // {
-  //   icon: <BiPurchaseTagAlt />,
-  //   title: 'Ventas',
-  //   reference: '/ventas',
-  // },
-  // {
-  //   icon: <MdSell />,
-  //   title: 'Compras',
-  //   reference: '/compras-b2b',
-  // },
-  // {
-  //   icon: <FiUsers />,
-  //   title: 'Clientes',
-  //   reference: '/clientes',
-  // },
-  // {
-  //   icon: <AiOutlineUser />,
-  //   title: 'Perfil',
-  //   reference: '/perfil',
-  // },
+  {
+    icon: <RiCheckboxMultipleLine />,
+    title: 'Órdenes',
+    reference: '/ordenes',
+  },
+  {
+    icon: <HiOutlineClipboardCheck />,
+    title: 'Gestión de órdenes',
+    reference: '/gestion-ordenes',
+  },
 ];
 
 /**
@@ -482,6 +462,43 @@ const formatDate = (date) => {
 };
 
 /**
+ * Format date and time from YYYY-MM-DD HH:mm:ss to day of the week, date de month del year
+ * @param {string} date The date to be formatted.
+ * @return {string} The formatted date.
+ */
+const formatDate2 = (date) => {
+  let formattedDate = '';
+
+  if (date) {
+    const months = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ];
+
+    let dateObj = new Date(date);
+    let dayOfWeek = getDayOfWeek(dateObj);
+    let day =
+      dateObj.getDate() < 10 ? `0${dateObj.getDate()}` : dateObj.getDate();
+    let month = months[dateObj.getMonth()];
+    let year = dateObj.getFullYear();
+
+    formattedDate = `${dayOfWeek}, ${day} de ${month} del ${year}`;
+  }
+
+  return formattedDate;
+};
+
+/**
  * Iterate through an array of objects and check if a given value is present in an object.
  * @param {object[]} arr The array of objects.
  * @param {string} key The key to be checked.
@@ -516,6 +533,21 @@ const getIndexOfObject = (arr, key, value) => {
 };
 
 /**
+ * Get the difference in days between a date in the future and today
+ * @param {string} date The date to be checked.
+ * @return {number} The difference in days.
+ */
+const getDifferenceInDays = (date) => {
+  let today = new Date();
+  let future = new Date(date);
+  let difference = Math.abs(future - today);
+  let differenceInDays = Math.ceil(difference / (1000 * 3600 * 24));
+
+  return differenceInDays;
+};
+  
+
+/**
  * General helpers
  */
 const helpers = {
@@ -541,8 +573,10 @@ const helpers = {
   isValidPassword,
   isValidCardExpirationDate,
   formatDate,
+  formatDate2,
   isValueInArray,
   getIndexOfObject,
+  getDifferenceInDays,
 };
 
 export default helpers;
