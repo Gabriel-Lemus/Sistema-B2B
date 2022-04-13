@@ -18,7 +18,7 @@ function ClientsList(props) {
     props.setLoading(false);
   }, []);
 
-  const handleSubmitOrder = async (deviceId, orderId) => {
+  const handleSubmitOrder = async (deviceId, orderId, index) => {
     props.setLoading(true);
     const deliverOrder = await axios.put(
       `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/?deliverOrder=${orderId}&deviceId=${deviceId}`,
@@ -26,7 +26,7 @@ function ClientsList(props) {
     );
 
     if (deliverOrder.data.success) {
-      setOrders(orders.filter((order) => order.orderId !== orderId));
+      setOrders(orders.filter((_order, i) => i !== index));
       props.setLoading(false);
       helpers.showModal(
         'Operación exitosa',
@@ -95,7 +95,11 @@ function ClientsList(props) {
                 <button
                   className="btn btn-success mt-3"
                   onClick={() => {
-                    handleSubmitOrder(order.orderDevice._id, order.orderId);
+                    handleSubmitOrder(
+                      order.orderDevice._id,
+                      order.orderId,
+                      index
+                    );
                   }}
                   style={{ width: '100%' }}
                 >
