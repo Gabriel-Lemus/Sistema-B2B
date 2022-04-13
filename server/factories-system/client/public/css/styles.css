@@ -215,6 +215,32 @@
 .no-underline-link {
   text-decoration: none !important; }
 
+.order-container {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 25px; }
+
+.checkbox-center {
+  display: flex;
+  justify-content: center;
+  align-items: center; }
+
+.remove-device-checkbox {
+  margin-top: 15px;
+  width: 20px;
+  height: 20px; }
+
+.device-quantity-input {
+  width: 100px !important;
+  height: 20px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: #eeeeee !important;
+  padding: 5px;
+  margin: 0 10px; }
+
 .factory-devices-list {
   display: flex;
   flex-direction: row;
