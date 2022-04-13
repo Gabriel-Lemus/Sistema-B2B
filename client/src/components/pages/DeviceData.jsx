@@ -146,7 +146,7 @@ function DeviceData() {
           <p>No existe un dispositivo con los datos indicados.</p>
         ) : (
           <DeviceDataSection
-            deviceId={Number(id)}
+            deviceId={id}
             device={device}
             setCurrentImage={setCurrentImage}
             currentImage={currentImage}

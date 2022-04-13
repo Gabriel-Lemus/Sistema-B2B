@@ -20,8 +20,9 @@ function DevicesCatalog(props) {
               }
               alt="Imagen del dispositivo"
               style={{
-                maxWidth: '80%',
-                height: 'auto',
+                height: '150px',
+                width: 'auto',
+                maxWidth: '195px',
               }}
             />
             <p className="card-text">
