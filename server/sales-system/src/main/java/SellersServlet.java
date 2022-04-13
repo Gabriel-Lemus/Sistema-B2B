@@ -60,13 +60,13 @@ public class SellersServlet extends HttpServlet {
                         { "id_dispositivo_x_pedido", "id_pedido", "id_dispositivo", "cantidad_dispositivos", "entregado" },
                 },
                 new String[][] {
-                        { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER" },
-                        { "INTEGER", "INTEGER", "VARCHAR" },
+                        { "VARCHAR2", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER" },
+                        { "INTEGER", "VARCHAR2", "VARCHAR" },
                         { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT", "DATE" },
-                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER" },
-                        { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "VARCHAR2" },
+                        { "INTEGER", "INTEGER", "VARCHAR2", "INTEGER" },
+                        { "INTEGER", "INTEGER", "VARCHAR2", "INTEGER", "VARCHAR2" },
                 },
                 new boolean[][] {
                         { false, false, false, false, false, false, false, false, false, false, false },
@@ -106,7 +106,7 @@ public class SellersServlet extends HttpServlet {
                 currentDevice.remove("foto");
                 currentDevice.put("fotos", fotos);
             } else {
-                if (currentDevice.getInt("id_dispositivo") == newDevice.getInt("id_dispositivo")
+                if (currentDevice.getString("id_dispositivo").equals(newDevice.getString("id_dispositivo"))
                         && currentDevice.getString("vendedor").equals(newDevice.getString("vendedor"))
                         && currentDevice.getString("marca").equals(newDevice.getString("marca"))) {
                     JSONArray fotos = currentDevice.getJSONArray("fotos");
@@ -291,7 +291,7 @@ public class SellersServlet extends HttpServlet {
                             "id_marca", "nombre", "descripcion", "existencias",
                             "precio", "codigo_modelo", "color", "categoria",
                             "tiempo_garantia", "foto", "vendedor", "marca" };
-                            String[] types = { "INTEGER", "INTEGER", "INTEGER",
+                            String[] types = { "VARCHAR2", "INTEGER", "INTEGER",
                             "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT",
                             "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER",
                             "VARCHAR2", "VARCHAR2", "VARCHAR2" };
@@ -390,7 +390,7 @@ public class SellersServlet extends HttpServlet {
                             "id_marca", "nombre", "descripcion", "existencias",
                             "precio", "codigo_modelo", "color", "categoria",
                             "tiempo_garantia", "foto", "vendedor", "marca" };
-                            String[] types = { "INTEGER", "INTEGER", "INTEGER",
+                            String[] types = { "VARCHAR2", "INTEGER", "INTEGER",
                             "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT",
                             "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER",
                             "VARCHAR2", "VARCHAR2", "VARCHAR2" };
@@ -643,7 +643,7 @@ public class SellersServlet extends HttpServlet {
 
                         String[] devicesAttrs = { "id_dispositivo", "nombre", "descripcion", "existencias", "precio",
                                 "codigo_modelo", "color", "categoria", "tiempo_garantia", "vendedor", "marca", "foto" };
-                        String[] devicesTypes = { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
+                        String[] devicesTypes = { "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
                                 "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2" };
                         String jsonResponse = "";
 
@@ -677,11 +677,11 @@ public class SellersServlet extends HttpServlet {
                             ResultSet.CONCUR_READ_ONLY);
                     CallableStatement cs = con.prepareCall("{CALL " + schema + ".GET_ALL_DEVICES()}");
                     cs.execute();
-                    String getDevicesQuery = "SELECT * FROM " + schema + ".all_devices";
+                    String getDevicesQuery = "SELECT * FROM " + schema + ".all_devices ORDER BY id_dispositivo ASC";
                     ResultSet rs = stmt.executeQuery(getDevicesQuery);
                     String[] devicesAttrs = { "id_dispositivo", "nombre", "descripcion", "existencias", "precio",
                             "codigo_modelo", "color", "categoria", "tiempo_garantia", "vendedor", "marca", "foto" };
-                    String[] devicesTypes = { "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
+                    String[] devicesTypes = { "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
                             "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2" };
                     String jsonResponse = "";
 
@@ -763,7 +763,7 @@ public class SellersServlet extends HttpServlet {
                                         "id_marca", "nombre", "descripcion", "existencias", "precio", "codigo_modelo",
                                         "color", "categoria", "tiempo_garantia", "dispositivos_adquiridos" };
                                 String[] types = { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT",
-                                        "FLOAT", "FLOAT", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER",
+                                        "FLOAT", "FLOAT", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER",
                                         "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "INTEGER" };
     
                                 while (rs2.next()) {
@@ -818,7 +818,7 @@ public class SellersServlet extends HttpServlet {
                                     "id_marca", "nombre", "descripcion", "existencias", "precio", "codigo_modelo",
                                     "color", "categoria", "tiempo_garantia", "dispositivos_adquiridos" };
                             String[] types = { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT",
-                                    "FLOAT", "FLOAT", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER",
+                                    "FLOAT", "FLOAT", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER",
                                     "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "INTEGER" };
     
                             while (rs2.next()) {
