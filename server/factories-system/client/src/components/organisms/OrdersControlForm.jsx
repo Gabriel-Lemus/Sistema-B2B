@@ -24,7 +24,6 @@ function OrdersForm(props) {
       const orders = await axios.get(
         `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/orders?clientOrders=${clientId}`
       );
-      console.log(orders.data);
 
       let pendingOrders = JSON.parse(JSON.stringify(orders.data.pendingOrders));
       const completedOrders = JSON.parse(
@@ -40,8 +39,6 @@ function OrdersForm(props) {
           device.toDelete = false;
         });
       });
-      console.log(pendingOrders);
-      console.log(completedOrders);
 
       // If a cancelled order doesn't have any devices, remove it from the cancelled orders array
       for (let i = 0; i < cancelledOrders.length; i++) {
@@ -132,14 +129,12 @@ function OrdersForm(props) {
   };
 
   const handlePayOrder = async (orderIndex) => {
-    // console.log(completedOrders[orderIndex]);
     props.setLoading(true);
 
     const payOrderRes = await axios.put(
       `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/?payOrder=${completedOrders[orderIndex]._id}`,
       {}
     );
-    console.log(payOrderRes.data);
 
     if (payOrderRes.data.success) {
       let newCompletedOrders = JSON.parse(JSON.stringify(completedOrders));

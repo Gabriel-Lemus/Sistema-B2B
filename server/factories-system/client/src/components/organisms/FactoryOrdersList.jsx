@@ -13,7 +13,6 @@ function ClientsList(props) {
         secrets.FACTORIES_BACKEND_PORT
       }/orders?nonDeliveredOrders=${localStorage.getItem('id')}`
     );
-    console.log(ordersData.data);
     setOrders(ordersData.data.nonDeliveredOrders);
 
     props.setLoading(false);
