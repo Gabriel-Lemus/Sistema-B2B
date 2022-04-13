@@ -82,9 +82,12 @@ router.post("/:schema", async (req, res) => {
       });
     }
   } else {
-    const paramsNumber = Object.keys(req.body).length;
+    const paramsNumber = Object.keys(req.params).length;
 
-    if (paramsNumber === 0) {
+    if (
+      paramsNumber === 0 ||
+      (paramsNumber === 1 && schemaName === existingSchemas[0])
+    ) {
       // Try to create the new document
       try {
         const body = req.body;
@@ -123,6 +126,31 @@ router.post("/:schema", async (req, res) => {
           if (!nonRepeatingFieldsExist) {
             const newDocument = new schemas[schemaName].schema(body);
             await newDocument.save();
+
+            // Check if the schema is the factories schema
+            if (schemaName === existingSchemas[0]) {
+              // Get the new factory's id
+              const factoryId = newDocument._id;
+
+              // Add the default shipping times to every client document in the clients collection
+              const clients = await schemas[existingSchemas[2]].schema.find();
+
+              // Iterate through the clients
+              for (let i = 0; i < clients.length; i++) {
+                const client = clients[i];
+                client.shippingTimes.push({
+                  factoryId: factoryId,
+                  shippingTime: 0,
+                });
+              }
+
+              // Update the clients documents
+              await schemas[existingSchemas[2]].schema.updateMany(
+                {},
+                { $set: { shippingTimes: clients[0].shippingTimes } }
+              );
+            }
+
             res.status(201).send({
               success: true,
               message: "Document created successfully.",
