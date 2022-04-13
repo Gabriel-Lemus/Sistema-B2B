@@ -71,6 +71,10 @@ public class SqlTableCrud {
     public String getCheckRowQuery(int recordKey) {
         return "SELECT * FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = " + recordKey;
     }
+    
+    public String getCheckRowQueryStringKey(String recordKey) {
+        return "SELECT * FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = '" + recordKey + "'";
+    }
 
     /**
      * Returns a select everything query with an offset and limit.
@@ -102,6 +106,21 @@ public class SqlTableCrud {
         }
 
         updateQuery += " WHERE " + primaryKey + " = " + recordKey;
+
+        return updateQuery;
+    }
+    
+    public String getUpdateQueryStringKey(JSONObject json, String recordKey) {
+        String updateQuery = "UPDATE " + schema + "." + tableName + " SET ";
+
+        for (int i = 0; i < attributes.length; i++) {
+            updateQuery += attributes[i] + " = "
+                    + (nullableAttributes[i] && json.isNull(attributes[i]) ? "''"
+                            : (helper.getJsonAttrString(json, i, attributes, types)))
+                    + helper.getNeccessaryComma(i, attributes.length);
+        }
+
+        updateQuery += " WHERE " + primaryKey + " = '" + recordKey + "'";
 
         return updateQuery;
     }
@@ -528,20 +547,14 @@ public class SqlTableCrud {
 
                 // Check if the id is empty
                 if (id.length() > 0) {
-                    // Check if the id is numeric
-                    if (helper.isNumeric(id)) {
-                        // Valid id
-                        int recordId = Integer.parseInt(id);
+                    // Valid id
+                    int recordId = Integer.parseInt(id);
 
-                        // Display a record by its id
-                        try {
-                            attemptToGetRecordById(out, recordId);
-                        } catch (Exception e) {
-                            helper.printErrorMessage(out, e);
-                        }
-                    } else {
-                        helper.printJsonMessage(out, false, "error",
-                                "The given id is not a number. Please provide a numeric id.");
+                    // Display a record by its id
+                    try {
+                        attemptToGetRecordById(out, recordId);
+                    } catch (Exception e) {
+                        helper.printErrorMessage(out, e);
                     }
                 } else {
                     // Empty id
@@ -592,7 +605,7 @@ public class SqlTableCrud {
 
                         if (rs2.next()) {
                             rs2.beforeFirst();
-                            
+
                             while (rs2.next()) {
                                 if (tableName == "credenciales_usuarios") {
                                     helper.printRow(rs2, out, new String[] { "nombre", "email", "salt", "hash" },
@@ -706,6 +719,62 @@ public class SqlTableCrud {
         }
     }
 
+    public void insertNewRecordStringId(PrintWriter out, HttpServletRequest request, String recordId) throws Exception {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        Connection con = DriverManager.getConnection(conUrl, user, password);
+        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                ResultSet.CONCUR_READ_ONLY);
+        ResultSet rs = stmt.executeQuery(getCheckRowQueryStringKey(recordId));
+
+        if (rs.next()) {
+            // Record exists
+            JSONObject oldData = new JSONObject();
+
+            // Get the old data
+            for (int i = 0; i < attributes.length; i++) {
+                oldData.put(attributes[i], (types[i] == "INTEGER" ? rs.getInt(attributes[i])
+                        : types[i] == "FLOAT" ? rs.getFloat(attributes[i])
+                                : types[i] == "BOOLEAN" ? rs.getBoolean(attributes[i])
+                                        : types[i] == "BLOB" ? rs.getBlob(attributes[i])
+                                                : rs.getString(attributes[i])));
+            }
+
+            // Get the request body and parse it to a JSON object
+            String body = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
+            JSONObject newData = new JSONObject(body);
+
+            // Remove the id or primary key attribute from the new data if it exists
+            if (newData.has("id")) {
+                newData.remove("id");
+            }
+
+            if (newData.has(primaryKey)) {
+                newData.remove(primaryKey);
+            }
+
+            // Check if the new data is valid
+            for (int i = 0; i < attributes.length; i++) {
+                if (!newData.has(attributes[i])) {
+                    newData.put(attributes[i], (types[i] == "INTEGER" ? oldData.getInt(attributes[i])
+                            : types[i] == "FLOAT" ? oldData.getFloat(attributes[i])
+                                    : types[i] == "BOOLEAN" ? oldData.getBoolean(attributes[i])
+                                            : oldData.getString(attributes[i])));
+                }
+            }
+
+            // Execute the query to update the record
+            String updateQuery = getUpdateQueryStringKey(newData, recordId);
+            stmt.executeUpdate(updateQuery);
+
+            out.print(
+                    "{\"success\":" + true + ",\"message\":\"The data of the record with id " + recordId
+                            + " has been updated.\",\"dataModified\":" + body.toString() + "}");
+        } else {
+            helper.printJsonMessage(out, false, "error",
+                    "The record with the id " + recordId + " does not exist.");
+        }
+    }
+
     /**
      * Put method of the CRUD operations.
      * 
@@ -731,20 +800,11 @@ public class SqlTableCrud {
 
             // Check if the id is empty
             if (id.length() > 0) {
-                // Check if the id is numeric
-                if (helper.isNumeric(id)) {
-                    // Valid id
-                    int recordId = Integer.parseInt(id);
-
-                    // Insert a new record
-                    try {
-                        insertNewRecord(out, request, recordId);
-                    } catch (Exception e) {
-                        helper.printErrorMessage(out, e);
-                    }
-                } else {
-                    helper.printJsonMessage(out, false, "error",
-                            "The given id is not a number. Please provide a numeric id.");
+                // Insert a new record
+                try {
+                    insertNewRecordStringId(out, request, id);
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
                 }
             } else {
                 helper.printJsonMessage(out, false, "error", "The id you set is empty. Please provide one.");
@@ -806,20 +866,14 @@ public class SqlTableCrud {
 
             // Check if the id is empty
             if (id.length() > 0) {
-                // Check if the id is numeric
-                if (helper.isNumeric(id)) {
-                    // Valid id
-                    int recordId = Integer.parseInt(id);
+                // Valid id
+                int recordId = Integer.parseInt(id);
 
-                    // Delete the record
-                    try {
-                        attemptToDeleteRecordById(out, recordId);
-                    } catch (Exception e) {
-                        helper.printErrorMessage(out, e);
-                    }
-                } else {
-                    helper.printJsonMessage(out, false, "error",
-                            "The given id is not a number. Please provide a numeric id.");
+                // Delete the record
+                try {
+                    attemptToDeleteRecordById(out, recordId);
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
                 }
             } else {
                 helper.printJsonMessage(out, false, "error", "The id you set is empty. Please provide one.");
