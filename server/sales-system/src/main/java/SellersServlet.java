@@ -443,6 +443,157 @@ public class SellersServlet extends HttpServlet {
             } catch (IOException e) {
                 helper.printErrorMessage(out, e);
             }
+        } else if (helper.requestContainsParameter(request, "addPaidOrderDevices")) {
+            String sellerName = request.getParameter("addPaidOrderDevices").replace(" ", "_");
+            String bodyStr = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
+            JSONArray devices = new JSONArray(bodyStr);
+            int id_vendedor = -1;
+
+            // Get the id of the seller
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                Connection con = DriverManager.getConnection(conUrl, user, password);
+                Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                        ResultSet.CONCUR_READ_ONLY);
+                String allSellersQuery = "SELECT id_vendedor FROM " + schema + ".vendedores WHERE nombre = '" + sellerName + "'";
+                ResultSet rs = stmt.executeQuery(allSellersQuery);
+
+                if (rs.next()) {
+                    id_vendedor = rs.getInt("id_vendedor");
+                } else {
+                    helper.printJsonMessage(out, false, "error",
+                            "There is no seller with the name " + sellerName + ".");
+                }
+            } catch (Exception e) {
+                helper.printErrorMessage(out, e);
+            }
+
+            if (id_vendedor != -1) {
+                boolean couldModifyAllDevices = true;
+                
+                // Iterate through the devices array and insert them into the seller's devices table
+                for (int i = 0; i < devices.length(); i++) {
+                    // Get the id of the brand/factory
+                    int id_marca = -1;
+                    try {
+                        Class.forName("oracle.jdbc.driver.OracleDriver");
+                        Connection con = DriverManager.getConnection(conUrl, user, password);
+                        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                ResultSet.CONCUR_READ_ONLY);
+                        String allBrandsQuery = "SELECT id_marca FROM " + schema + ".marcas WHERE nombre = '" + devices.getJSONObject(i).getString("brand") + "'";
+                        ResultSet rs = stmt.executeQuery(allBrandsQuery);
+
+                        if (rs.next()) {
+                            id_marca = rs.getInt("id_marca");
+                        } else {
+                            helper.printJsonMessage(out, false, "error",
+                                    "There is no brand with the name " + devices.getJSONObject(i).getString("brand") + ".");
+                        }
+                    } catch (Exception e) {
+                        couldModifyAllDevices = false;
+                        helper.printErrorMessage(out, e);
+                    }
+
+                    // Check if the device already exists in the seller's devices table to update its existences or if it should be inserted
+                    boolean deviceExists = false;
+                    String id_dispositivo = devices.getJSONObject(i).getString("_id");
+                    int currentExistences = 0;
+                    try {
+                        Class.forName("oracle.jdbc.driver.OracleDriver");
+                        Connection con = DriverManager.getConnection(conUrl, user, password);
+                        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                ResultSet.CONCUR_READ_ONLY);
+                        String allDevicesQuery = "SELECT * FROM " + sellerName + "_dispositivos WHERE id_dispositivo = '" + id_dispositivo + "'";
+                        ResultSet rs = stmt.executeQuery(allDevicesQuery);
+
+                        if (rs.next()) {
+                            deviceExists = true;
+                            currentExistences = rs.getInt("existencias");
+                        }
+                    } catch (Exception e) {
+                        couldModifyAllDevices = false;
+                        helper.printErrorMessage(out, e);
+                    }
+
+                    if (id_marca != -1) {
+                        if (!deviceExists) {
+                            // The device doesn't exist, insert it
+                            try {
+                                Class.forName("oracle.jdbc.driver.OracleDriver");
+                                Connection con = DriverManager.getConnection(conUrl, user, password);
+                                Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                        ResultSet.CONCUR_READ_ONLY);
+                                String insertDeviceQuery = "INSERT INTO " + sellerName + "_dispositivos (ID_DISPOSITIVO, ID_VENDEDOR, ID_MARCA, NOMBRE, DESCRIPCION, EXISTENCIAS, PRECIO, CODIGO_MODELO, COLOR, CATEGORIA, TIEMPO_GARANTIA) VALUES (";
+                                insertDeviceQuery += "'" + id_dispositivo + "', '" + id_vendedor + "', '" + id_marca + "', '" + devices.getJSONObject(i).getString("name") + "', '" + devices.getJSONObject(i).getString("description") + "', '" + devices.getJSONObject(i).getInt("quantity") + "', '" + devices.getJSONObject(i).getFloat("price") + "', '" + devices.getJSONObject(i).getString("model_code") + "', '" + devices.getJSONObject(i).getString("color") + "', '" + devices.getJSONObject(i).getString("category") + "', '" + devices.getJSONObject(i).getInt("warranty_time") + "')";
+                                con.setAutoCommit(false);
+                                stmt.executeUpdate(insertDeviceQuery);
+                                con.commit();
+
+                                // Iterate through the photos of the device and insert them into the seller's photos table
+                                JSONArray photos = devices.getJSONObject(i).getJSONArray("images");
+
+                                for (int j = 0; j < photos.length(); j++) {
+                                    int id_foto = -1;
+
+                                    try {
+                                        Class.forName("oracle.jdbc.driver.OracleDriver");
+                                        Connection con2 = DriverManager.getConnection(conUrl, user, password);
+                                        Statement stmt2 = con2.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                                ResultSet.CONCUR_READ_ONLY);
+                                        String photosCountQuery = "SELECT COUNT(*) AS total FROM " + schema + "." + sellerName + "_fotos_dispositivos";
+                                        ResultSet rs = stmt2.executeQuery(photosCountQuery);
+
+                                        if (rs.next()) {
+                                            id_foto = rs.getInt("total") + 1;
+                                        } else {
+                                            couldModifyAllDevices = false;
+                                            helper.printJsonMessage(out, false, "error",
+                                                    "There was an error while trying to get the id of the photo.");
+                                        }
+                                    } catch (Exception e) {
+                                        couldModifyAllDevices = false;
+                                        helper.printErrorMessage(out, e);
+                                    }
+                                    
+                                    String insertPhotoQuery = "INSERT INTO " + sellerName + "_fotos_dispositivos (ID_FOTO, ID_DISPOSITIVO, FOTO) VALUES (";
+                                    insertPhotoQuery += "'" + id_foto + "', '" + id_dispositivo + "', '" + photos.getString(j) + "')";
+                                    stmt.executeUpdate(insertPhotoQuery);
+                                    con.commit();
+                                }
+                            } catch (Exception e) {
+                                couldModifyAllDevices = false;
+                                helper.printErrorMessage(out, e);
+                            }
+                        } else {
+                            // The device exists, update its existences
+                            try {
+                                Class.forName("oracle.jdbc.driver.OracleDriver");
+                                Connection con = DriverManager.getConnection(conUrl, user, password);
+                                Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                        ResultSet.CONCUR_READ_ONLY);
+                                String updateDeviceQuery = "UPDATE " + sellerName + "_dispositivos SET EXISTENCIAS = '" + (currentExistences + devices.getJSONObject(i).getInt("quantity")) + "' WHERE ID_DISPOSITIVO = '" + id_dispositivo + "'";
+                                con.setAutoCommit(false);
+                                stmt.executeUpdate(updateDeviceQuery);
+                                con.commit();
+                            } catch (Exception e) {
+                                couldModifyAllDevices = false;
+                                helper.printErrorMessage(out, e);
+                            }
+                        }
+                    } else {
+                        couldModifyAllDevices = false;
+                        helper.printJsonMessage(out, false, "error",
+                                "There is no brand with the name " + devices.getJSONObject(i).getString("brand") + ".");
+                    }
+                }
+
+                if (couldModifyAllDevices) {
+                    helper.printJsonMessage(out, true, "success", "The devices were successfully modified.");
+                }
+            } else {
+                helper.printJsonMessage(out, false, "error",
+                        "There is no seller with the name " + sellerName + ".");
+            }
         } else {
             helper.printJsonMessage(out, false, "error",
                     "The request does not contain the required parameters.");
