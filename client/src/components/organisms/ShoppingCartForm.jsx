@@ -63,7 +63,7 @@ function ShoppingCartForm(props) {
     setCardCVV(-1);
   };
 
-  const handlePayment = async () => {
+  const handlePayment = async (paid) => {
     props.setLoading(true);
     if (
       userName !== '' &&
@@ -149,6 +149,7 @@ function ShoppingCartForm(props) {
                 descuentos: Number(discountedPrice.toFixed(2)),
                 total_venta: Number(distinctSellers[i].total.toFixed(2)),
                 venta_mostrada: 'False',
+                pagado: paid ? 'True' : 'False',
               }
             );
             distinctSales.push({
@@ -674,14 +675,18 @@ function ShoppingCartForm(props) {
         >
           <button
             className="btn btn-primary btn-large mt-5 mb-4 shopping-cart-list"
-            onClick={handlePayment}
+            onClick={() => {
+              handlePayment(true);
+            }}
           >
             Pagar
           </button>
           {userType === 'distribuidor' ? (
             <button
               className="btn btn-secondary btn-large mb-4 shopping-cart-list"
-              onClick={handlePayment}
+              onClick={() => {
+                handlePayment(false);
+              }}
             >
               Compra a Crédito
             </button>
