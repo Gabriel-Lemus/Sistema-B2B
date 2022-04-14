@@ -16,7 +16,8 @@
     "startWebservices": "cd ./server/webservices && npm start",
     "startDevWebServices": "cd ./server/webservices && npm run dev",
     "sass": "cd ./client && node-sass ./public/sass/styles.scss ./public/css/styles.css --watch",
-    "factoriesSass": "cd ./server/factories-system/client && node-sass ./public/sass/styles.scss ./public/css/styles.css --watch"
+    "factoriesSass": "cd ./server/factories-system/client && node-sass ./public/sass/styles.scss ./public/css/styles.css --watch",
+    "startMongoDB": "sudo mongod --dbpath ~/data/db"
   },
   "repository": {
     "type": "git",
