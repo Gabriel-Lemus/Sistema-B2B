@@ -177,6 +177,72 @@ router.post("/:schema", async (req, res) => {
           error: `Error creating ${schemaName}: ${error}`,
         });
       }
+    } else if (paramsNumber === 1) {
+      // Attempt to insert a new document into the specified collection/schema
+      try {
+        const body = req.body;
+        const requiredFields = schemas[schemaName].fields;
+        const missingFields = requiredFields.filter((field) => {
+          return !Object.keys(body).includes(field);
+        });
+
+        // Check if the required fields are missing
+        if (missingFields.length === 0) {
+          const nonRepeatingFields = schemas[schemaName].nonRepeatingFields;
+          let nonRepeatingFieldsExist = false;
+
+          // Iterate through the non-repeating fields and check if they exist
+          for (
+            let i = 0;
+            i < schemas[schemaName].nonRepeatingFields.length;
+            i++
+          ) {
+            const field = nonRepeatingFields[i];
+            const fieldValue = body[field];
+
+            if (fieldValue !== undefined) {
+              const existingDocuments = await schemas[schemaName].schema.find({
+                [field]: fieldValue,
+              });
+
+              if (existingDocuments.length > 0) {
+                nonRepeatingFieldsExist = true;
+                break;
+              }
+            }
+          }
+
+          // Check if a document with the same non-repeating field already exists
+          if (!nonRepeatingFieldsExist) {
+            const newDocument = new schemas[schemaName].schema(body);
+            await newDocument.save();
+
+            res.status(201).send({
+              success: true,
+              message: "Document created successfully.",
+              dataAdded: newDocument,
+            });
+          } else {
+            res.status(400).send({
+              success: false,
+              message:
+                "A document with the same non-repeating fields already exists.",
+            });
+          }
+        } else {
+          res.status(400).send({
+            success: false,
+            message: `The following fields are required: '${missingFields.join(
+              "', '"
+            )}'.`,
+          });
+        }
+      } catch (error) {
+        return res.status(500).send({
+          success: false,
+          error: `Error inserting into ${schemaName}: ${error}`,
+        });
+      }
     } else {
       const params = req.query;
 
