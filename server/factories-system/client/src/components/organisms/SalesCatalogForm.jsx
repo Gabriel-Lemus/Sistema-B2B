@@ -14,7 +14,7 @@ function SalesCatalogForm(props) {
   useEffect(async () => {
     const factoryName = localStorage.getItem('name');
     const factoryDevices = await axios.get(
-      `http://localhost:3002/devices?factoryDevices=${factoryName}`
+      `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/devices?factoryDevices=${factoryName}`
     );
     setDevices(factoryDevices.data.data);
     setNewDevices(factoryDevices.data.data);
@@ -85,7 +85,7 @@ function SalesCatalogForm(props) {
     // Attempt to delete the device
     try {
       const deleteDeviceRes = await axios.delete(
-        `http://localhost:3002/?deviceId=${deviceId}`
+        `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/?deviceId=${deviceId}`
       );
 
       if (deleteDeviceRes.data.success) {
@@ -117,7 +117,7 @@ function SalesCatalogForm(props) {
       ) {
         try {
           const updateDeviceRes = await axios.put(
-            `http://localhost:3002/?deviceId=${newDevices[i]._id}&schema=devices`,
+            `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/?deviceId=${newDevices[i]._id}&schema=devices`,
             newDevices[i]
           );
 
@@ -214,7 +214,7 @@ function SalesCatalogForm(props) {
             );
             formData.append('product-image', devicesImages[i][j]);
             let factoryDeviceImgRes = await axios.post(
-              `http://${secrets.LOCALHOST_IP}:3001/upload-product-image`,
+              `http://${secrets.LOCALHOST_IP}:${secrets.FILE_SERVER_PORT}/upload-product-image`,
               formData,
               {
                 headers: {
@@ -232,7 +232,7 @@ function SalesCatalogForm(props) {
           // Add the new device to the database
           try {
             const addDeviceRes = await axios.post(
-              `http://localhost:3002/devices`,
+              `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/devices`,
               {
                 ...newDevicesToAdd[i],
                 images: imagesUrls,

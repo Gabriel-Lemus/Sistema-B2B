@@ -46,7 +46,7 @@ function SignUpForm() {
         if (helpers.isValidEmail(email)) {
           // Check that the email is not already registered
           const vacantEmail = await axios.get(
-            `http://localhost:3002/factories?emailExists=${email}&factoryExists=${factoryName}`
+            `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/factories?emailExists=${email}&factoryExists=${factoryName}`
           );
 
           if (vacantEmail.data.canAddFactory) {
@@ -59,15 +59,18 @@ function SignUpForm() {
               hash,
             };
             const newFactoryResponse = await axios.post(
-              `http://localhost:3002/factories`,
+              `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/factories`,
               newFactory
             );
             const addFactoryAsBrand = await axios.post(
-              `http://localhost:3003/?newBrand=${factoryName}`,
+              `http://${secrets.LOCALHOST_IP}:${secrets.WEBSERVICES_PORT}/?newBrand=${factoryName}`,
               {}
             );
 
-            if (newFactoryResponse.data.success && addFactoryAsBrand.data.success) {
+            if (
+              newFactoryResponse.data.success &&
+              addFactoryAsBrand.data.success
+            ) {
               localStorage.setItem('loggedIn', true);
               localStorage.setItem('userType', 'fabricante');
               localStorage.setItem('name', factoryName);

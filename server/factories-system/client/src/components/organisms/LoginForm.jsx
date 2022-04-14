@@ -49,7 +49,7 @@ function LoginForm() {
         if (userType === 'fabricante') {
           // Check that a user with the given email exists
           const emailCheck = await axios.get(
-            `http://localhost:3002/factories?emailExists=${email}`
+            `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/factories?emailExists=${email}`
           );
 
           if (emailCheck.data.success) {
@@ -94,7 +94,7 @@ function LoginForm() {
           }
         } else {
           const emailCheck = await axios.get(
-            `http://localhost:3003/?sellerEmail=${email}`
+            `http://${secrets.LOCALHOST_IP}:${secrets.WEBSERVICES_PORT}/?sellerEmail=${email}`
           );
 
           if (emailCheck.data.success) {
