@@ -1,7 +1,7 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import helpers from '../../helpers/helpers';
-import DashboardTemplate from '../templates/DashboardTemplate';
+import FactoryDashboardTemplate from '../templates/FactoryDashboardTemplate';
 import Loader from '../molecules/Loader';
 import { useNavigate } from 'react-router-dom';
 import secrets from '../../helpers/secrets';
@@ -29,7 +29,7 @@ function FactoriesDevicesCatalog() {
 
   return (
     <>
-      <DashboardTemplate
+      <FactoryDashboardTemplate
         displaySearchBar={true}
         sideBarItems={helpers.SELLER_PAGES}
         pageTitle="Catálogo de dispositivos de fábricas"
@@ -45,7 +45,7 @@ function FactoriesDevicesCatalog() {
         ) : (
           <FactoriesDevicesCards devices={devices} />
         )}
-      </DashboardTemplate>
+      </FactoryDashboardTemplate>
       {loading ? <Loader loading={loading} /> : <></>}
     </>
   );
