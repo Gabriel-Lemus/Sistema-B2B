@@ -140,7 +140,7 @@ function ShoppingCartForm(props) {
                 id_cliente: Number(localStorage.getItem('userId')),
                 id_vendedor: sellerId,
                 fecha_venta: saleDate,
-                precios_venta: Number(salePrices.toFixed(2)),
+                precio_venta: Number(salePrices.toFixed(2)),
                 cantidad_dispositivos: distinctSellers.reduce(
                   (acc, cur) => acc + cur.products,
                   0
@@ -148,6 +148,7 @@ function ShoppingCartForm(props) {
                 impuestos: Number(taxes.toFixed(2)),
                 descuentos: Number(discountedPrice.toFixed(2)),
                 total_venta: Number(distinctSellers[i].total.toFixed(2)),
+                venta_mostrada: 'False',
               }
             );
             distinctSales.push({

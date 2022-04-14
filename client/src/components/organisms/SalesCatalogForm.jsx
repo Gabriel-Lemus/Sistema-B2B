@@ -270,7 +270,7 @@ function SalesCatalogForm(props) {
                   <th scope="col">Dispositivo</th>
                   <th scope="col">Descripción</th>
                   <th scope="col">Existencias</th>
-                  <th scope="col">Precio (Q.)</th>
+                  <th scope="col">Precio de Lista (Q.)</th>
                   <th scope="col">Código de Modelo</th>
                   <th scope="col">Color</th>
                   <th scope="col">Categoría</th>
@@ -279,7 +279,7 @@ function SalesCatalogForm(props) {
                 </tr>
               </thead>
               <tbody>
-                {devices.map((device, index) => (
+                {newDevices.map((device, index) => (
                   <tr key={index}>
                     <th scope="row">{index + 1}</th>
                     <td>
@@ -291,17 +291,11 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevices)
                           );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].nombre = e.target.value;
+                          potentialNewDevices[index].nombre = e.target.value;
                           setNewDevices(potentialNewDevices);
-                          if (
+                          setCatalogChanged(
                             !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
+                          );
                         }}
                       />
                     </td>
@@ -314,17 +308,12 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevices)
                           );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].descripcion = e.target.value;
+                          potentialNewDevices[index].descripcion =
+                            e.target.value;
                           setNewDevices(potentialNewDevices);
-                          if (
+                          setCatalogChanged(
                             !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
+                          );
                         }}
                       />
                     </td>
@@ -338,17 +327,13 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevices)
                           );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].existencias = Number(e.target.value);
+                          potentialNewDevices[index].existencias = Number(
+                            e.target.value
+                          );
                           setNewDevices(potentialNewDevices);
-                          if (
+                          setCatalogChanged(
                             !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
+                          );
                         }}
                       />
                     </td>
@@ -362,17 +347,13 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevices)
                           );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].precio = Number(e.target.value);
+                          potentialNewDevices[index].precio = Number(
+                            e.target.value
+                          );
                           setNewDevices(potentialNewDevices);
-                          if (
+                          setCatalogChanged(
                             !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
+                          );
                         }}
                       />
                     </td>
@@ -385,17 +366,12 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevices)
                           );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].codigo_modelo = e.target.value;
+                          potentialNewDevices[index].codigo_modelo =
+                            e.target.value;
                           setNewDevices(potentialNewDevices);
-                          if (
+                          setCatalogChanged(
                             !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
+                          );
                         }}
                       />
                     </td>
@@ -408,16 +384,11 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevices)
                           );
-                          potentialNewDevices[device.id_dispositivo - 1].color =
-                            e.target.value;
+                          potentialNewDevices[index].color = e.target.value;
                           setNewDevices(potentialNewDevices);
-                          if (
+                          setCatalogChanged(
                             !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
+                          );
                         }}
                       />
                     </td>
@@ -430,17 +401,11 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevices)
                           );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].categoria = e.target.value;
+                          potentialNewDevices[index].categoria = e.target.value;
                           setNewDevices(potentialNewDevices);
-                          if (
+                          setCatalogChanged(
                             !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
+                          );
                         }}
                       />
                     </td>
@@ -452,17 +417,13 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevices)
                           );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].id_marca = Number(e.target.value);
+                          potentialNewDevices[index].id_marca = Number(
+                            e.target.value
+                          );
                           setNewDevices(potentialNewDevices);
-                          if (
+                          setCatalogChanged(
                             !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
+                          );
                         }}
                       >
                         {brands.map((brand) => (
@@ -482,17 +443,13 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevices)
                           );
-                          potentialNewDevices[
-                            device.id_dispositivo - 1
-                          ].tiempo_garantia = Number(e.target.value);
+                          potentialNewDevices[index].tiempo_garantia = Number(
+                            e.target.value
+                          );
                           setNewDevices(potentialNewDevices);
-                          if (
+                          setCatalogChanged(
                             !equivalentDevices(devices, potentialNewDevices)
-                          ) {
-                            setCatalogChanged(true);
-                          } else {
-                            setCatalogChanged(false);
-                          }
+                          );
                         }}
                       />
                     </td>
@@ -532,7 +489,7 @@ function SalesCatalogForm(props) {
                 </tr>
               </thead>
               <tbody>
-                {newDevicesToAdd.map((device) => (
+                {newDevicesToAdd.map((device, index) => (
                   <tr key={device.id_dispositivo}>
                     <th scope="row">{device.id_dispositivo}</th>
                     <td>
@@ -544,15 +501,9 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevicesToAdd)
                           );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].nombre = e.target.value;
+                          potentialNewDevices[index].nombre = e.target.value;
                           setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
+                          setCanAddNewDevices(e.target.value !== '');
                         }}
                       />
                     </td>
@@ -565,15 +516,10 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevicesToAdd)
                           );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].descripcion = e.target.value;
+                          potentialNewDevices[index].descripcion =
+                            e.target.value;
                           setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
+                          setCanAddNewDevices(e.target.value !== '');
                         }}
                       />
                     </td>
@@ -587,15 +533,11 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevicesToAdd)
                           );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].existencias = Number(e.target.value);
+                          potentialNewDevices[index].existencias = Number(
+                            e.target.value
+                          );
                           setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
+                          setCanAddNewDevices(Number(e.target.value) !== 0);
                         }}
                       />
                     </td>
@@ -609,15 +551,11 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevicesToAdd)
                           );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].precio = Number(e.target.value);
+                          potentialNewDevices[index].precio = Number(
+                            e.target.value
+                          );
                           setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
+                          setCanAddNewDevices(Number(e.target.value) !== 0);
                         }}
                       />
                     </td>
@@ -630,15 +568,10 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevicesToAdd)
                           );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].codigo_modelo = e.target.value;
+                          potentialNewDevices[index].codigo_modelo =
+                            e.target.value;
                           setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
+                          setCanAddNewDevices(e.target.value !== '');
                         }}
                       />
                     </td>
@@ -651,15 +584,9 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevicesToAdd)
                           );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].color = e.target.value;
+                          potentialNewDevices[index].color = e.target.value;
                           setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
+                          setCanAddNewDevices(e.target.value !== '');
                         }}
                       />
                     </td>
@@ -672,15 +599,9 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevicesToAdd)
                           );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].categoria = e.target.value;
+                          potentialNewDevices[index].categoria = e.target.value;
                           setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
+                          setCanAddNewDevices(e.target.value !== '');
                         }}
                       />
                     </td>
@@ -692,9 +613,9 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevicesToAdd)
                           );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].id_marca = Number(e.target.value);
+                          potentialNewDevices[index].id_marca = Number(
+                            e.target.value
+                          );
                           setNewDevices(potentialNewDevices);
                         }}
                       >
@@ -715,15 +636,11 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevicesToAdd)
                           );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].tiempo_garantia = Number(e.target.value);
+                          potentialNewDevices[index].tiempo_garantia = Number(
+                            e.target.value
+                          );
                           setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.value !== '') {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
+                          setCanAddNewDevices(Number(e.target.value) !== 0);
                         }}
                       />
                     </td>
@@ -736,15 +653,9 @@ function SalesCatalogForm(props) {
                           let potentialNewDevices = JSON.parse(
                             JSON.stringify(newDevicesToAdd)
                           );
-                          potentialNewDevices[
-                            newDevicesToAdd.indexOf(device)
-                          ].imagenes = e.target.files;
+                          potentialNewDevices[index].imagenes = e.target.files;
                           setNewDevicesToAdd(potentialNewDevices);
-                          if (e.target.files.length > 3) {
-                            setCanAddNewDevices(true);
-                          } else {
-                            setCanAddNewDevices(false);
-                          }
+                          setCanAddNewDevices(e.target.files.length >= 3);
                         }}
                       />
                     </td>
@@ -1076,3 +987,4 @@ function SalesCatalogForm(props) {
 }
 
 export default SalesCatalogForm;
+
