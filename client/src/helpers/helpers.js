@@ -95,7 +95,7 @@ const SELLER_PAGES = [
   },
   {
     icon: <HiOutlineClipboardCheck />,
-    title: 'Gestión de órdenes a fabr.',
+    title: 'Gestión de órdenes a fábricas',
     reference: '/gestion-ordenes-a-fabricas',
   },
   {
