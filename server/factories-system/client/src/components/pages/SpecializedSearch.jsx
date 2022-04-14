@@ -15,7 +15,7 @@ function SpecializedSearch() {
     <>
       <DashboardTemplate
         displaySearchBar={true}
-        sideBarItems={helpers.CLIENT_PAGES}
+        sideBarItems={helpers.SELLER_PAGES}
         pageTitle="Búsqueda Especializada"
       >
         <SpecializedSearchForm loading={loading} setLoading={setLoading} />

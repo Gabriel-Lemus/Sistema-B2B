@@ -9,9 +9,8 @@ import secrets from '../../helpers/secrets';
 function SpecializedSearchForm(props) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [brand, setBrand] = useState(0);
-  const [availableBrands, setavailableBrands] = useState([]);
-  const [existances, setExistances] = useState(-1);
+  const [factoryId, setFactoryId] = useState(0);
+  const [availableFactories, setAvailableFactories] = useState([]);
   const [price, setprice] = useState(-1);
   const [modelCode, setModelCode] = useState('');
   const [color, setColor] = useState('');
@@ -20,13 +19,17 @@ function SpecializedSearchForm(props) {
   const navigate = useNavigate();
 
   useEffect(async () => {
-    // Set the available brands
-    const listedBrands = await axios.get(
-      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=marcas`
+    // Set the available factories
+    const listedFactories = await axios.get(
+      `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/factories`
     );
-    setavailableBrands([
-      { id_marca: 0, nombre: 'Todas las marcas' },
-      ...listedBrands.data.data,
+    const factories = listedFactories.data.data;
+    setAvailableFactories([
+      { id_factory: 0, name: 'Todas las fábricas' },
+      ...factories.map((factory) => ({
+        id_factory: factory._id,
+        name: factory.name,
+      })),
     ]);
     props.setLoading(false);
   }, []);
@@ -35,8 +38,7 @@ function SpecializedSearchForm(props) {
     if (
       name === '' &&
       description === '' &&
-      brand === 0 &&
-      existances === -1 &&
+      factoryId === 0 &&
       price === -1 &&
       modelCode === '' &&
       color === '' &&
@@ -46,20 +48,19 @@ function SpecializedSearchForm(props) {
       navigate('/catalogo-dispositivos');
     } else {
       let deviceSearch = {
-        nombre: name,
-        descripcion: description,
-        id_marca: brand === 0 ? '' : brand.toString(),
-        existencias: existances === -1 ? '' : existances,
-        precio: price === -1 ? '' : price,
-        codigo_modelo: modelCode,
-        color: color,
-        categoria: category,
-        tiempo_garantia: warranty === -1 ? '' : warranty,
+        ...(factoryId !== 0 && { factoryId }),
+        ...(name !== '' && { name }),
+        ...(description !== '' && { description }),
+        ...(price !== -1 && { price }),
+        ...(modelCode !== '' && { model_code: modelCode }),
+        ...(color !== '' && { color }),
+        ...(category !== '' && { category }),
+        ...(warranty !== -1 && { warranty_time: warranty }),
       };
 
       navigate('/catalogo-dispositivos-busqueda', {
         state: {
-          deviceSearch: deviceSearch,
+          searchParams: deviceSearch,
         },
       });
     }
@@ -85,15 +86,6 @@ function SpecializedSearchForm(props) {
             onChange={setDescription}
           />
           <NumberInput
-            label="existances"
-            placeholder="Existencias"
-            required={true}
-            onChange={setExistances}
-            min={0}
-            max={99999}
-            maxLength={5}
-          />
-          <NumberInput
             label="price"
             placeholder="Precio"
             required={true}
@@ -102,14 +94,14 @@ function SpecializedSearchForm(props) {
             max={999999999}
             maxLength={9}
           />
-        </div>
-        <div className="search-param-column">
           <TextInput
             label="modelCode"
             placeholder="Código de Modelo"
             required={true}
             onChange={setModelCode}
           />
+        </div>
+        <div className="search-param-column">
           <TextInput
             label="color"
             placeholder="Color"
@@ -131,35 +123,33 @@ function SpecializedSearchForm(props) {
             max={99999}
             maxLength={5}
           />
+          <label htmlFor="factory" className="text-input-label">
+            Fábrica
+          </label>
+          <select
+            id="factory"
+            className="form-control text-input"
+            onChange={(e) => {
+              setFactoryId(
+                availableFactories[e.target.selectedIndex].id_factory
+              );
+            }}
+            style={{
+              backgroundColor: helpers.PALETTE.lightGray,
+            }}
+          >
+            {!props.loading ? (
+              availableFactories.map((factory) => (
+                <option key={factory.id_factory} value={factory.name}>
+                  {factory.name}
+                </option>
+              ))
+            ) : (
+              <></>
+            )}
+          </select>
         </div>
       </div>
-      <label htmlFor="brand" className="text-input-label">
-        Marca
-      </label>
-      <select
-        id="brand"
-        className="form-control text-input"
-        onChange={(e) => {
-          setBrand(
-            availableBrands.findIndex(
-              (brand) => brand.nombre === e.target.value
-            )
-          );
-        }}
-        style={{
-          backgroundColor: helpers.PALETTE.lightGray,
-        }}
-      >
-        {!props.loading ? (
-          availableBrands.map((brand) => (
-            <option key={brand.id_marca} value={brand.nombre}>
-              {brand.nombre}
-            </option>
-          ))
-        ) : (
-          <></>
-        )}
-      </select>
       <button
         className="btn btn-lg btn-primary btn-block login-btn"
         type="submit"

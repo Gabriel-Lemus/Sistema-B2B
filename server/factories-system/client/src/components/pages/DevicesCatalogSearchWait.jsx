@@ -10,7 +10,7 @@ function DevicesCatalogSearchWait() {
     <>
       <DashboardTemplate
         displaySearchBar={true}
-        sideBarItems={helpers.CLIENT_PAGES}
+        sideBarItems={helpers.SELLER_PAGES}
         pageTitle="Catálogo de dispositivos"
       />
       {loading ? <Loader loading={loading} /> : <></>}

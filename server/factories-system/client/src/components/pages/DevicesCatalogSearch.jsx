@@ -16,27 +16,28 @@ function DevicesCatalogSearch() {
     document.title = 'Catálogo de dispositivos';
     let devicesData;
 
-    if (location.state.deviceSearch !== undefined) {
-      devicesData = await axios.post(
-        `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?busquedaEspecializada=true`,
-        location.state.deviceSearch
+    if (location.state.searchParams !== undefined) {
+      devicesData = await axios.get(
+        `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/devices?specializedDeviceSearch=true`,
+        {
+          params: location.state.searchParams,
+        }
       );
     } else {
       const search = location.state.searchParam;
-      devicesData = await axios.post(
-        `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?busquedaGeneralizada=${search}`,
-        {}
+      devicesData = await axios.get(
+        `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/devices?generalizedDeviceSearch=${search}`
       );
     }
 
     if (devicesData.data.success) {
-      if (devicesData.data.rowCount === 0) {
+      if (devicesData.data.devices.length === 0) {
         helpers.showModal(
           'Operación exitosa',
           `Ningún dipositivo concuerda con la búsqueda.`
         );
       }
-      setDevices(devicesData.data.dispositivos);
+      setDevices(devicesData.data.devices);
     }
     setLoading(false);
   }, []);
@@ -45,7 +46,7 @@ function DevicesCatalogSearch() {
     <>
       <DashboardTemplate
         displaySearchBar={true}
-        sideBarItems={helpers.CLIENT_PAGES}
+        sideBarItems={helpers.SELLER_PAGES}
         pageTitle="Catálogo de dispositivos"
       >
         {devices.length === 0 ? (
@@ -68,3 +69,4 @@ function DevicesCatalogSearch() {
 }
 
 export default DevicesCatalogSearch;
+
