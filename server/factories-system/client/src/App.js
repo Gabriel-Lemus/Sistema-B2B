@@ -38,6 +38,9 @@ function App() {
           <Route path="/Ordenes" element={<Orders />} />
           <Route path="/Gestion-Ordenes" element={<OrdersControl />} />
           <Route path="/Datos-Dispositivo/:factoryId/:id" element={<DeviceData />} />
+          <Route path="/Catalogo-Dispositivos-Busqueda/" element={<DevicesCatalogSearch />} />
+          <Route path="/Catalogo-Dispositivos-Busqueda-Espera/" element={<DevicesCatalogSearchWait />} />
+          <Route path="/Busqueda-Especializada" element={<SpecializedSearch />} />
 
           {/* Factories pages */}
           <Route path="/Catalogo-Ventas" element={<SalesCatalog />} />
