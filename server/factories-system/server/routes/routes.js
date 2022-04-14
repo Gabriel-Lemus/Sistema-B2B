@@ -604,7 +604,7 @@ router.get("/:schema", async (req, res) => {
           res.status(500).send({
             success: false,
             message: `Error getting data from ${schemaName}: ${error}`,
-          });          
+          });
         }
 
         // Get all the orders of the client
@@ -698,6 +698,110 @@ router.get("/:schema", async (req, res) => {
             success: true,
             nonDeliveredOrdersNo: nonDeliveredOrders.length,
             nonDeliveredOrders,
+          });
+        } catch (error) {
+          res.status(500).send({
+            success: false,
+            message: `Error getting data from ${schemaName}: ${error}`,
+          });
+        }
+      } else if (
+        params.generalizedDeviceSearch !== undefined &&
+        schemaName === existingSchemas[1]
+      ) {
+        // Return all the devices that match the search query in any field
+        const searchQuery = params.generalizedDeviceSearch;
+
+        try {
+          // The regex will test if the search query is contained in any of the fields.
+          // Anything can go before or after the search query.
+          const searchQueryRegex = new RegExp(`.*${searchQuery}.*`, "i");
+          let searchQueryIsNumeric = false;
+          let devices;
+
+          // Check if the search query is a number
+          if (!isNaN(searchQuery)) {
+            searchQueryIsNumeric = true;
+          }
+
+          if (!searchQueryIsNumeric) {
+            // Get the devices that match the search query
+            devices = await schemas.devices.schema.find({
+              $or: [
+                { name: searchQueryRegex },
+                { description: searchQueryRegex },
+                { model_code: searchQueryRegex },
+                { color: searchQueryRegex },
+                { category: searchQueryRegex },
+              ],
+            });
+          } else {
+            // Get the devices that match the search query
+            devices = await schemas.devices.schema.find({
+              $or: [{ price: searchQuery }, { warranty_time: searchQuery }],
+            });
+          }
+
+          res.status(200).send({
+            success: true,
+            devices,
+          });
+        } catch (error) {
+          res.status(500).send({
+            success: false,
+            message: `Error getting data from ${schemaName}: ${error}`,
+          });
+        }
+      } else if (
+        params.specializedDeviceSearch !== undefined &&
+        schemaName === existingSchemas[1]
+      ) {
+        let searchParams = req.body.searchParams;
+        let searchQueries = [];
+
+        // If searchParams is empty, look for the params in the query
+        if (
+          searchParams === undefined ||
+          searchParams === null ||
+          Object.keys(searchParams).length === 0
+        ) {
+          searchParams = req.query;
+        }
+
+        // Iterate through the device's schema fields and check if the searchParams contain them and add them to the searchQueries array
+        for (let i = 0; i < schemas[existingSchemas[1]].fields.length; i++) {
+          // Iterate through the keys of the searchParams object
+          for (const key in searchParams) {
+            // Check if the key is the same as the field's name
+            if (key === schemas[existingSchemas[1]].fields[i]) {
+              // Check if the field is a number
+              if (schemas[existingSchemas[1]].fields[i].type === "number") {
+                // Check if the value is a number
+                if (!isNaN(searchParams[key])) {
+                  // Add the search query to the array
+                  searchQueries.push({
+                    [key]: searchParams[key],
+                  });
+                }
+              } else {
+                // Add the search query to the array
+                searchQueries.push({
+                  [key]: new RegExp(`.*${searchParams[key]}.*`, "i"),
+                });
+              }
+            }
+          }
+        }
+
+        // Return all the devices that match all the search parameters
+        try {
+          const devices = await schemas.devices.schema.find({
+            $and: searchQueries,
+          });
+
+          res.status(200).send({
+            success: true,
+            devices,
           });
         } catch (error) {
           res.status(500).send({
