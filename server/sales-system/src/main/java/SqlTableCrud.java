@@ -72,6 +72,10 @@ public class SqlTableCrud {
         return "SELECT * FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = " + recordKey;
     }
     
+    public String getCheckRowQueryString(String recordKey) {
+        return "SELECT * FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = '" + recordKey + "'";
+    }
+    
     public String getCheckRowQueryStringKey(String recordKey) {
         return "SELECT * FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = '" + recordKey + "'";
     }
@@ -478,6 +482,26 @@ public class SqlTableCrud {
                     "The record with the id " + recordId + " does not exist.");
         }
     }
+    
+    public void attemptToGetRecordByStringId(PrintWriter out, String recordId) throws Exception {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        Connection con = DriverManager.getConnection(conUrl, user, password);
+        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                ResultSet.CONCUR_READ_ONLY);
+        ResultSet rs = stmt.executeQuery(getCheckRowQueryString(recordId));
+
+        // Check if the record exists
+        if (rs.next()) {
+            // Record exists
+            out.print("{\"success\":" + true + ",\"data\":");
+            helper.printRow(rs, out, attributes, types);
+            out.print("}");
+        } else {
+            // The record with the given ID does not exist
+            helper.printJsonMessage(out, false, "error",
+                    "The record with the id " + recordId + " does not exist.");
+        }
+    }
 
     /**
      * Get method of the CRUD operations.
@@ -547,12 +571,9 @@ public class SqlTableCrud {
 
                 // Check if the id is empty
                 if (id.length() > 0) {
-                    // Valid id
-                    int recordId = Integer.parseInt(id);
-
                     // Display a record by its id
                     try {
-                        attemptToGetRecordById(out, recordId);
+                        attemptToGetRecordByStringId(out, id);
                     } catch (Exception e) {
                         helper.printErrorMessage(out, e);
                     }
