@@ -25,7 +25,6 @@ public class SqlTableCrud {
     private String[] attributes;
     private String[] types;
     private boolean[] nullableAttributes;
-    private String nonRepeatableField;
     private int maxRows;
     private ServletHelper helper;
 
@@ -45,7 +44,6 @@ public class SqlTableCrud {
         this.attributes = attributes;
         this.types = types;
         this.nullableAttributes = nullableAttributes;
-        this.nonRepeatableField = nonRepeatableField;
         this.maxRows = maxRows;
         this.helper = new ServletHelper();
     }
@@ -71,11 +69,11 @@ public class SqlTableCrud {
     public String getCheckRowQuery(int recordKey) {
         return "SELECT * FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = " + recordKey;
     }
-    
+
     public String getCheckRowQueryString(String recordKey) {
         return "SELECT * FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = '" + recordKey + "'";
     }
-    
+
     public String getCheckRowQueryStringKey(String recordKey) {
         return "SELECT * FROM " + schema + "." + tableName + " WHERE " + primaryKey + " = '" + recordKey + "'";
     }
@@ -113,7 +111,7 @@ public class SqlTableCrud {
 
         return updateQuery;
     }
-    
+
     public String getUpdateQueryStringKey(JSONObject json, String recordKey) {
         String updateQuery = "UPDATE " + schema + "." + tableName + " SET ";
 
@@ -241,33 +239,16 @@ public class SqlTableCrud {
         JSONObject json = new JSONObject(body);
         json.put(primaryKey, newId);
 
-        // Check if the non-repeatable field has to be checked
-        String nonRepeatFieldQuery;
-        int count = -1;
-
-        if (nonRepeatableField != null) {
-            // Check if there is a record with the same value in the non-repeatable field
-            nonRepeatFieldQuery = "SELECT * FROM " + schema + "." + tableName + " WHERE "
-                    + nonRepeatableField + " = '" + json.get(nonRepeatableField) + "'";
-            count = helper.getQueryRowCount(con, nonRepeatFieldQuery);
-        }
-
-        // Check if there are no records with the same value in the non-repeatable field
-        if (count == 0 || nonRepeatableField == null) {
-            // Check if all the attributes are set
-            if (helper.checkIfJsonContainsAttributes(json, attributes)) {
-                try {
-                    attemptToInsertRecord(json, out, newId);
-                } catch (Exception e) {
-                    helper.printErrorMessage(out, e);
-                }
-            } else {
-                helper.printJsonMessage(out, false, "error",
-                        "There are missing attributes. Please make sure to add all of the attributes of the record.");
+        // Check if all the attributes are set
+        if (helper.checkIfJsonContainsAttributes(json, attributes)) {
+            try {
+                attemptToInsertRecord(json, out, newId);
+            } catch (Exception e) {
+                helper.printErrorMessage(out, e);
             }
         } else {
             helper.printJsonMessage(out, false, "error",
-                    "A record with the unique value " + json.get(nonRepeatableField) + " already exists.");
+                    "There are missing attributes. Please make sure to add all of the attributes of the record.");
         }
     }
 
@@ -482,7 +463,7 @@ public class SqlTableCrud {
                     "The record with the id " + recordId + " does not exist.");
         }
     }
-    
+
     public void attemptToGetRecordByStringId(PrintWriter out, String recordId) throws Exception {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection con = DriverManager.getConnection(conUrl, user, password);
