@@ -109,7 +109,7 @@ function OrdersToFactoriesForm(props) {
           {devices.map((device, index) => (
             <Link
               className="no-underline-link"
-              to={`/datos-dispositivo/${device.factoryId}/${device.id}`}
+              to={`/datos-dispositivo-fabricas/${device.factoryId}/${device.id}`}
               key={index}
             >
               <li
