@@ -56,7 +56,7 @@ public class SellersServlet extends HttpServlet {
                 new String[][] {
                         { "id_dispositivo", "id_vendedor", "id_marca", "nombre", "descripcion", "existencias", "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia" },
                         { "id_foto", "id_dispositivo", "foto" },
-                        { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precio_venta", "cantidad_dispositivos", "impuestos", "descuentos", "total_venta", "venta_mostrada" },
+                        { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precio_venta", "cantidad_dispositivos", "impuestos", "descuentos", "total_venta", "venta_mostrada", "pagado" },
                         { "id_pago", "id_venta", "id_cliente", "id_vendedor", "fecha_pago", "total" },
                         { "id_pedido", "id_cliente", "id_vendedor", "fecha_pedido", "precio_pedido", "cantidad_dispositivos", "impuestos", "descuentos", "total_pedido", "fecha_entrega" },
                         { "id_dispositivo_x_venta", "id_venta", "id_dispositivo", "cantidad_dispositivos" },
@@ -65,7 +65,7 @@ public class SellersServlet extends HttpServlet {
                 new String[][] {
                         { "VARCHAR2", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER" },
                         { "INTEGER", "VARCHAR2", "VARCHAR" },
-                        { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT", "BOOLEAN" },
+                        { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT", "BOOLEAN", "BOOLEAN" },
                         { "INTEGER", "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT" },
                         { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT", "FLOAT", "FLOAT", "DATE" },
                         { "INTEGER", "INTEGER", "VARCHAR2", "INTEGER" },
@@ -74,7 +74,7 @@ public class SellersServlet extends HttpServlet {
                 new boolean[][] {
                         { false, false, false, false, false, false, false, false, false, false, false },
                         { false, false, false },
-                        { false, false, false, false, false, false, false, false, false, false },
+                        { false, false, false, false, false, false, false, false, false, false, false },
                         { false, false, false, false, false, false },
                         { false, false, false, false, false, false, false },
                         { false, false, false, false },
@@ -766,7 +766,41 @@ public class SellersServlet extends HttpServlet {
                             ResultSet.CONCUR_READ_ONLY);
                     CallableStatement cs = con.prepareCall("{CALL " + schema + ".GET_ALL_DEVICES()}");
                     cs.execute();
-                    String getDevicesQuery = "SELECT * FROM " + schema + ".all_devices ORDER BY id_dispositivo ASC";
+                    String getDevicesQuery = "SELECT * FROM " + schema + ".all_devices WHERE existencias > 0 ORDER BY id_dispositivo ASC";
+                    ResultSet rs = stmt.executeQuery(getDevicesQuery);
+                    String[] devicesAttrs = { "id_dispositivo", "nombre", "descripcion", "existencias", "precio",
+                            "codigo_modelo", "color", "categoria", "tiempo_garantia", "vendedor", "marca", "foto" };
+                    String[] devicesTypes = { "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
+                            "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2" };
+                    String jsonResponse = "";
+
+                    jsonResponse += "{\"success\":" + true + ",\"dispositivos\":[";
+
+                    while (rs.next()) {
+                        jsonResponse += helper.getRow(rs, out, devicesAttrs, devicesTypes);
+
+                        if (rs.isLast()) {
+                            jsonResponse += "]}";
+                        } else {
+                            jsonResponse += ",";
+                        }
+                    }
+
+                    out.print(formatDevices(jsonResponse));
+                    // out.print(jsonResponse);
+                    con.close();
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                }
+            } else if (helper.requestContainsParameter(request, "dispositivosAgotados")) {
+                try {
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    Connection con = DriverManager.getConnection(conUrl, user, password);
+                    Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    CallableStatement cs = con.prepareCall("{CALL " + schema + ".GET_ALL_DEVICES()}");
+                    cs.execute();
+                    String getDevicesQuery = "SELECT * FROM " + schema + ".all_devices WHERE existencias = 0 ORDER BY id_dispositivo ASC";
                     ResultSet rs = stmt.executeQuery(getDevicesQuery);
                     String[] devicesAttrs = { "id_dispositivo", "nombre", "descripcion", "existencias", "precio",
                             "codigo_modelo", "color", "categoria", "tiempo_garantia", "vendedor", "marca", "foto" };
@@ -871,9 +905,41 @@ public class SellersServlet extends HttpServlet {
                                 con.close();
                             }
                         } else {
-                            salesQuery += "SELECT * FROM (";
-                            salesQuery += "SELECT v.id_venta, v.id_cliente, dv.id_vendedor, v.fecha_venta, v.precio_venta, v.cantidad_dispositivos dispositivos_totales, v.impuestos, v.descuentos, v.total_venta, dv.id_dispositivo, dv.id_marca, dv.nombre, dv.descripcion, dv.existencias, dv.precio, dv.codigo_modelo, dv.color, dv.categoria, dv.tiempo_garantia, dv.cantidad_dispositivos dispositivos_adquiridos FROM " + sellers.get(0).replace(" ", "_") + "_ventas v, (SELECT d.*, dv.id_venta, dv.cantidad_dispositivos from " + sellers.get(0).replace(" ", "_") + "_dispositivos d, " + sellers.get(0).replace(" ", "_") + "_dispositivos_x_ventas dv WHERE d.id_dispositivo = dv.id_dispositivo) dv WHERE v.id_venta = dv.id_venta";
+                            salesQuery = "SELECT * FROM (";
+                            salesQuery += "SELECT v.id_venta, v.id_cliente, dv.id_vendedor, v.fecha_venta, v.precio_venta, v.cantidad_dispositivos dispositivos_totales, v.impuestos, v.descuentos, v.total_venta, v.venta_mostrada, v.pagado, dv.id_dispositivo, dv.id_marca, dv.nombre, dv.descripcion, dv.existencias, dv.precio, dv.codigo_modelo, dv.color, dv.categoria, dv.tiempo_garantia, dv.cantidad_dispositivos dispositivos_adquiridos FROM " + sellers.get(0).replace(" ", "_") + "_ventas v, (SELECT d.*, dv.id_venta, dv.cantidad_dispositivos from " + sellers.get(0).replace(" ", "_") + "_dispositivos d, " + sellers.get(0).replace(" ", "_") + "_dispositivos_x_ventas dv WHERE d.id_dispositivo = dv.id_dispositivo) dv WHERE v.id_venta = dv.id_venta";
                             salesQuery += ") s WHERE s.id_cliente = " + clientId;
+                            ResultSet rs2 = stmt.executeQuery(salesQuery);
+
+                            String jsonString = "{\"success\":true,\"compras\":[";
+
+                            if (rs2.next()) {
+                                rs2.previous();
+
+                                String[] attrs = { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precio_venta",
+                                        "dispositivos_totales", "impuestos", "descuentos", "total_venta", "venta_mostrada",
+                                        "pagado", "id_dispositivo", "id_marca", "nombre", "descripcion", "existencias",
+                                        "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia",
+                                        "dispositivos_adquiridos" };
+                                String[] types = { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT",
+                                        "FLOAT", "FLOAT", "BOOLEAN", "BOOLEAN", "VARCHAR2", "INTEGER", "VARCHAR2",
+                                        "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER",
+                                        "INTEGER" };
+
+                                while (rs2.next()) {
+                                    jsonString += helper.getRow(rs2, out, attrs, types);
+
+                                    if (rs2.isLast()) {
+                                        jsonString += "]}";
+                                    } else {
+                                        jsonString += ",";
+                                    }
+                                }
+                                
+                                // out.print(jsonString);
+                                out.print(formatPurchases(jsonString));
+                                out.flush();
+                                con.close();
+                            }
                         }
                     } else {
                         helper.printJsonMessage(out, false, "error",
