@@ -24,6 +24,9 @@ import FactoriesDevicesCatalog from './components/pages/FactoriesDevicesCatalog'
 import OrderToFactories from './components/pages/OrderToFactories';
 import FactoriesOrdersControl from './components/pages/FactoriesOrdersControl';
 import FactoriesDeviceData from './components/pages/FactoriesDeviceData';
+import FactoryDevicesCatalogSearch from './components/pages/FactoryDevicesCatalogSearch';
+import FactoryDevicesCatalogSearchWait from './components/pages/FactoryDevicesCatalogSearchWait';
+import FactoryDevicesSpecializedSearch from './components/pages/FactoryDevicesSpecializedSearch';
 
 function App() {
   return (
@@ -56,6 +59,9 @@ function App() {
           <Route path="/Datos-Dispositivo-Fabricas/:factoryId/:id" element={<FactoriesDeviceData />} />
           <Route path="/Ordenes-A-Fabricas" element={<OrderToFactories />} />
           <Route path="/Gestion-Ordenes-A-Fabricas" element={<FactoriesOrdersControl />} />
+          <Route path="/Catalogo-Fabrica-Dispositivos-Busqueda/" element={<FactoryDevicesCatalogSearch />} />
+          <Route path="/Catalogo-Fabrica-Dispositivos-Busqueda-Espera/" element={<FactoryDevicesCatalogSearchWait />} />
+          <Route path="/Busqueda-Fabrica-Especializada" element={<FactoryDevicesSpecializedSearch />} />
 
           {/* 404 page */}
           <Route path="*" element={<NotFound />} />
