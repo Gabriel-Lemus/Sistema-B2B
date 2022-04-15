@@ -865,81 +865,112 @@ public class SellersServlet extends HttpServlet {
                     if (sellers.size() > 0) {
                         salesQuery += "SELECT * FROM (";
     
-                        if (sellers.size() > 1) {
-                            for (int i = 0; i < sellers.size(); i++) {
-                                salesQuery += "SELECT v.id_venta, v.id_cliente, dv.id_vendedor, v.fecha_venta, v.precio_venta, v.cantidad_dispositivos dispositivos_totales, v.impuestos, v.descuentos, v.total_venta, dv.id_dispositivo, dv.id_marca, dv.nombre, dv.descripcion, dv.existencias, dv.precio, dv.codigo_modelo, dv.color, dv.categoria, dv.tiempo_garantia, dv.cantidad_dispositivos dispositivos_adquiridos FROM " + sellers.get(i).replace(" ", "_") + "_ventas v, (SELECT d.*, dv.id_venta, dv.cantidad_dispositivos from " + sellers.get(i).replace(" ", "_") + "_dispositivos d, " + sellers.get(i).replace(" ", "_") + "_dispositivos_x_ventas dv WHERE d.id_dispositivo = dv.id_dispositivo) dv WHERE v.id_venta = dv.id_venta";
+                        for (int i = 0; i < sellers.size(); i++) {
+                            salesQuery += "SELECT v.id_venta, v.id_cliente, dv.id_vendedor, v.fecha_venta, v.precio_venta, v.cantidad_dispositivos dispositivos_totales, v.impuestos, v.descuentos, v.total_venta, v.venta_mostrada, v.pagado, dv.id_dispositivo, dv.id_marca, dv.nombre, dv.descripcion, dv.existencias, dv.precio, dv.codigo_modelo, dv.color, dv.categoria, dv.tiempo_garantia, dv.cantidad_dispositivos dispositivos_adquiridos FROM " + sellers.get(i).replace(" ", "_") + "_ventas v, (SELECT d.*, dv.id_venta, dv.cantidad_dispositivos from " + sellers.get(i).replace(" ", "_") + "_dispositivos d, " + sellers.get(i).replace(" ", "_") + "_dispositivos_x_ventas dv WHERE d.id_dispositivo = dv.id_dispositivo) dv WHERE v.id_venta = dv.id_venta";
     
-                                if (i < sellers.size() - 1) {
-                                    salesQuery += " UNION ALL ";
-                                }
+                            if (i < sellers.size() - 1) {
+                                salesQuery += " UNION ALL ";
                             }
+                        }
     
-                            salesQuery += ") s WHERE s.id_cliente = " + clientId + " ORDER BY s.fecha_venta ASC, s.id_venta ASC";
-                            ResultSet rs2 = stmt.executeQuery(salesQuery);
-                            String jsonString = "{\"success\":true,\"compras\":[";
+                        salesQuery += ") s WHERE s.id_cliente = " + clientId + " ORDER BY s.fecha_venta ASC, s.id_venta ASC";
+                        ResultSet rs2 = stmt.executeQuery(salesQuery);
+                        JSONObject jsonResponse = new JSONObject();
+                        JSONArray nonCreditSales = new JSONArray();
+                        JSONArray creditSales = new JSONArray();
+                        JSONArray currentSale = new JSONArray();
+
+                        if (rs2.next()) {
+                            rs2.previous();
+                            int currentSaleId = -1;
+                            int prevSaleId = -1;
+                            boolean firstSale = true;
+
+                            String[] attrs = { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precio_venta",
+                                "dispositivos_totales", "impuestos", "descuentos", "total_venta", "venta_mostrada",
+                                "pagado", "id_dispositivo", "id_marca", "nombre", "descripcion", "existencias",
+                                "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia",
+                                "dispositivos_adquiridos"
+                            };
+                            String[] types = { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT",
+                                "FLOAT", "FLOAT", "BOOLEAN", "BOOLEAN", "VARCHAR2", "INTEGER", "VARCHAR2",
+                                "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER",
+                                "INTEGER"
+                            };
+
+                            // Iterate through the result set and check if each sale is credit or not based on the pagado field
+                            while (rs2.next()) {
+                                JSONObject sale = new JSONObject();
+                                currentSaleId = rs2.getInt("id_venta");
     
-                            if (rs2.next()) {
-                                rs2.previous();
-    
-                                String[] attrs = { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precio_venta",
-                                        "dispositivos_totales", "impuestos", "descuentos", "total_venta", "id_dispositivo",
-                                        "id_marca", "nombre", "descripcion", "existencias", "precio", "codigo_modelo",
-                                        "color", "categoria", "tiempo_garantia", "dispositivos_adquiridos" };
-                                String[] types = { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT",
-                                        "FLOAT", "FLOAT", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "INTEGER",
-                                        "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "INTEGER" };
-    
-                                while (rs2.next()) {
-                                    jsonString += helper.getRow(rs2, out, attrs, types);
-    
-                                    if (rs2.isLast()) {
-                                        jsonString += "]}";
-                                    } else {
-                                        jsonString += ",";
+                                for (int i = 0; i < attrs.length; i++) {
+                                    switch (types[i]) {
+                                        case "INTEGER":
+                                            sale.put(attrs[i], rs2.getInt(attrs[i]));
+                                            break;
+                                        case "FLOAT":
+                                            sale.put(attrs[i], rs2.getFloat(attrs[i]));
+                                            break;
+                                        case "BOOLEAN":
+                                            sale.put(attrs[i], rs2.getString(attrs[i]).equals("True"));
+                                            break;
+                                        default:
+                                            sale.put(attrs[i], rs2.getString(attrs[i]));
+                                            break;
                                     }
                                 }
     
-                                // out.print(jsonString);
-                                out.print(formatPurchases(jsonString));
-                                out.flush();
-                                con.close();
+                                // Group the different sales by id_venta
+                                if (firstSale) {
+                                    currentSale.put(sale);
+                                    prevSaleId = currentSaleId;
+                                    firstSale = false;
+                                } else {
+                                    if (currentSaleId == prevSaleId) {
+                                        currentSale.put(sale);
+                                    } else {
+                                        if (currentSale.getJSONObject(0).getBoolean("pagado")) {
+                                            creditSales.put(currentSale);
+                                        } else {
+                                            nonCreditSales.put(currentSale);
+                                        }
+    
+                                        currentSale = new JSONArray();
+                                        currentSale.put(sale);
+                                        prevSaleId = currentSaleId;
+                                    }
+                                }
                             }
+
+                            // Add the last sale to the array
+                            if (currentSale.length() > 0) {
+                                if (currentSale.getJSONObject(0).getBoolean("pagado")) {
+                                    creditSales.put(currentSale);
+                                } else {
+                                    nonCreditSales.put(currentSale);
+                                }
+                            }
+
+                            // Add the credit sales and non credit sales to the json response
+                            jsonResponse.put("success", true);
+                            jsonResponse.put("compras", nonCreditSales);
+                            jsonResponse.put("cantidadCompras", nonCreditSales.length());
+                            jsonResponse.put("comprasCredito", creditSales);
+                            jsonResponse.put("cantidadComprasCredito", creditSales.length());
+
+                            out.print(jsonResponse.toString());
+                            out.flush();
+                            con.close();
                         } else {
-                            salesQuery = "SELECT * FROM (";
-                            salesQuery += "SELECT v.id_venta, v.id_cliente, dv.id_vendedor, v.fecha_venta, v.precio_venta, v.cantidad_dispositivos dispositivos_totales, v.impuestos, v.descuentos, v.total_venta, v.venta_mostrada, v.pagado, dv.id_dispositivo, dv.id_marca, dv.nombre, dv.descripcion, dv.existencias, dv.precio, dv.codigo_modelo, dv.color, dv.categoria, dv.tiempo_garantia, dv.cantidad_dispositivos dispositivos_adquiridos FROM " + sellers.get(0).replace(" ", "_") + "_ventas v, (SELECT d.*, dv.id_venta, dv.cantidad_dispositivos from " + sellers.get(0).replace(" ", "_") + "_dispositivos d, " + sellers.get(0).replace(" ", "_") + "_dispositivos_x_ventas dv WHERE d.id_dispositivo = dv.id_dispositivo) dv WHERE v.id_venta = dv.id_venta";
-                            salesQuery += ") s WHERE s.id_cliente = " + clientId;
-                            ResultSet rs2 = stmt.executeQuery(salesQuery);
+                            jsonResponse.put("success", true);
+                            jsonResponse.put("compras", nonCreditSales);
+                            jsonResponse.put("cantidadCompras", nonCreditSales.length());
+                            jsonResponse.put("comprasCredito", creditSales);
+                            jsonResponse.put("cantidadComprasCredito", creditSales.length());
 
-                            String jsonString = "{\"success\":true,\"compras\":[";
-
-                            if (rs2.next()) {
-                                rs2.previous();
-
-                                String[] attrs = { "id_venta", "id_cliente", "id_vendedor", "fecha_venta", "precio_venta",
-                                        "dispositivos_totales", "impuestos", "descuentos", "total_venta", "venta_mostrada",
-                                        "pagado", "id_dispositivo", "id_marca", "nombre", "descripcion", "existencias",
-                                        "precio", "codigo_modelo", "color", "categoria", "tiempo_garantia",
-                                        "dispositivos_adquiridos" };
-                                String[] types = { "INTEGER", "INTEGER", "INTEGER", "DATE", "FLOAT", "INTEGER", "FLOAT",
-                                        "FLOAT", "FLOAT", "BOOLEAN", "BOOLEAN", "VARCHAR2", "INTEGER", "VARCHAR2",
-                                        "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER",
-                                        "INTEGER" };
-
-                                while (rs2.next()) {
-                                    jsonString += helper.getRow(rs2, out, attrs, types);
-
-                                    if (rs2.isLast()) {
-                                        jsonString += "]}";
-                                    } else {
-                                        jsonString += ",";
-                                    }
-                                }
-                                
-                                // out.print(jsonString);
-                                out.print(formatPurchases(jsonString));
-                                out.flush();
-                                con.close();
-                            }
+                            out.print(jsonResponse.toString());
+                            out.flush();
+                            con.close();
                         }
                     } else {
                         helper.printJsonMessage(out, false, "error",
