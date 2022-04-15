@@ -143,7 +143,7 @@ router.post("/", async (req, res) => {
     // Upload a new order to the factories backend
     const order = req.body;
     const uploadOrder = await axios.post(
-      `http://${LOCALHOST_IP}:${FACTORIES_BE_PORT}/orders?newOrderNoClientName=true`,
+      `http://${LOCALHOST_IP}:${FACTORIES_BE_PORT}/orders?newOrderNoClientId=true`,
       order
     );
 
