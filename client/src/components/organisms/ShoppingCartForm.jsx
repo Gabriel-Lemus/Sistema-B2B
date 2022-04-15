@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import helpers from '../../helpers/helpers';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import $ from 'jquery';
 import secrets from '../../helpers/secrets';
@@ -561,40 +561,43 @@ function ShoppingCartForm(props) {
         <h3 className="mb-4">Información del Carrito</h3>
         <ul className="list-group shopping-cart-list">
           {devices.map((device, index) => (
-            <li
+            <Link
+              className="no-underline-link"
+              to={`/datos-dispositivo/${device.vendedor}/${device.id}`}
               key={index}
-              className="list-group-item list-group-item-action clickable"
-              onClick={() => {
-                navigate(`/datos-dispositivo/${device.vendedor}/${device.id}`);
-              }}
             >
-              <div className="d-flex w-100 justify-content-between">
-                <h5 className="mb-1">{device.nombre}</h5>
-              </div>
-              <div className="d-flex w-100 justify-content-between">
-                <p>
-                  <b>Precio de lista:</b>
-                </p>
-                <p>{helpers.getFormattedCurrency('Q. ', device.precio)}</p>
-              </div>
-              <div className="d-flex w-100 justify-content-between">
-                <p>
-                  <b>Cantidad:</b>
-                </p>
-                <p>{device.cantidad}</p>
-              </div>
-              <div className="d-flex w-100 justify-content-between">
-                <p>
-                  <b>Total</b>
-                </p>
-                <p>
-                  {helpers.getFormattedCurrency(
-                    'Q. ',
-                    device.precio * device.cantidad
-                  )}
-                </p>
-              </div>
-            </li>
+              <li
+                key={index}
+                className="list-group-item list-group-item-action clickable"
+              >
+                <div className="d-flex w-100 justify-content-between">
+                  <h5 className="mb-1">{device.nombre}</h5>
+                </div>
+                <div className="d-flex w-100 justify-content-between">
+                  <p>
+                    <b>Precio de lista:</b>
+                  </p>
+                  <p>{helpers.getFormattedCurrency('Q. ', device.precio)}</p>
+                </div>
+                <div className="d-flex w-100 justify-content-between">
+                  <p>
+                    <b>Cantidad:</b>
+                  </p>
+                  <p>{device.cantidad}</p>
+                </div>
+                <div className="d-flex w-100 justify-content-between">
+                  <p>
+                    <b>Total</b>
+                  </p>
+                  <p>
+                    {helpers.getFormattedCurrency(
+                      'Q. ',
+                      device.precio * device.cantidad
+                    )}
+                  </p>
+                </div>
+              </li>
+            </Link>
           ))}
         </ul>
         <ul className="list-group mt-5 shopping-cart-list">
