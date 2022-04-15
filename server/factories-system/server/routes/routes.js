@@ -179,7 +179,10 @@ router.post("/:schema", async (req, res) => {
           error: `Error creating ${schemaName}: ${error}`,
         });
       }
-    } else if (paramsNumber === 1) {
+    } else if (
+      paramsNumber === 1 &&
+      req.query.newOrderNoClientId === undefined
+    ) {
       // Attempt to insert a new document into the specified collection/schema
       try {
         const body = req.body;
@@ -340,7 +343,7 @@ router.post("/:schema", async (req, res) => {
           });
         }
       } else if (
-        params.newOrderNoClientName !== undefined &&
+        params.newOrderNoClientId !== undefined &&
         schemaName === existingSchemas[3]
       ) {
         let order = req.body;
