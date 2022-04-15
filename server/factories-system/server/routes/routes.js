@@ -144,11 +144,13 @@ router.post("/:schema", async (req, res) => {
                 });
               }
 
-              // Update the clients documents
-              await schemas[existingSchemas[2]].schema.updateMany(
-                {},
-                { $set: { shippingTimes: clients[0].shippingTimes } }
-              );
+              // Update the clients documents if there are any
+              if (clients.length > 0) {
+                await schemas[existingSchemas[2]].schema.updateMany(
+                  {},
+                  { $set: { shippingTimes: clients[0].shippingTimes } }
+                );
+              }
             }
 
             res.status(201).send({
