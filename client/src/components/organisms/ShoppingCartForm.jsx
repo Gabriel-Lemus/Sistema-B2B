@@ -43,11 +43,25 @@ function ShoppingCartForm(props) {
         setDiscount(0.15);
       }
     }
+    getClientData();
 
     props.setLoading(false);
   }, []);
 
-  // Handlers
+  const getClientData = async () => {
+    const clientInfo = await axios.get(
+      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=clientes&id=${localStorage.getItem('userId')}`
+    );
+
+    if (clientInfo.data.success) {
+      setUserName(clientInfo.data.data.nombre.split(' ')[0]);
+      setUserLastName(clientInfo.data.data.nombre.split(' ')[1]);
+      setUserNIT(clientInfo.data.data.nit !== undefined || clientInfo.data.data.nit !== null ? clientInfo.data.data.nit : '');
+      setUserEmail(clientInfo.data.data.email !== undefined || clientInfo.data.data.email !== null ? clientInfo.data.data.email : '');
+      setCardHolderName(clientInfo.data.data.nombre);
+    }
+  }
+
   const clearCart = () => {
     localStorage.removeItem('cart');
     setIsCartSet(false);
@@ -132,10 +146,11 @@ function ShoppingCartForm(props) {
             let response = await axios.post(
               `http://${secrets.LOCALHOST_IP}:${
                 secrets.TOMCAT_PORT
-              }/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(
-                ' ',
-                '_'
-              )}&table=${devices[i].vendedor.replace(' ', '_')}_ventas`,
+              }/sales-system/sellers?verVendedor=${devices[
+                i
+              ].vendedor.replaceAll(' ', '_')}&table=${devices[
+                i
+              ].vendedor.replaceAll(' ', '_')}_ventas`,
               {
                 id_cliente: Number(localStorage.getItem('userId')),
                 id_vendedor: sellerId,
@@ -153,26 +168,32 @@ function ShoppingCartForm(props) {
               }
             );
             distinctSales.push({
-              vendedor: devices[i].vendedor,
+              vendedor: distinctSellers[i].sellerId,
               id_venta: response.data.dataAdded.id_venta,
             });
-            const payment = await axios.post(
-              `http://${secrets.LOCALHOST_IP}:${
-                secrets.TOMCAT_PORT
-              }/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(
-                ' ',
-                '_'
-              )}&table=${devices[i].vendedor.replace(' ', '_')}_pagos`,
-              {
-                id_venta: response.data.dataAdded.id_venta,
-                id_cliente: Number(localStorage.getItem('userId')),
-                id_vendedor: sellerId,
-                fecha_pago: saleDate,
-                total: Number(distinctSellers[i].total.toFixed(2)),
-              }
-            );
+            let payment;
 
-            if (!response.data.success && !payment.data.success) {
+            // If the sale was paid, process the payment
+            if (paid) {
+              payment = await axios.post(
+                `http://${secrets.LOCALHOST_IP}:${
+                  secrets.TOMCAT_PORT
+                }/sales-system/sellers?verVendedor=${devices[
+                  i
+                ].vendedor.replaceAll(' ', '_')}&table=${devices[
+                  i
+                ].vendedor.replaceAll(' ', '_')}_pagos`,
+                {
+                  id_venta: response.data.dataAdded.id_venta,
+                  id_cliente: Number(localStorage.getItem('userId')),
+                  id_vendedor: sellerId,
+                  fecha_pago: saleDate,
+                  total: Number(distinctSellers[i].total.toFixed(2)),
+                }
+              );
+            }
+
+            if (!response.data.success && paid && !payment.data.success) {
               break;
             } else {
               successfulPosts++;
@@ -185,10 +206,9 @@ function ShoppingCartForm(props) {
                 secrets.TOMCAT_PORT
               }/sales-system/sellers?get=true&verVendedor=${devices[
                 i
-              ].vendedor.replace(' ', '_')}&table=${devices[i].vendedor.replace(
-                ' ',
-                '_'
-              )}_dispositivos&id=${devices[i].id}`
+              ].vendedor.replaceAll(' ', '_')}&table=${devices[
+                i
+              ].vendedor.replaceAll(' ', '_')}_dispositivos&id=${devices[i].id}`
             );
 
             let newDeviceData = {
@@ -209,25 +229,23 @@ function ShoppingCartForm(props) {
             let couldUpdateDevice = await axios.put(
               `http://${secrets.LOCALHOST_IP}:${
                 secrets.TOMCAT_PORT
-              }/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(
-                ' ',
-                '_'
-              )}&table=${devices[i].vendedor.replace(
-                ' ',
-                '_'
-              )}_dispositivos&id=${devices[i].id}`,
+              }/sales-system/sellers?verVendedor=${devices[
+                i
+              ].vendedor.replaceAll(' ', '_')}&table=${devices[
+                i
+              ].vendedor.replaceAll(' ', '_')}_dispositivos&id=${
+                devices[i].id
+              }`,
               newDeviceData
             );
             let deviceXSale = await axios.post(
               `http://${secrets.LOCALHOST_IP}:${
                 secrets.TOMCAT_PORT
-              }/sales-system/sellers?verVendedor=${devices[i].vendedor.replace(
-                ' ',
-                '_'
-              )}&table=${devices[i].vendedor.replace(
-                ' ',
-                '_'
-              )}_dispositivos_x_ventas`,
+              }/sales-system/sellers?verVendedor=${devices[
+                i
+              ].vendedor.replaceAll(' ', '_')}&table=${devices[
+                i
+              ].vendedor.replaceAll(' ', '_')}_dispositivos_x_ventas`,
               {
                 id_venta: distinctSales.find(
                   (sale) => sale.vendedor === devices[i].vendedor
@@ -248,7 +266,7 @@ function ShoppingCartForm(props) {
             successfulPosts === distinctSellers.length &&
             successfulUpdates === devices.length
           ) {
-            const parsedEmail = userEmail.replace(/\+/g, '%2b');
+            const parsedEmail = userEmail.replaceAll(/\+/g, '%2b');
             const receiptEmail = await axios.post(
               `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/mail?sendReceipt=true&recipient=${parsedEmail}`,
               {
@@ -276,7 +294,9 @@ function ShoppingCartForm(props) {
             props.setLoading(false);
             helpers.showOptionModal(
               'Operación exitosa',
-              'Su pago se ha realizado con éxito.',
+              paid
+                ? 'Su compra ha sido procesada y su pago se ha realizado con éxito.'
+                : 'Su compra ha sido procesada con éxito. Por favor, recuerde realizar el pago de su compra al finalizar el mes.',
               () => {
                 clearCart();
                 window.scrollTo({
@@ -409,6 +429,7 @@ function ShoppingCartForm(props) {
               id="userName"
               className="form-control"
               placeholder="Nombre"
+              value={userName}
               required
               style={{
                 backgroundColor: helpers.PALETTE.lightestGreen,
@@ -425,6 +446,7 @@ function ShoppingCartForm(props) {
               id="userLastName"
               className="form-control"
               placeholder="Apellido"
+              value={userLastName}
               required
               style={{
                 backgroundColor: helpers.PALETTE.lightestGreen,
@@ -441,6 +463,7 @@ function ShoppingCartForm(props) {
           id="NIT"
           className="form-control"
           placeholder="NIT"
+          value={userNIT}
           required
           style={{
             backgroundColor: helpers.PALETTE.lightestGreen,
@@ -456,6 +479,7 @@ function ShoppingCartForm(props) {
           id="userEmail"
           className="form-control"
           placeholder="Correo Electrónico"
+          value={userEmail}
           required
           style={{
             backgroundColor: helpers.PALETTE.lightestGreen,
@@ -489,6 +513,7 @@ function ShoppingCartForm(props) {
               id="cardHolder"
               className="form-control"
               placeholder="Nombre del Titular"
+              value={cardHolderName}
               required
               style={{
                 backgroundColor: helpers.PALETTE.lightestGreen,
@@ -691,7 +716,7 @@ function ShoppingCartForm(props) {
                 handlePayment(false);
               }}
             >
-              Compra a Crédito
+              Comprar a Crédito
             </button>
           ) : (
             <></>

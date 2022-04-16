@@ -37,7 +37,7 @@ function LoginForm() {
       );
     } else {
       (async () => {
-        const parsedEmail = email.replace(/\+/g, '%2b');
+        const parsedEmail = email.replaceAll(/\+/g, '%2b');
         let checkEmailExists = await axios.get(
           `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${parsedEmail}`
         );

@@ -19,9 +19,9 @@ function SalesCatalogForm(props) {
         secrets.TOMCAT_PORT
       }/sales-system/sellers?get=true&verVendedor=${localStorage
         .getItem('userName')
-        .replace(/\s/g, '_')}&table=${localStorage
+        .replaceAll(/\s/g, '_')}&table=${localStorage
         .getItem('userName')
-        .replace(/\s/g, '_')}_dispositivos`
+        .replaceAll(/\s/g, '_')}_dispositivos`
     );
     const brands = await axios.get(
       `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=marcas`
@@ -60,10 +60,10 @@ function SalesCatalogForm(props) {
       let deviceUpdate = await axios.put(
         `http://${secrets.LOCALHOST_IP}:${
           secrets.TOMCAT_PORT
-        }/sales-system/sellers?verVendedor=${seller.sellerName.replace(
+        }/sales-system/sellers?verVendedor=${seller.sellerName.replaceAll(
           /\s/g,
           '_'
-        )}&table=${seller.sellerName.replace(/\s/g, '_')}_dispositivos&id=${
+        )}&table=${seller.sellerName.replaceAll(/\s/g, '_')}_dispositivos&id=${
           newDevices[i].id_dispositivo
         }`,
         newDevices[i]
@@ -182,10 +182,10 @@ function SalesCatalogForm(props) {
         let postDevice = await axios.post(
           `http://${secrets.LOCALHOST_IP}:${
             secrets.TOMCAT_PORT
-          }/sales-system/sellers?verVendedor=${seller.sellerName.replace(
+          }/sales-system/sellers?verVendedor=${seller.sellerName.replaceAll(
             ' ',
             '_'
-          )}&table=${seller.sellerName.replace(' ', '_')}_dispositivos`,
+          )}&table=${seller.sellerName.replaceAll(' ', '_')}_dispositivos`,
           devicesToAdd[i]
         );
 
@@ -228,10 +228,10 @@ function SalesCatalogForm(props) {
             let postImage = await axios.post(
               `http://${secrets.LOCALHOST_IP}:${
                 secrets.TOMCAT_PORT
-              }/sales-system/sellers?verVendedor=${seller.sellerName.replace(
+              }/sales-system/sellers?verVendedor=${seller.sellerName.replaceAll(
                 ' ',
                 '_'
-              )}&table=${seller.sellerName.replace(
+              )}&table=${seller.sellerName.replaceAll(
                 ' ',
                 '_'
               )}_fotos_dispositivos`,

@@ -84,7 +84,7 @@ function DeviceDataSection(props) {
         secrets.TOMCAT_PORT
       }/sales-system/sellers?verVendedor=${
         props.seller
-      }&table=${props.seller.replace(' ', '_')}_dispositivos&id=${
+      }&table=${props.seller.replaceAll(' ', '_')}_dispositivos&id=${
         props.deviceId
       }`,
       potentialNewDevice
