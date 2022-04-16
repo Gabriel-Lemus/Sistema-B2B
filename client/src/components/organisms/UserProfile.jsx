@@ -4,7 +4,6 @@ import helpers from '../../helpers/helpers';
 import secrets from '../../helpers/secrets';
 
 function UserProfile(props) {
-  // State
   const [userData, setUserData] = useState({});
   const [newUserData, setNewUserData] = useState({});
   const [clientComPat, setClientComPat] = useState(new Blob());

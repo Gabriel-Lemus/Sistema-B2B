@@ -17,7 +17,9 @@ function Clients() {
         displaySearchBar={false}
         sideBarItems={
           localStorage.getItem('userType') !== 'vendedor'
-            ? helpers.CLIENT_PAGES
+            ? localStorage.getItem('userType') !== 'distribuidor'
+              ? helpers.CLIENT_PAGES
+              : helpers.CLIENT_PAGES.concat(helpers.DISTRIBUTOR_CLIENTS_PAGES)
             : localStorage.getItem('isAdmin') === 'true'
             ? helpers.ADMIN_PAGES
             : helpers.SELLER_PAGES
@@ -32,3 +34,4 @@ function Clients() {
 }
 
 export default Clients;
+

@@ -23,7 +23,6 @@ function OrdersForm(props) {
     props.setLoading(false);
   }, []);
 
-  // Handlers
   const clearOrder = () => {
     localStorage.removeItem('order');
     setIsOrderSet(false);

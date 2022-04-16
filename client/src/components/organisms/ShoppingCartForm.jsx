@@ -6,7 +6,6 @@ import $ from 'jquery';
 import secrets from '../../helpers/secrets';
 
 function ShoppingCartForm(props) {
-  // State
   const [isCartSet, setIsCartSet] = useState(false);
   const [devices, setDevices] = useState([]);
   const [userName, setUserName] = useState('');

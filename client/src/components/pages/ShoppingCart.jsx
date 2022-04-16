@@ -5,10 +5,8 @@ import ShoppingCartForm from '../organisms/ShoppingCartForm';
 import Loader from '../molecules/Loader';
 
 function ShoppingCart() {
-  // State
   const [loading, setLoading] = useState(true);
 
-  // Effects
   useEffect(() => {
     document.title = 'Carrito de Compras';
   }, []);
@@ -17,7 +15,11 @@ function ShoppingCart() {
     <>
       <DashboardTemplate
         displaySearchBar={false}
-        sideBarItems={helpers.CLIENT_PAGES}
+        sideBarItems={
+          localStorage.getItem('userType') !== 'distribuidor'
+            ? helpers.CLIENT_PAGES
+            : helpers.CLIENT_PAGES.concat(helpers.DISTRIBUTOR_CLIENTS_PAGES)
+        }
         pageTitle="Carrito de Compras"
       >
         <ShoppingCartForm setLoading={setLoading} />
@@ -28,3 +30,4 @@ function ShoppingCart() {
 }
 
 export default ShoppingCart;
+
