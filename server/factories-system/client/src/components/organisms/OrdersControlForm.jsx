@@ -20,6 +20,11 @@ function OrdersForm(props) {
   }, []);
 
   useEffect(async () => {
+    getOrders();
+    props.setLoading(false);
+  }, [clientId]);
+
+  const getOrders = async () => {
     if (clientId !== '') {
       const orders = await axios.get(
         `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/orders?clientOrders=${clientId}`
@@ -48,14 +53,29 @@ function OrdersForm(props) {
         }
       }
 
+      // Iterate through the pending orders and their devices and remove the table-danger class from each of them
+      for (let i = 0; i < pendingOrders.length; i++) {
+        for (let j = 0; j < pendingOrders[i].devices.length; j++) {
+          $(`#pending-orders-table-${i}`)
+            .find('tr')
+            .eq(j + 1)
+            .removeClass('table-danger');
+          
+          // Uncheck the checkbox of the device
+          $(`#pending-orders-table-${i}`)
+            .find('tr')
+            .eq(j + 1)
+            .find('input')
+            .prop('checked', false);
+        }
+      }
+
       setPendingOrders(pendingOrders);
       setNewPendingOrders(pendingOrders);
       setCompletedOrders(completedOrders);
       setCancelledOrders(cancelledOrders);
-
-      props.setLoading(false);
     }
-  }, [clientId]);
+  };
 
   const checkThereAreChangesInPendingOrders = (orders1, orders2) => {
     // Iterate through the pending orders
@@ -88,6 +108,7 @@ function OrdersForm(props) {
           )
         ) {
           changedOrders.push(newPendingOrders[i]);
+          break;
         }
       }
     }
@@ -104,9 +125,7 @@ function OrdersForm(props) {
       );
 
       if (updatePendingOrdersRes.data.success) {
-        setPendingOrders(newPendingOrders);
-        setNewPendingOrders(newPendingOrders);
-        setCanSavePendingOrders(false);
+        getOrders();
         props.setLoading(false);
         helpers.showModal(
           'Operación exitosa',
@@ -435,7 +454,9 @@ function OrdersForm(props) {
                   !order.completelyPayed ? (
                     <></>
                   ) : (
-                    <div className='mb-3'>La orden ya fue entregada y pagada.</div>
+                    <div className="mb-3">
+                      La orden ya fue entregada y pagada.
+                    </div>
                   )}
                   <h5>Dispositivos:</h5>
                   <table className="table">
@@ -517,14 +538,54 @@ function OrdersForm(props) {
               <section className="order-container" key={index}>
                 <section className="order-header">
                   <h3>Orden #{index + 1}</h3>
-                  <p>Fecha de entrega: -----</p>
-                  <h3>Dispositivos:</h3>
-                  {order.devices.map((device, index) => (
-                    <p key={index}>Dispositivo: {device.name}</p>
-                  ))}
+                  <h5 className="mt-4">Dispositivos:</h5>
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Cantidad</th>
+                        <th>Precio</th>
+                        <th>Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {order.devices.map((device, deviceIndex) => (
+                        <tr key={deviceIndex}>
+                          <td>{deviceIndex + 1}</td>
+                          <td>{device.name}</td>
+                          <td>{device.quantity}</td>
+                          <td>
+                            {helpers.getFormattedCurrency('Q. ', device.price)}
+                          </td>
+                          <td>
+                            {helpers.getFormattedCurrency(
+                              'Q. ',
+                              device.quantity * device.price
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </section>
                 <section className="order-footer">
-                  <h3>Total: -----</h3>
+                  <h5
+                    className="mt-4 text-right"
+                    style={{
+                      marginRight: '10px',
+                    }}
+                  >
+                    Total:{' '}
+                    {helpers.getFormattedCurrency(
+                      'Q. ',
+                      order.devices.reduce(
+                        (total, device) =>
+                          (total += device.quantity * device.price),
+                        0
+                      )
+                    )}
+                  </h5>
                 </section>
               </section>
             ))
