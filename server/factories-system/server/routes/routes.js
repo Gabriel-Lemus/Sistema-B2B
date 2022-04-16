@@ -45,7 +45,6 @@ schemas[existingSchemas[3]] = {
   nameField: "_id",
 };
 
-// Functions
 /**
  * Check if the schema exists.
  * @param {string} schemaName - The name of the schema.

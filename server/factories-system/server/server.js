@@ -15,7 +15,6 @@ app.use(
 const PORT = process.env.FACTORIES_PORT;
 const MONGODB_URI = process.env.MONGODB_URI;
 
-// Functions
 /**
  * Attempts to connect to MongoDB.
  */
