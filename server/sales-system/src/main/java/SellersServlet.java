@@ -813,27 +813,87 @@ public class SellersServlet extends HttpServlet {
                     String getDevicesQuery = "SELECT * FROM " + schema
                             + ".all_devices WHERE existencias > 0 ORDER BY id_dispositivo ASC";
                     ResultSet rs = stmt.executeQuery(getDevicesQuery);
+                    JSONObject jsonResponse = new JSONObject();
+                    JSONArray devices = new JSONArray();
+                    JSONObject currentDevice = new JSONObject();
+                    JSONArray currentDevicesImages = new JSONArray();
+                    String currentDeviceId = "";
+                    String prevDeviceId = "";
+                    boolean firstDevice = true;
                     String[] devicesAttrs = { "id_dispositivo", "nombre", "descripcion", "existencias", "precio",
                             "codigo_modelo", "color", "categoria", "tiempo_garantia", "vendedor", "marca", "foto" };
                     String[] devicesTypes = { "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
                             "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2" };
-                    String jsonResponse = "";
-
-                    jsonResponse += "{\"success\":" + true + ",\"dispositivos\":[";
 
                     while (rs.next()) {
-                        jsonResponse += helper.getRow(rs, out, devicesAttrs, devicesTypes);
+                        if (firstDevice) {
+                            currentDeviceId = rs.getString("id_dispositivo");
+                            prevDeviceId = currentDeviceId;
+                            firstDevice = false;
+
+                            for (int i = 0; i < devicesAttrs.length; i++) {
+                                if (!"foto".equals(devicesAttrs[i])) {
+                                    switch (devicesTypes[i]) {
+                                        case "INTEGER":
+                                            currentDevice.put(devicesAttrs[i], rs.getInt(devicesAttrs[i]));
+                                            break;
+                                        case "FLOAT":
+                                            currentDevice.put(devicesAttrs[i], rs.getFloat(devicesAttrs[i]));
+                                            break;
+                                        default:
+                                            currentDevice.put(devicesAttrs[i], rs.getString(devicesAttrs[i]));
+                                            break;
+                                    }
+                                } else {
+                                    currentDevicesImages.put(rs.getString(devicesAttrs[i]));
+                                }
+                            }
+                        } else {
+                            currentDeviceId = rs.getString("id_dispositivo");
+
+                            if (!currentDeviceId.equals(prevDeviceId)) {
+                                currentDevice.put("fotos", currentDevicesImages);
+                                devices.put(currentDevice);
+                                currentDevicesImages = new JSONArray();
+                                currentDevice = new JSONObject();
+
+                                for (int i = 0; i < devicesAttrs.length; i++) {
+                                    if (!"foto".equals(devicesAttrs[i])) {
+                                        switch (devicesTypes[i]) {
+                                            case "INTEGER":
+                                                currentDevice.put(devicesAttrs[i], rs.getInt(devicesAttrs[i]));
+                                                break;
+                                            case "FLOAT":
+                                                currentDevice.put(devicesAttrs[i], rs.getFloat(devicesAttrs[i]));
+                                                break;
+                                            default:
+                                                currentDevice.put(devicesAttrs[i], rs.getString(devicesAttrs[i]));
+                                                break;
+                                        }
+                                    } else {
+                                        currentDevicesImages.put(rs.getString(devicesAttrs[i]));
+                                    }
+                                }
+                            } else {
+                                currentDevicesImages.put(rs.getString("foto"));
+                            }
+
+                            prevDeviceId = currentDeviceId;
+                        }
 
                         if (rs.isLast()) {
-                            jsonResponse += "]}";
-                        } else {
-                            jsonResponse += ",";
+                            currentDevice.put("fotos", currentDevicesImages);
+                            devices.put(currentDevice);
+                            jsonResponse.put("dispositivos", devices);
                         }
                     }
 
-                    out.print(formatDevices(jsonResponse));
-                    // out.print(jsonResponse);
-                    con.close();
+                    if (devices.length() == 0) {
+                        jsonResponse.put("dispositivos", devices);
+                    }
+
+                    jsonResponse.put("success", true);
+                    out.print(jsonResponse.toString());
                 } catch (Exception e) {
                     helper.printErrorMessage(out, e);
                 }
@@ -848,27 +908,87 @@ public class SellersServlet extends HttpServlet {
                     String getDevicesQuery = "SELECT * FROM " + schema
                             + ".all_devices WHERE existencias = 0 ORDER BY id_dispositivo ASC";
                     ResultSet rs = stmt.executeQuery(getDevicesQuery);
+                    JSONObject jsonResponse = new JSONObject();
+                    JSONArray devices = new JSONArray();
+                    JSONObject currentDevice = new JSONObject();
+                    JSONArray currentDevicesImages = new JSONArray();
+                    String currentDeviceId = "";
+                    String prevDeviceId = "";
+                    boolean firstDevice = true;
                     String[] devicesAttrs = { "id_dispositivo", "nombre", "descripcion", "existencias", "precio",
                             "codigo_modelo", "color", "categoria", "tiempo_garantia", "vendedor", "marca", "foto" };
                     String[] devicesTypes = { "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "FLOAT", "VARCHAR2",
                             "VARCHAR2", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2" };
-                    String jsonResponse = "";
-
-                    jsonResponse += "{\"success\":" + true + ",\"dispositivos\":[";
 
                     while (rs.next()) {
-                        jsonResponse += helper.getRow(rs, out, devicesAttrs, devicesTypes);
+                        if (firstDevice) {
+                            currentDeviceId = rs.getString("id_dispositivo");
+                            prevDeviceId = currentDeviceId;
+                            firstDevice = false;
+
+                            for (int i = 0; i < devicesAttrs.length; i++) {
+                                if (!"foto".equals(devicesAttrs[i])) {
+                                    switch (devicesTypes[i]) {
+                                        case "INTEGER":
+                                            currentDevice.put(devicesAttrs[i], rs.getInt(devicesAttrs[i]));
+                                            break;
+                                        case "FLOAT":
+                                            currentDevice.put(devicesAttrs[i], rs.getFloat(devicesAttrs[i]));
+                                            break;
+                                        default:
+                                            currentDevice.put(devicesAttrs[i], rs.getString(devicesAttrs[i]));
+                                            break;
+                                    }
+                                } else {
+                                    currentDevicesImages.put(rs.getString(devicesAttrs[i]));
+                                }
+                            }
+                        } else {
+                            currentDeviceId = rs.getString("id_dispositivo");
+
+                            if (!currentDeviceId.equals(prevDeviceId)) {
+                                currentDevice.put("fotos", currentDevicesImages);
+                                devices.put(currentDevice);
+                                currentDevicesImages = new JSONArray();
+                                currentDevice = new JSONObject();
+
+                                for (int i = 0; i < devicesAttrs.length; i++) {
+                                    if (!"foto".equals(devicesAttrs[i])) {
+                                        switch (devicesTypes[i]) {
+                                            case "INTEGER":
+                                                currentDevice.put(devicesAttrs[i], rs.getInt(devicesAttrs[i]));
+                                                break;
+                                            case "FLOAT":
+                                                currentDevice.put(devicesAttrs[i], rs.getFloat(devicesAttrs[i]));
+                                                break;
+                                            default:
+                                                currentDevice.put(devicesAttrs[i], rs.getString(devicesAttrs[i]));
+                                                break;
+                                        }
+                                    } else {
+                                        currentDevicesImages.put(rs.getString(devicesAttrs[i]));
+                                    }
+                                }
+                            } else {
+                                currentDevicesImages.put(rs.getString("foto"));
+                            }
+
+                            prevDeviceId = currentDeviceId;
+                        }
 
                         if (rs.isLast()) {
-                            jsonResponse += "]}";
-                        } else {
-                            jsonResponse += ",";
+                            currentDevice.put("fotos", currentDevicesImages);
+                            devices.put(currentDevice);
+                            jsonResponse.put("dispositivos", devices);
                         }
                     }
 
-                    out.print(formatDevices(jsonResponse));
-                    // out.print(jsonResponse);
-                    con.close();
+                    if (devices.length() == 0) {
+                        jsonResponse.put("dispositivos", devices);
+                    }
+                    
+                    jsonResponse.put("success", true);
+                    out.print(jsonResponse.toString());
                 } catch (Exception e) {
                     helper.printErrorMessage(out, e);
                 }
