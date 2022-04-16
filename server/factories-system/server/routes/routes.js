@@ -180,7 +180,8 @@ router.post("/:schema", async (req, res) => {
       }
     } else if (
       paramsNumber === 1 &&
-      req.query.newOrderNoClientId === undefined
+      req.query.newOrderNoClientId === undefined &&
+      req.query.newOrder === undefined
     ) {
       // Attempt to insert a new document into the specified collection/schema
       try {
@@ -992,69 +993,104 @@ router.put("/", async (req, res) => {
 
       // Iterate through the orders and update them
       for (let i = 0; i < orders.length; i++) {
-        const orderId = req.body.orders[i]._id;
-        const schema = schemas[existingSchemas[3]].schema;
+        const order = orders[i];
+        const orderId = order._id;
+        const orderSchema = schemas[existingSchemas[3]].schema;
 
-        // Check if the order exists
-        try {
-          let order = await schema.findOne({ _id: orderId });
+        // Reduce the devices to check if all of their quantities have been set to 0
+        const itemsCount = order.devices.reduce((acc, cur) => {
+          return acc + cur.quantity;
+        }, 0);
 
-          if (order !== null) {
-            // Iterate through the body and update the order
-            for (const [key, value] of Object.entries(req.body.orders[i])) {
-              if (key !== "devices") {
-                order[key] = value;
-              } else {
-                order[key] = JSON.parse(JSON.stringify(value));
+        // If the items count is 0, cancel the order
+        if (itemsCount === 0) {
+          try {
+            const orderData = await orderSchema.findOneAndUpdate(
+              { _id: orderId },
+              {
+                $set: {
+                  canceled: true,
+                },
+              }
+            );
+
+            if (orderData !== null) {
+              changedOrders.push(orderData);
+
+              // Attempt to save the order
+              try {
+                await orderData.save();
+              } catch (error) {
+                res.status(500).send({
+                  success: false,
+                  message: `Error saving the order: ${error}`,
+                });
               }
             }
-
-            // Check if the order has any device with the toDelete property set to true
-            for (let j = 0; j < order.devices.length; j++) {
-              if (
-                order.devices[j].toDelete ||
-                order.devices[j].quantity === 0
-              ) {
-                // Remove the device from the order
-                order.devices.splice(j, 1);
-                j--;
-              }
-            }
-
-            // If the order is left with no devices, set the canceled property to true
-            if (order.devices.length === 0) {
-              order.canceled = true;
-            }
-
-            // Update the order
-            try {
-              await order.save();
-              changedOrders.push(order);
-            } catch (error) {
-              res.status(500).send({
-                success: false,
-                message: `Error updating the order: ${error}`,
-              });
-            }
-          } else {
-            res.status(400).send({
+          } catch (error) {
+            res.status(500).send({
               success: false,
-              message: `The order with id '${orderId}' does not exist.`,
+              message: `Error updating data from ${existingSchemas[3]}: ${error}`,
             });
           }
-        } catch (error) {
-          res.status(500).send({
-            success: false,
-            message: `Error updating data from ${existingSchemas[3]}: ${error}`,
-          });
+        } else {
+          // Filter the devices and get those with a quantity greater than 0
+          const newDevices = order.devices.filter(
+            (device) => device.quantity > 0
+          );
+
+          // Get the maximum max delivery date casted as a date
+          const maxDeliveryDate = newDevices.reduce(
+            (acc, cur) =>
+              acc > new Date(cur.estimatedDeliveryDate)
+                ? acc
+                : new Date(cur.estimatedDeliveryDate),
+            new Date(0)
+          );
+
+          // Find the order by its id and update it
+          try {
+            const orderData = await orderSchema.findOneAndUpdate(
+              { _id: orderId },
+              { $set: { devices: newDevices, maxDeliveryDate } },
+              { new: true }
+            );
+
+            if (orderData !== null) {
+              changedOrders.push(orderData);
+
+              // Attempt to save the order
+              try {
+                await orderData.save();
+              } catch (error) {
+                res.status(500).send({
+                  success: false,
+                  message: `Error saving the order: ${error}`,
+                });
+              }
+            }
+          } catch (error) {
+            res.status(500).send({
+              success: false,
+              message: `Error updating data from ${existingSchemas[3]}: ${error}`,
+            });
+          }
         }
       }
 
-      res.status(200).send({
-        success: true,
-        message: "The orders have been updated.",
-        changedOrders,
-      });
+      // If all the orders have been updated, send success message
+      if (changedOrders.length === orders.length) {
+        res.status(200).send({
+          success: true,
+          message: "The orders have been updated.",
+          changedOrders,
+        });
+      } else {
+        res.status(500).send({
+          success: false,
+          message: "An error occurred while updating the orders.",
+        });
+      }
     } else if (
       params.deliverOrder !== undefined &&
       params.deviceId !== undefined
