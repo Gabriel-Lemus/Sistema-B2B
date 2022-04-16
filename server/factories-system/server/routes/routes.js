@@ -1166,6 +1166,7 @@ router.put("/", async (req, res) => {
                     order.devices[i].factoryId.toString()
                 ).name,
               });
+              break;
             }
           }
         }
