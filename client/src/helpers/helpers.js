@@ -43,14 +43,14 @@ const CLIENT_PAGES = [
     reference: '/catalogo-dispositivos',
   },
   {
-    icon: <BiPurchaseTagAlt />,
-    title: 'Compras',
-    reference: '/compras',
-  },
-  {
     icon: <AiOutlineShoppingCart />,
     title: 'Carrito de Compras',
     reference: '/carrito-compras',
+  },
+  {
+    icon: <BiPurchaseTagAlt />,
+    title: 'Compras',
+    reference: '/compras',
   },
   {
     icon: <AiOutlineUser />,
@@ -512,7 +512,7 @@ const formatDate = (date) => {
  * @param {string} date The date to be formatted.
  * @return {string} The formatted date.
  */
- const formatDate2 = (date) => {
+const formatDate2 = (date) => {
   let formattedDate = '';
 
   if (date) {
