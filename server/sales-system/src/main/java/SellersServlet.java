@@ -1242,7 +1242,7 @@ public class SellersServlet extends HttpServlet {
                     helper.printErrorMessage(out, e);
                 }
             } else if (helper.requestContainsParameter(request, "clientOrdersNoClientId")) {
-                String clientName = request.getParameter("clientOrdersNoClientId");
+                String clientName = request.getParameter("clientOrdersNoClientId").replaceAll(" ", "%20");
                 String localHostIP = secrets.getLocalHostIP();
                 String webServerPort = secrets.getWebServerPort();
                 HttpClient client = HttpClientBuilder.create().build();
