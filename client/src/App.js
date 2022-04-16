@@ -7,8 +7,10 @@ import Login from './components/pages/Login';
 import SignUp from './components/pages/SignUp';
 import NotFound from './components/pages/NotFound';
 import DevicesCatalog from './components/pages/DevicesCatalog';
+import SoldOutDevicesCatalog from './components/pages/SoldOutDevicesCatalog';
 import DevicesCatalogSearch from './components/pages/DevicesCatalogSearch';
 import DeviceData from './components/pages/DeviceData';
+import SoldOutDeviceData from './components/pages/SoldOutDeviceData';
 import ShoppingCart from './components/pages/ShoppingCart';
 import UserProfile from './components/pages/UserProfile';
 import SalesCatalog from './components/pages/SalesCatalog';
@@ -27,6 +29,8 @@ import FactoriesDeviceData from './components/pages/FactoriesDeviceData';
 import FactoryDevicesCatalogSearch from './components/pages/FactoryDevicesCatalogSearch';
 import FactoryDevicesCatalogSearchWait from './components/pages/FactoryDevicesCatalogSearchWait';
 import FactoryDevicesSpecializedSearch from './components/pages/FactoryDevicesSpecializedSearch';
+import Orders from './components/pages/Orders';
+import OrdersControl from './components/pages/OrdersControl';
 
 function App() {
   return (
@@ -44,9 +48,13 @@ function App() {
           <Route path="/Catalogo-Dispositivos-Busqueda-Espera/" element={<DevicesCatalogSearchWait />} />
           <Route path="/Busqueda-Especializada" element={<SpecializedSearch />} />
           <Route path="/Datos-Dispositivo/:seller/:id" element={<DeviceData />} />
+          <Route path="/Datos-Dispositivo-Agotado/:seller/:id" element={<SoldOutDeviceData />} />
           <Route path="/Carrito-Compras" element={<ShoppingCart />} />
           <Route path="/Perfil" element={<UserProfile />} />
           <Route path="/Compras" element={<Sales />} />
+          <Route path="/Dispositivos-Agotados" element={<SoldOutDevicesCatalog />} />
+          <Route path="/Ordenes" element={<Orders />} />
+          <Route path="/Gestion-Ordenes" element={<OrdersControl />} />
 
           {/* Seller pages */}
           <Route path="/Catalogo-Ventas" element={<SalesCatalog />} />
