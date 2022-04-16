@@ -235,7 +235,7 @@
 .purchases {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   margin-top: 25px; }
 
@@ -244,6 +244,8 @@
   flex-direction: column;
   align-items: start;
   justify-content: center;
+  margin-left: auto;
+  margin-right: auto;
   margin-top: 25px;
   background-color: #fff;
   border-radius: 5px;
@@ -413,6 +415,22 @@
   background-color: #eeeeee !important;
   padding: 5px;
   margin: 0 10px; }
+
+.billing-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0 30px 0 50px;
+  margin-top: 50px; }
+
+.billing-info-2 {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%; }
 
 .sidebar-link {
   color: #228722 !important; }
