@@ -746,6 +746,7 @@ router.get("/:schema", async (req, res) => {
                 // Check if the order is completed
                 if (
                   !allOrders[i].completed &&
+                  !allOrders[i].canceled &&
                   !allOrders[i].devices[j].delivered
                 ) {
                   // Get the name of the client
