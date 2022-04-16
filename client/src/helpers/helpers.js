@@ -57,6 +57,21 @@ const CLIENT_PAGES = [
     title: 'Perfil',
     reference: '/perfil',
   },
+  {
+    icon: <FiBook />,
+    title: 'Dispositivos agotados',
+    reference: '/dispositivos-agotados',
+  },
+  {
+    icon: <RiCheckboxMultipleLine />,
+    title: 'Órdenes',
+    reference: '/ordenes',
+  },
+  {
+    icon: <HiOutlineClipboardCheck />,
+    title: 'Gestión de órdenes',
+    reference: '/gestion-ordenes',
+  },
 ];
 
 /**
