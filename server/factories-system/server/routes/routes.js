@@ -181,7 +181,8 @@ router.post("/:schema", async (req, res) => {
     } else if (
       paramsNumber === 1 &&
       req.query.newOrderNoClientId === undefined &&
-      req.query.newOrder === undefined
+      req.query.newOrder === undefined &&
+      req.query.newClientOrder === undefined
     ) {
       // Attempt to insert a new document into the specified collection/schema
       try {
@@ -442,6 +443,115 @@ router.post("/:schema", async (req, res) => {
           return res.status(500).send({
             success: false,
             error: `Error creating creating the new seller: ${error}`,
+          });
+        }
+      } else if (params.newClientOrder !== undefined) {
+        // Register a new order for the sellers that come from a client
+        const order = req.body;
+        let savedOrdersCount = 0;
+        let maxOrderDeliveryDate = new Date(0);
+
+        // Iterate through the items in the order
+        for (let i = 0; i < order.length; i++) {
+          // Get the client's id based on their name
+          const clientId = await schemas[existingSchemas[2]].schema
+            .findOne({
+              name: order[i].sellerName,
+            })
+            .select("_id");
+
+          // Get the client's shipping times
+          const clientShippingTimes = await schemas[existingSchemas[2]].schema
+            .findOne({
+              _id: clientId._id,
+            })
+            .select("shippingTimes");
+
+          // Get the device's shipping time
+          const deviceShippingTimeDays = await schemas[
+            existingSchemas[1]
+          ].schema
+            .findOne({
+              _id: order[i].deviceId,
+            })
+            .select("shipping_time");
+
+          // Get the factory's id based on the device's id
+          const factoryId = await schemas[existingSchemas[1]].schema
+            .findOne({
+              _id: order[i].deviceId,
+            })
+            .select("factoryId");
+
+          // Find the client's shipping time in the clientShippingTimes array where the factoryId matches the device's factoryId
+          const clientShippingTimeDays = clientShippingTimes.shippingTimes.find(
+            (shippingTime) =>
+              shippingTime.factoryId.toString() === factoryId.factoryId
+          ).shippingTime;
+
+          // The estimated delivery date is the device's shipping time in days plus the client's shipping time in days for the given factory
+          const estimatedDeliveryDateDays =
+            deviceShippingTimeDays.shipping_time + clientShippingTimeDays;
+          const estimatedDeliveryDate = new Date(
+            new Date().getTime() +
+              estimatedDeliveryDateDays * 24 * 60 * 60 * 1000
+          );
+
+          // Round the estimated delivery date
+          const estimatedDeliveryDateRounded = new Date(
+            estimatedDeliveryDate.getTime() +
+              24 * 60 * 60 * 1000 -
+              (estimatedDeliveryDate.getTime() % (24 * 60 * 60 * 1000))
+          );
+          if (estimatedDeliveryDate > maxOrderDeliveryDate) {
+            maxOrderDeliveryDate = estimatedDeliveryDateRounded;
+          }
+
+          // Create a new document for the order
+          const newOrderDocument = new schemas[schemaName].schema({
+            clientId,
+            completed: false,
+            maxDeliveryDate: estimatedDeliveryDateRounded,
+            isClientOrder: true,
+            canceled: false,
+            devices: [
+              {
+                deviceId: order[i].deviceId,
+                factoryId,
+                quantity: order[i].quantity,
+                price: order[i].price,
+                estimatedDeliveryDate: estimatedDeliveryDateRounded,
+                delivered: false,
+                payed: false,
+                deliveredDate: null,
+                canBeDisplayed: false,
+                displayed: false,
+              },
+            ],
+          });
+
+          // Try to create the new document for the order
+          try {
+            await newOrderDocument.save();
+            savedOrdersCount++;
+          } catch (error) {
+            return res.status(500).send({
+              success: false,
+              error: `Error creating creating the new order: ${error}`,
+            });
+          }
+        }
+
+        if (savedOrdersCount === order.length) {
+          res.status(201).send({
+            success: true,
+            message: "All the orders were registered successfully.",
+            maxDeliveryDate: maxOrderDeliveryDate,
+          });
+        } else {
+          res.status(500).send({
+            success: false,
+            error: `Error registering all the orders. Only ${savedOrdersCount} of ${order.length} were registered successfully.`,
           });
         }
       } else {
