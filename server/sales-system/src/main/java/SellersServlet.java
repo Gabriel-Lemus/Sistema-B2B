@@ -1384,6 +1384,140 @@ public class SellersServlet extends HttpServlet {
                 } catch (IOException e) {
                     helper.printErrorMessage(out, e);
                 }
+            } else if (helper.requestContainsParameter(request, "pedidosCliente")) {
+                int clientId = Integer.parseInt(request.getParameter("pedidosCliente"));
+                ArrayList<String> sellers = new ArrayList<String>();
+
+                // Start the connection to oracle
+                try {
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    Connection con = DriverManager.getConnection(conUrl, user, password);
+                    Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    String sellersNamesQuery = "SELECT nombre FROM " + schema + ".vendedores";
+                    ResultSet rs = stmt.executeQuery(sellersNamesQuery);
+
+                    // Add the sellers to the sellers array
+                    while (rs.next()) {
+                        sellers.add(rs.getString("nombre"));
+                    }
+
+                    // Get the client's orders as a join between de _dispositivos,
+                    // _dispositivos_x_pedidos_futuros and _pedidos_futuros tables of each seller
+                    // and as a union of all
+                    String clientOrdersQuery = "";
+                    for (int i = 0; i < sellers.size(); i++) {
+                        String sellerName = sellers.get(i).replaceAll(" ", "_");
+
+                        clientOrdersQuery += "SELECT ddpf.id_dispositivo, ddpf.id_vendedor, ddpf.nombre, ddpf.descripcion, ddpf.precio, ddpf.codigo_modelo, ddpf.color, ddpf.categoria, ddpf.tiempo_garantia, ddpf.id_pedido, ddpf.cantidad_dispositivos, ddpf.entregado, pf.fecha_pedido, pf.cantidad_dispositivos dispositivos_totales, pf.impuestos, pf.descuentos, pf.total_pedido, pf.fecha_entrega FROM ";
+                        clientOrdersQuery += sellerName
+                                + "_pedidos_futuros pf, (SELECT dpf.id_dispositivo, d.id_vendedor, d.nombre, d.descripcion, d.precio, d.codigo_modelo, d.color, d.categoria, d.tiempo_garantia, dpf.id_pedido, dpf.cantidad_dispositivos, dpf.entregado FROM ";
+                        clientOrdersQuery += sellerName + "_dispositivos d, " + sellerName
+                                + "_dispositivos_x_pedidos_futuros dpf WHERE d.id_dispositivo = dpf.id_dispositivo) ddpf WHERE pf.id_pedido = ddpf.id_pedido AND pf.id_cliente = '"
+                                + clientId + "'";
+
+                        if (i < sellers.size() - 1) {
+                            clientOrdersQuery += " UNION ALL ";
+                        } else {
+                            clientOrdersQuery += " ORDER BY id_pedido";
+                        }
+                    }
+
+                    rs = stmt.executeQuery(clientOrdersQuery);
+                    JSONObject clientOrdersJson = new JSONObject();
+                    JSONArray deliveredDevices = new JSONArray();
+                    JSONArray notDeliveredDevices = new JSONArray();
+                    JSONArray currentOrderDevices = new JSONArray();
+                    String prevOrderDate = "";
+                    String currentOrderDate = "";
+                    boolean firstDevice = true;
+                    String[] deviceAttrs = { "id_dispositivo", "id_vendedor", "nombre", "descripcion", "precio",
+                            "codigo_modelo", "color", "categoria", "tiempo_garantia", "id_pedido",
+                            "cantidad_dispositivos", "entregado", "fecha_pedido", "dispositivos_totales", "impuestos",
+                            "descuentos", "total_pedido", "fecha_entrega" };
+                    String[] deviceAttrsTypes = { "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "FLOAT",
+                            "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "INTEGER",
+                            "INTEGER", "BOOLEAN", "DATE", "INTEGER", "FLOAT",
+                            "FLOAT", "FLOAT", "DATE" };
+
+                    // Iterate through the results and add the devices to the order
+                    while (rs.next()) {
+                        currentOrderDate = rs.getString("fecha_pedido");
+                        JSONObject currentDevice = new JSONObject();
+
+                        for (int j = 0; j < deviceAttrs.length; j++) {
+                            switch (deviceAttrsTypes[j]) {
+                                case "INTEGER":
+                                    currentDevice.put(deviceAttrs[j], rs.getInt(deviceAttrs[j]));
+                                    break;
+                                case "FLOAT":
+                                    currentDevice.put(deviceAttrs[j], rs.getFloat(deviceAttrs[j]));
+                                    break;
+                                case "BOOLEAN":
+                                    currentDevice.put(deviceAttrs[j], rs.getString(deviceAttrs[j]).equals("True"));
+                                    break;
+                                default:
+                                    currentDevice.put(deviceAttrs[j], rs.getString(deviceAttrs[j]));
+                                    break;
+                            }
+                        }
+
+                        if (firstDevice) {
+                            firstDevice = false;
+                            prevOrderDate = currentOrderDate;
+                            currentOrderDevices.put(currentDevice);
+                        } else {
+                            if (currentOrderDate.equals(prevOrderDate)) {
+                                currentOrderDevices.put(currentDevice);
+                            } else {
+                                boolean allDelivered = true;
+
+                                for (int k = 0; k < currentOrderDevices.length(); k++) {
+                                    if (!currentOrderDevices.getJSONObject(k).getBoolean("entregado")) {
+                                        allDelivered = false;
+                                        break;
+                                    }
+                                }
+
+                                if (allDelivered) {
+                                    deliveredDevices.put(currentOrderDevices);
+                                } else {
+                                    notDeliveredDevices.put(currentOrderDevices);
+                                }
+
+                                currentOrderDevices = new JSONArray();
+                                currentOrderDevices.put(currentDevice);
+                                prevOrderDate = currentOrderDate;
+                            }
+                        }
+                    }
+
+                    if (currentOrderDevices.length() > 0) {
+                        boolean allDelivered = true;
+
+                        for (int k = 0; k < currentOrderDevices.length(); k++) {
+                            if (!currentOrderDevices.getJSONObject(k).getBoolean("entregado")) {
+                                allDelivered = false;
+                                break;
+                            }
+                        }
+
+                        if (allDelivered) {
+                            deliveredDevices.put(currentOrderDevices);
+                        } else {
+                            notDeliveredDevices.put(currentOrderDevices);
+                        }
+                    }
+
+                    clientOrdersJson.put("deliveredOrders", deliveredDevices);
+                    clientOrdersJson.put("nonDeliveredOrders", notDeliveredDevices);
+                    clientOrdersJson.put("success", true);
+
+                    con.close();
+                    out.println(clientOrdersJson.toString());
+                } catch (Exception e) {
+                    helper.printErrorMessage(out, e);
+                }
             } else {
                 helper.printJsonMessage(out, false, "error",
                         "The request does not contain the required parameters.");
