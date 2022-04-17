@@ -7,7 +7,7 @@ import secrets from '../../helpers/secrets';
 
 function OrdersForm(props) {
   const [isOrderSet, setIsOrderSet] = useState(false);
-  const [devices, setDevices] = useState([]);
+  const [order, setOrder] = useState([]);
   const navigate = useNavigate();
   let subtotal = 0;
 
@@ -15,8 +15,8 @@ function OrdersForm(props) {
   useEffect(() => {
     // Check if there is an order in local storage
     if (localStorage.getItem('order')) {
-      const order = JSON.parse(localStorage.order);
-      setDevices(order);
+      const clientOrder = JSON.parse(localStorage.order);
+      setOrder(clientOrder);
       setIsOrderSet(true);
     }
 
@@ -26,23 +26,24 @@ function OrdersForm(props) {
   const clearOrder = () => {
     localStorage.removeItem('order');
     setIsOrderSet(false);
-    setDevices([]);
+    setOrder([]);
   };
 
   const handleSubmitOrder = async () => {
     props.setLoading(true);
 
-    const order = {
-      clientId: localStorage.getItem('id'),
+    const clientOrder = {
+      clientId: localStorage.getItem('userId'),
+      finalClientOrder: true,
       completed: false,
       maxDeliveryDate: null,
       canceled: false,
-      devices: [
-        ...devices.map((device) => ({
-          factoryId: device.factoryId,
+      orders: [
+        ...order.map((device) => ({
           deviceId: device.id,
           quantity: device.cantidad,
           price: device.precio,
+          id_vendedor: device.id_vendedor,
           estimatedDeliveryDate: null,
           delivered: false,
           payed: false,
@@ -54,14 +55,14 @@ function OrdersForm(props) {
     };
 
     const uploadOrder = await axios.post(
-      `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/orders?newOrder=true`,
-      order
+      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?newClientOrder=true`,
+      clientOrder
     );
 
     if (uploadOrder.data.success) {
       localStorage.removeItem('order');
       setIsOrderSet(false);
-      setDevices([]);
+      setOrder([]);
       props.setLoading(false);
       helpers.showModal(
         'Operación exitosa',
@@ -78,22 +79,12 @@ function OrdersForm(props) {
 
   const getTotal = () => {
     if (subtotal === 0) {
-      devices.map((device) => {
+      order.map((device) => {
         subtotal += device.precio * device.cantidad;
       });
     }
 
     return subtotal;
-  };
-
-  const getDevicesAmount = () => {
-    let cantidad = 0;
-
-    devices.map((device) => {
-      cantidad += device.cantidad;
-    });
-
-    return cantidad;
   };
 
   return !isOrderSet ? (
@@ -105,7 +96,7 @@ function OrdersForm(props) {
       <section className="cart-info">
         <h3 className="mb-4">Información de la Orden</h3>
         <ul className="list-group shopping-cart-list">
-          {devices.map((device, index) => (
+          {order.map((device, index) => (
             <Link
               className="no-underline-link"
               to={`/datos-dispositivo-agotado/${device.vendedor}/${device.id}`}
