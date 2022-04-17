@@ -160,6 +160,23 @@ router.post("/", async (req, res) => {
         data: uploadOrder.data,
       });
     }
+  } else if (params.newClientOrder !== undefined) {
+    // Upload a new order from the sales backend to the factories backend
+    const order = req.body;
+    const uploadOrder = await axios.post(
+      `http://${LOCALHOST_IP}:${FACTORIES_BE_PORT}/orders?newClientOrder=true`,
+      order
+    );
+    const status = uploadOrder.data.success ? 200 : 400;
+    const message = uploadOrder.data.success
+      ? "New order uploaded successfully"
+      : "Error uploading new order";
+
+    res.status(status).json({
+      success: uploadOrder.data.success,
+      message: message,
+      data: uploadOrder.data,
+    });
   } else {
     res.status(400).send({
       success: false,
