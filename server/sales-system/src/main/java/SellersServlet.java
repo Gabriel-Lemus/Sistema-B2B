@@ -1663,6 +1663,66 @@ public class SellersServlet extends HttpServlet {
             } catch (Exception e) {
                 helper.printErrorMessage(out, e);
             }
+        } else if (helper.requestContainsParameter(request, "payClientOrder")) {
+            String bodyStr = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
+            JSONObject body = new JSONObject(bodyStr);
+            String sellerName = body.getString("clientName");
+            String sellerNameNoSpaces = sellerName.replaceAll(" ", "_");
+            String deviceId = body.getString("deviceId");
+            int quantity = body.getInt("quantity");
+            String estimatedDeliveryDate = body.getString("estimatedDeliveryDate").replace("T", " ");
+            estimatedDeliveryDate = estimatedDeliveryDate.substring(0, estimatedDeliveryDate.length() - 5);
+
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                Connection con = DriverManager.getConnection(conUrl, user, password);
+                con.setAutoCommit(false);
+                Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                        ResultSet.CONCUR_READ_ONLY);
+
+                // Get the seller's id from the seller's name
+                String getSellerIdQuery = "SELECT id_vendedor FROM " + schema + ".vendedores WHERE nombre = '"
+                        + sellerName + "'";
+                ResultSet sellerIdRS = stmt.executeQuery(getSellerIdQuery);
+                int sellerId = 0;
+
+                if (sellerIdRS.next()) {
+                    sellerId = sellerIdRS.getInt("id_vendedor");
+                }
+
+                // Get the id of the order from the join of the _pedidos_futuros and
+                // _dispositivos_x_pedidos_futuros tables where the device id and quantity match
+                // and the estimated delivery date is less than the fecha_entrega column
+                String getOrderIdQuery = "SELECT pf.id_pedido FROM " + schema + "." + sellerNameNoSpaces
+                        + "_pedidos_futuros pf, "
+                        + schema + "." + sellerNameNoSpaces
+                        + "_dispositivos_x_pedidos_futuros dpf WHERE pf.id_pedido = dpf.id_pedido "
+                        + "AND dpf.id_dispositivo = '" + deviceId + "' AND dpf.cantidad_dispositivos = " + quantity
+                        + " AND id_vendedor = " + sellerId
+                        + " AND TO_DATE('" + estimatedDeliveryDate + "', 'yyyy-MM-dd HH24:MI:SS') <= pf.fecha_entrega";
+                ResultSet orderIdRS = stmt.executeQuery(getOrderIdQuery);
+                int orderId = 0;
+
+                if (orderIdRS.next()) {
+                    orderId = orderIdRS.getInt("id_pedido");
+                }
+
+                // Set the device as delivered on the _dispositivos_x_pedidos_futuros table
+                String setDeviceAsDeliveredQuery = "UPDATE " + schema + "." + sellerNameNoSpaces
+                        + "_dispositivos_x_pedidos_futuros SET entregado = 'True' WHERE id_pedido = " + orderId
+                        + " AND id_dispositivo = '" + deviceId + "'";
+                stmt.executeUpdate(setDeviceAsDeliveredQuery);
+                con.commit();
+
+                JSONObject jsonResponse = new JSONObject();
+                jsonResponse.put("success", true);
+                jsonResponse.put("message", "El pedido ha sido entregado correctamente.");
+
+                con.close();
+                out.print(jsonResponse.toString());
+            } catch (Exception e) {
+                helper.printErrorMessage(out, e);
+            }
         } else {
             helper.printJsonMessage(out, false, "error",
                     "The request does not contain the required parameters.");
