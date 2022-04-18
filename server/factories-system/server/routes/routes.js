@@ -517,7 +517,7 @@ router.post("/:schema", async (req, res) => {
             devices: [
               {
                 deviceId: order[i].deviceId,
-                factoryId,
+                factoryId: factoryId.factoryId,
                 quantity: order[i].quantity,
                 price: order[i].price,
                 estimatedDeliveryDate: estimatedDeliveryDateRounded,
@@ -1345,6 +1345,104 @@ router.put("/", async (req, res) => {
           res.status(500).send({
             success: false,
             message: `Error uploading the order to the webservice: ${uploadDevicesToWebServer.data.message}`,
+          });
+        }
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: `Error updating data from ${existingSchemas[3]}: ${error}`,
+        });
+      }
+    } else if (params.payClientOrder) {
+      const orderId = params.payClientOrder;
+
+      try {
+        // Array that will contain the information of the devices that have been paid for
+        let orderDevices = [];
+
+        // Get the order given its id
+        const order = await schemas[existingSchemas[3]].schema.findOne({
+          _id: orderId,
+        });
+
+        // Get the client's information
+        const client = await schemas[existingSchemas[2]].schema.findOne({
+          _id: order.clientId.toString(),
+        });
+
+        // Get the factories' information
+        const factories = await schemas[existingSchemas[0]].schema.find({
+          _id: { $in: order.devices.map((device) => device.factoryId) },
+        });
+
+        // Pay the order
+        order.completelyPayed = true;
+
+        // Iterate through the devices of the order and set the payed and canBeDisplayed properties to true
+        for (let i = 0; i < order.devices.length; i++) {
+          order.devices[i].payed = true;
+          order.devices[i].canBeDisplayed = true;
+        }
+
+        // Get the devices data that belong to the order
+        const factoriesDevices = await schemas[existingSchemas[1]].schema.find({
+          _id: { $in: order.devices.map((device) => device.deviceId) },
+        });
+
+        // Populate the orderDevices array with the devices of the order
+        for (let i = 0; i < order.devices.length; i++) {
+          for (let j = 0; j < factoriesDevices.length; j++) {
+            if (
+              order.devices[i].deviceId.toString() ===
+              factoriesDevices[j]._id.toString()
+            ) {
+              // Add the devices data from factoriesDevices as well as the quantity from the order
+              orderDevices.push({
+                ...factoriesDevices[j]._doc,
+                quantity: order.devices[i].quantity,
+                brand: factories.find(
+                  (factory) =>
+                    factory._id.toString() ===
+                    order.devices[i].factoryId.toString()
+                ).name,
+                deviceId: order.devices[i].deviceId.toString(),
+                estimatedDeliveryDate: order.devices[i].estimatedDeliveryDate.toISOString(),
+              });
+              break;
+            }
+          }
+        }
+
+        // Send the paid order to the webservice so that it can be sent to the sales backend as a delivery order
+        const newDevicesOrder = {
+          clientName: client.name,
+          deviceId: orderDevices[0].deviceId,
+          quantity: orderDevices[0].quantity,
+          estimatedDeliveryDate: orderDevices[0].estimatedDeliveryDate,
+        };
+        const sendDevicesToStore = await axios.put(
+          `http://${LOCALHOST_IP}:${WEBSERVICES_PORT}/?payClientOrder=true`,
+          newDevicesOrder
+        );
+
+        if (sendDevicesToStore.data.success) {
+          try {
+            await order.save();
+            res.status(200).send({
+              success: true,
+              message: "The order has been paid.",
+              newOrderData: order,
+            });
+          } catch (error) {
+            res.status(500).send({
+              success: false,
+              message: `Error updating the order: ${error}`,
+            });
+          }
+        } else {
+          res.status(500).send({
+            success: false,
+            message: `Error uploading the order to the webservice: ${sendDevicesToStore.data.message}`,
           });
         }
       } catch (error) {
