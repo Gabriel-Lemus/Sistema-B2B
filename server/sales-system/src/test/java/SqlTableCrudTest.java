@@ -12,6 +12,9 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Unit testing for methods of the class {@link SqlTableCrud}.
+ */
 public class SqlTableCrudTest {
     // Attributes
     private SqlTableCrud tableCrud;

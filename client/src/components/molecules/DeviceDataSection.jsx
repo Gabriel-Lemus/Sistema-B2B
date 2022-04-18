@@ -5,7 +5,6 @@ import axios from 'axios';
 import secrets from '../../helpers/secrets';
 
 function DeviceDataSection(props) {
-  // State
   const [device, setDevice] = useState({});
   const [newDeviceName, setNewDeviceName] = useState('');
   const [newDeviceDescription, setNewDeviceDescription] = useState('');
@@ -21,7 +20,6 @@ function DeviceDataSection(props) {
   const [devicesBrands, setDevicesBrands] = useState([]);
   const [changedDevice, setChangedDevice] = useState(false);
 
-  // Effects
   useEffect(() => {
     $('#device-price').val(newPrice.toFixed(2));
   }, [newPrice]);
@@ -57,7 +55,6 @@ function DeviceDataSection(props) {
     );
   }, [devicesBrands]);
 
-  // Functions
   const handleDeviceUpdate = async () => {
     props.setLoading(true);
     let potentialNewDevice = {
@@ -84,7 +81,7 @@ function DeviceDataSection(props) {
         secrets.TOMCAT_PORT
       }/sales-system/sellers?verVendedor=${
         props.seller
-      }&table=${props.seller.replace(' ', '_')}_dispositivos&id=${
+      }&table=${props.seller.replaceAll(' ', '_')}_dispositivos&id=${
         props.deviceId
       }`,
       potentialNewDevice
@@ -146,6 +143,7 @@ function DeviceDataSection(props) {
                 alt={`Imagen ${index}`}
                 className={'device-image' + (index === 0 ? '-active' : '')}
                 style={{
+                  maxHeight: '175px',
                   maxWidth: '90%',
                   height: 'auto',
                 }}
@@ -174,6 +172,7 @@ function DeviceDataSection(props) {
           }
           alt={props.device.nombre}
           style={{
+            maxHeight: '700px',
             maxWidth: '85%',
             height: 'auto',
           }}

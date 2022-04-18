@@ -7,7 +7,6 @@ import Loader from '../molecules/Loader';
 import secrets from '../../helpers/secrets';
 
 function LoginForm() {
-  // State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,7 +25,6 @@ function LoginForm() {
     }
   }, []);
 
-  // Handlers
   const handleCredentialsSubmission = () => {
     setLoading(true);
     if (email === '' || password === '') {
@@ -37,7 +35,7 @@ function LoginForm() {
       );
     } else {
       (async () => {
-        const parsedEmail = email.replace(/\+/g, '%2b');
+        const parsedEmail = email.replaceAll(/\+/g, '%2b');
         let checkEmailExists = await axios.get(
           `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios&exists=${parsedEmail}`
         );

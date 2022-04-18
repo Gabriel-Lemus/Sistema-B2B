@@ -1,0 +1,114 @@
+// Global variables
+@import './utilities/variables';
+
+// Components styles
+// Atoms
+@import '../../src/components/atoms/TextCenter.scss';
+@import '../../src/components/atoms/MainHeader.scss';
+@import '../../src/components/atoms/SubHeader.scss';
+
+// Molecules
+@import '../../src/components/molecules/Footer.scss';
+@import '../../src/components/molecules/DevicesCards.scss';
+
+// Organisms
+@import '../../src/components/organisms/Header.scss';
+@import '../../src/components/organisms/Navbar.scss';
+@import '../../src/components/organisms/LoginForm.scss';
+@import '../../src/components/organisms/SignUpForm.scss';
+@import '../../src/components/organisms/OrdersForm.scss';
+@import '../../src/components/organisms/OrdersControlForm.scss';
+@import '../../src/components/organisms/UserProfile.scss';
+@import '../../src/components/organisms/SalesCatalogForm.scss';
+@import '../../src/components/organisms/SpecializedSearchForm.scss';
+@import '../../src/components/organisms/SalesList.scss';
+@import '../../src/components/organisms/ClientsList.scss';
+
+// Templates
+@import '../../src/components/templates/DashboardTemplate.scss';
+
+// Pages
+@import '../../src/components/pages/NotFound.scss';
+
+
+// Fonts
+// Roboto
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+// Bootstrap overrides
+$body-bg: $lightestBlue;
+$dark: $darkBlue;
+$light: #8accf8;
+
+.dropdown-menu {
+  .dropdown-item:hover {
+    cursor: pointer;
+    color: $darkGray;
+    background-color: $lightBlue;
+  }
+  
+  .dropdown-item.active {
+    color: $white;
+    background-color: $blue;
+    
+    &:hover {
+      background-color: $blue;
+    }
+  }
+}
+
+.btn-primary {
+  background-color: $blue !important;
+  border-color: $blue !important;
+  color: $white !important;
+  
+  &:hover {
+    background-color: #06456c !important;
+    border-color: #06456c !important;
+  }
+}
+
+.btn-secondary {
+  background-color: $green !important;
+  border-color: $green !important;
+  color: $white !important;
+  
+  &:hover {
+    background-color: $darkBlue !important;
+    border-color: $darkBlue !important;
+  }
+}
+
+.alert-info {
+  background-color: #fefcc5 !important;
+  border-color: #fefcc5 !important;
+  color: $darkGray !important;
+  margin: 0 -10px 0 10px;
+  width: 100%;
+}
+
+// Global styles
+body {
+  background-color: $body-bg;
+  color: $dark;
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.6rem;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+
+p {
+  padding-top: 15px;
+}
+
+.small-separator {
+  height: 15px;
+}
+
+.medium-separator {
+  height: 30px;
+}
+
+// Import bootstrap
+@import '../../node_modules/bootstrap/scss/bootstrap.scss';

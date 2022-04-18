@@ -6,11 +6,36 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Servlet that manages the sales of the system.
+ */
 @WebServlet("/sales")
 public class SalesServlet extends HttpServlet {
     // Attributes
-    private SqlSchema sqlSchema;
-    private Secrets secrets;
+    private Secrets secrets = new Secrets();
+    private SqlSchema sqlSchema = new SqlSchema(secrets.getOracleCon(), "Sales", "adminsales", "localhost", "Sales",
+        new String[] { "credenciales_usuarios", "clientes", "vendedores", "marcas" },
+        new String[] { "id_credencial", "id_cliente", "id_vendedor", "id_marca" },
+        new String[] { "email", null, "nombre", "nombre" },
+        new String[][] {
+            { "id_credencial", "id_cliente", "id_vendedor", "tipo_usuario", "email", "salt", "hash" },
+            { "id_cliente", "nombre", "nit", "email", "telefono", "patente_comercio", "tipo_cliente", "tiene_suscripcion", "vencimiento_suscripcion" },
+            { "id_vendedor", "nombre", "es_admin" },
+            { "id_marca", "nombre" },
+        },
+        new String[][] {
+            { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2" },
+            { "INTEGER", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2", "DATE" },
+            { "INTEGER", "VARCHAR2", "VARCHAR2" },
+            { "INTEGER", "VARCHAR2" },
+        },
+        new boolean[][] {
+            { false, true, true, false, false, false, false },
+            { false, false, true, true, true, true, true, false, true },
+            { false, false, false },
+            { false, false },
+        },
+    new int[] { 100, 100, 100, 100 });
 
     // Servlet initialization
     public void init() throws ServletException {
