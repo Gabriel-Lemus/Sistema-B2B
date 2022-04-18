@@ -325,6 +325,22 @@ router.put("/", async (req, res) => {
         data: payOrder.data,
       });
     }
+  } else if (params.payClientOrder !== undefined) {
+    // Send a paid order to the sales backend
+    const order = req.body;
+
+    const payClientOrder = await axios.put(
+      `http://${LOCALHOST_IP}:${SALES_BE_PORT}/sales-system/sellers?payClientOrder=true`,
+      order
+    );
+
+    res.status(payClientOrder.data.success ? 200 : 400).send({
+      success: payClientOrder.data.success,
+      message: payClientOrder.data.success
+        ? "Order paid successfully."
+        : "Error paying the order.",
+      data: payClientOrder.data,
+    });
   } else {
     res.status(400).send({
       success: false,
