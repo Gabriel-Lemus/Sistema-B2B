@@ -13,7 +13,7 @@ function SalesCatalog() {
         displaySearchBar={false}
         sideBarItems={
           localStorage.getItem('userType') === 'fabricante'
-            ? helpers.FACTORY_PAGES
+            ? helpers.getFactoryPages(localStorage.getItem('id'))
             : helpers.SELLER_PAGES
         }
         pageTitle="Catálogo de Ventas"
@@ -26,3 +26,4 @@ function SalesCatalog() {
 }
 
 export default SalesCatalog;
+

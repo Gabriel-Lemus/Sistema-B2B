@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import DashboardTemplate from '../templates/DashboardTemplate';
 import helpers from '../../helpers/helpers';
 import Loader from '../molecules/Loader';
-import ClientsList from '../organisms/ClientsList';
+import SalesReportsForm from '../organisms/SalesReportsForm';
 
-function Clients() {
+function DeviceData() {
+  let { id } = useParams();
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    document.title = 'Clientes';
-  }, []);
 
   return (
     <>
@@ -20,13 +18,18 @@ function Clients() {
             ? helpers.getFactoryPages(localStorage.getItem('id'))
             : helpers.SELLER_PAGES
         }
-        pageTitle="Listado de Clientes"
+        pageTitle="Catálogo de dispositivos"
       >
-        <ClientsList loading={loading} setLoading={setLoading} />
+        <SalesReportsForm
+          sellerId={id}
+          loading={loading}
+          setLoading={setLoading}
+        />
       </DashboardTemplate>
       {loading ? <Loader loading={loading} /> : <></>}
     </>
   );
 }
 
-export default Clients;
+export default DeviceData;
+
