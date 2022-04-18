@@ -15,7 +15,7 @@ import Orders from './components/pages/Orders';
 import OrdersControl from './components/pages/OrdersControl';
 import DevicesCatalogSearch from './components/pages/DevicesCatalogSearch';
 import UserProfile from './components/pages/UserProfile';
-import Sales from './components/pages/Sales';
+import SalesReports from './components/pages/SalesReports';
 import SpecializedSearch from './components/pages/SpecializedSearch';
 import Sellers from './components/pages/Sellers';
 import Brands from './components/pages/Brands';
@@ -32,6 +32,7 @@ function App() {
           <Route path="/" exact element={<Home />} />
           <Route path="/Login" exact element={<Login />} />
           <Route path="/Sign-Up" element={<SignUp />} />
+          <Route path="/Perfil" element={<UserProfile />} />
 
           {/* Factories system clients/sales system sellers pages */}
           <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
@@ -46,6 +47,7 @@ function App() {
           <Route path="/Catalogo-Ventas" element={<SalesCatalog />} />
           <Route path="/Clientes" element={<Clients />} />
           <Route path="/Ordenes-Fabricas" element={<FactoryOrders />} />
+          <Route path="/Reportes-Ventas/:id" element={<SalesReports />} />
 
           {/* <Route path="/Catalogo-Dispositivos" element={<DevicesCatalog />} />
           <Route path="/Catalogo-Dispositivos-Busqueda/" element={<DevicesCatalogSearch />} />
