@@ -7,7 +7,8 @@ import CryptoJS from 'crypto-js';
 import { FiBook, FiUsers } from 'react-icons/fi';
 import { RiCheckboxMultipleLine } from 'react-icons/ri';
 import { HiOutlineClipboardCheck } from 'react-icons/hi';
-import { AiOutlineCheckSquare } from 'react-icons/ai';
+import { AiOutlineCheckSquare, AiOutlineUser } from 'react-icons/ai';
+import { BiPurchaseTagAlt } from 'react-icons/bi';
 
 /**
  * Color palette
@@ -47,9 +48,9 @@ const FACTORY_PAGES = [
     reference: '/ordenes-fabricas',
   },
   {
-    icon: <AiOutlineCheckSquare />,
-    title: 'Órdenes entregadas',
-    reference: '/ordenes-fabricas-entregadas',
+    icon: <AiOutlineUser />,
+    title: 'Perfil',
+    reference: '/perfil',
   },
 ];
 
@@ -71,6 +72,11 @@ const SELLER_PAGES = [
     icon: <HiOutlineClipboardCheck />,
     title: 'Gestión de órdenes',
     reference: '/gestion-ordenes',
+  },
+  {
+    icon: <AiOutlineUser />,
+    title: 'Perfil',
+    reference: '/perfil',
   },
 ];
 
@@ -545,7 +551,55 @@ const getDifferenceInDays = (date) => {
 
   return differenceInDays;
 };
-  
+
+/**
+ * Get the factory pages array from the factory pages object and add the sales report page given the user id.
+ * @param {String} userId The user id.
+ * @return {Array} The factory pages array.
+ */
+const getFactoryPages = (userId) => {
+  let salesReportPage = {
+    icon: <BiPurchaseTagAlt />,
+    title: 'Ventas',
+    reference: `/reportes-ventas/${userId}`,
+  };
+
+  // Insert the sales report page as the second-to-last page in the array.
+  let factoryPages = JSON.parse(JSON.stringify(FACTORY_PAGES));
+  factoryPages.splice(factoryPages.length - 1, 0, salesReportPage);
+
+  return factoryPages;
+};
+
+/**
+ * Get the icon based on the page name.
+ * @param {string} pageName The page name.
+ * @return {React.Component} The icon component.
+ */
+const getIcon = (pageName) => {
+  switch (pageName) {
+    case 'Catálogo de ventas':
+      return <FiBook />;
+
+    case 'Clientes':
+      return <FiUsers />;
+
+    case 'Gestión de órdenes':
+      return <HiOutlineClipboardCheck />;
+
+    case 'Órdenes entregadas':
+      return <AiOutlineCheckSquare />;
+
+    case 'Perfil':
+      return <AiOutlineUser />;
+
+    case 'Ventas':
+      return <BiPurchaseTagAlt />;
+
+    default:
+      return <FiBook />;
+  }
+};
 
 /**
  * General helpers
@@ -577,6 +631,8 @@ const helpers = {
   isValueInArray,
   getIndexOfObject,
   getDifferenceInDays,
+  getFactoryPages,
+  getIcon,
 };
 
 export default helpers;
