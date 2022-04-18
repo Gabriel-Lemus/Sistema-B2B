@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+/* css reset */
+
+html, body, header, nav, h1, h2, h3, h4, h5, a,
+ul, li, strong, main, button,
+section, img, div, p, form,
+fieldset, label, input, textarea,
+span, article, footer, time, small, dl, dt, dd, table, th, tr, td {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-feature-settings: "tnum" 1, "ss03";
+  -webkit-font-feature-settings: "tnum" 1, "ss03";
+  -moz-font-feature-settings: "tnum" 1, "ss03";
+  -ms-font-feature-settings: "tnum" 1, "ss03";
+  font-style: normal;
+  color: inherit;
+  vertical-align: baseline;
+  text-decoration: inherit;
+  vertical-align: inherit;
+  box-sizing: inherit;
+  background: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  text-rendering: optimizeLegibility;
+}

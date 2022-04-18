@@ -20,25 +20,32 @@ function SalesReportsForm(props) {
     );
 
     setLastReportedSales(lastReportedSales.data.nonReportedDevices);
-    setLastReportedDate(lastReportedSales.data.lastReported);
+
+    if (lastReportedSales.data.lastReported !== null) {
+      setLastReportedDate(lastReportedSales.data.lastReported);
+    }
 
     props.setLoading(false);
   }, []);
 
   const formatDate = (date) => {
-    const dateArray = date.split('T');
-    const dateString = dateArray[0];
-    const timeString = dateArray[1];
-    const dateArray2 = dateString.split('-');
-    const timeArray = timeString.split(':');
-    const year = dateArray2[0];
-    const month = dateArray2[1];
-    const day = dateArray2[2];
-    const hours = timeArray[0];
-    const minutes = timeArray[1];
-    const seconds = timeArray[2].split('.')[0];
+    if (date !== '') {
+      const dateArray = date.split('T');
+      const dateString = dateArray[0];
+      const timeString = dateArray[1];
+      const dateArray2 = dateString.split('-');
+      const timeArray = timeString.split(':');
+      const year = dateArray2[0];
+      const month = dateArray2[1];
+      const day = dateArray2[2];
+      const hours = timeArray[0];
+      const minutes = timeArray[1];
+      const seconds = timeArray[2].split('.')[0];
 
-    return `${day}/${month}/${year} a las ${hours}:${minutes}:${seconds}`;
+      return `${day}/${month}/${year} a las ${hours}:${minutes}:${seconds}`;
+    } else {
+      return '----';
+    }
   };
 
   const shortDate = (date) => {
