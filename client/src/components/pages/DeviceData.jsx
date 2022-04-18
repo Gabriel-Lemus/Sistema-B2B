@@ -53,7 +53,7 @@ function DeviceData() {
 
         // Check if the device is already in the cart
         for (let i = 0; i < cart.length; i++) {
-          if (cart[i].id === Number(id) && cart[i].vendedor === seller) {
+          if (cart[i].id === id && cart[i].vendedor === seller) {
             newAmount += Number(cart[i].cantidad);
             changedAmount = true;
             oldIdx = i;
@@ -65,7 +65,7 @@ function DeviceData() {
           for (let i = 0; i < cart.length; i++) {
             if (i === oldIdx) {
               newCart.push({
-                id: Number(id),
+                id: id,
                 vendedor: seller,
                 nombre: device.nombre,
                 precio: device.precio,
@@ -86,7 +86,7 @@ function DeviceData() {
           newCart = [
             ...cart,
             {
-              id: Number(id),
+              id: id,
               nombre: device.nombre,
               precio: device.precio,
               id_vendedor: sellerId,
@@ -106,7 +106,7 @@ function DeviceData() {
           'cart',
           JSON.stringify([
             {
-              id: Number(id),
+              id: id,
               nombre: device.nombre,
               precio: device.precio,
               id_vendedor: sellerId,
@@ -139,14 +139,18 @@ function DeviceData() {
     <>
       <DashboardTemplate
         displaySearchBar={false}
-        sideBarItems={helpers.CLIENT_PAGES}
+        sideBarItems={
+          localStorage.getItem('userType') !== 'distribuidor'
+            ? helpers.CLIENT_PAGES
+            : helpers.CLIENT_PAGES.concat(helpers.DISTRIBUTOR_CLIENTS_PAGES)
+        }
         pageTitle="Catálogo de dispositivos"
       >
         {!dataSuccess && !loading ? (
           <p>No existe un dispositivo con los datos indicados.</p>
         ) : (
           <DeviceDataSection
-            deviceId={Number(id)}
+            deviceId={id}
             device={device}
             setCurrentImage={setCurrentImage}
             currentImage={currentImage}
@@ -164,3 +168,4 @@ function DeviceData() {
 }
 
 export default DeviceData;
+

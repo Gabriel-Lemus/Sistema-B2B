@@ -15,7 +15,11 @@ function DevicesCatalog() {
     <>
       <DashboardTemplate
         displaySearchBar={false}
-        sideBarItems={helpers.CLIENT_PAGES}
+        sideBarItems={
+          localStorage.getItem('userType') !== 'distribuidor'
+            ? helpers.CLIENT_PAGES
+            : helpers.CLIENT_PAGES.concat(helpers.DISTRIBUTOR_CLIENTS_PAGES)
+        }
         pageTitle="Compras"
       >
         <SalesList loading={loading} setLoading={setLoading} />

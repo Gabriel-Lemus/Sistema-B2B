@@ -4,13 +4,20 @@
   "description": "Repositorio del sistema B2B proyecto interdisciplinario de Análisis, Diseño y Fabricación de Sistemas y Bases de Datos 2.",
   "main": "index.js",
   "scripts": {
-    "startReact": "cd ./client && npm start",
     "deploySalesServlets": "cd ./server/sales-system/.helper-scripts && ./deploy-servlets.sh",
     "startFrontEnd": "cd ./client && npm start",
     "deployFrontEnd": "cd ./client/.helper-scripts && sudo ./deploy-front-end.sh",
-    "startImagesServer": "cd ./server/sales-system/images-server && npm run devStart",
-    "startWebservices": "cd ./server/webservices && npm run devStart",
-    "sass": "cd ./client && node-sass ./public/sass/styles.scss ./public/css/styles.css --watch"
+    "startFactoriesFrontEnd": "cd ./server/factories-system/client && npm start",
+    "serveFactoriesSystem": "cd ./server/factories-system/client && npm run build && cd ./.helper-scripts && ./serve-factories-system.sh",
+    "startImagesServer": "cd ./server/sales-system/images-server && npm start",
+    "startDevImagesServer": "cd ./server/sales-system/images-server && npm run dev",
+    "startFactoriesBackend": "cd ./server/factories-system/server && npm start",
+    "startDevFactoriesBackend": "cd ./server/factories-system/server && npm run dev",
+    "startWebservices": "cd ./server/webservices && npm start",
+    "startDevWebServices": "cd ./server/webservices && npm run dev",
+    "sass": "cd ./client && node-sass ./public/sass/styles.scss ./public/css/styles.css --watch",
+    "factoriesSass": "cd ./server/factories-system/client && node-sass ./public/sass/styles.scss ./public/css/styles.css --watch",
+    "startMongoDB": "sudo mongod --dbpath ~/data/db"
   },
   "repository": {
     "type": "git",

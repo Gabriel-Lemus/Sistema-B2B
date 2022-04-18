@@ -8,7 +8,6 @@ import Loader from '../molecules/Loader';
 import secrets from '../../helpers/secrets';
 
 function SignUpForm() {
-  // State
   const [userType, setUserType] = useState('');
   const [clientType, setClientType] = useState('');
   const [clientName, setClientName] = useState('');
@@ -25,7 +24,6 @@ function SignUpForm() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Use effect
   useEffect(() => {
     // Check if user is logged in
     if (
@@ -75,7 +73,6 @@ function SignUpForm() {
     }
   }, [userType]);
 
-  // Handlers
   /**
    * Handle the validation and submission of the credentials when the sign up button is clicked.
    */
@@ -147,8 +144,12 @@ function SignUpForm() {
                     `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=credenciales_usuarios`,
                     userCredentialsTableData
                   );
+                  const sellerAsClientInFactoriesSystem = await axios.post(
+                    `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?sellerAsFactoriesClient=${sellerName}&email=${email}`,
+                    {}
+                  );
 
-                  if (userCredentialsRegistration.data.success) {
+                  if (userCredentialsRegistration.data.success && sellerAsClientInFactoriesSystem.data.success) {
                     helpers.setLoginUserAttributes(
                       'vendedor',
                       sellerRegistration.data.sellerId,
