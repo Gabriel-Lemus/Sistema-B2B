@@ -5,7 +5,6 @@ import axios from 'axios';
 import secrets from '../../helpers/secrets';
 
 function DeviceDataSection(props) {
-  // State
   const [device, setDevice] = useState({});
   const [newDeviceName, setNewDeviceName] = useState('');
   const [newDeviceDescription, setNewDeviceDescription] = useState('');
@@ -21,7 +20,6 @@ function DeviceDataSection(props) {
   const [devicesBrands, setDevicesBrands] = useState([]);
   const [changedDevice, setChangedDevice] = useState(false);
 
-  // Effects
   useEffect(() => {
     $('#device-price').val(newPrice.toFixed(2));
   }, [newPrice]);
@@ -57,7 +55,6 @@ function DeviceDataSection(props) {
     );
   }, [devicesBrands]);
 
-  // Functions
   const handleDeviceUpdate = async () => {
     props.setLoading(true);
     let potentialNewDevice = {

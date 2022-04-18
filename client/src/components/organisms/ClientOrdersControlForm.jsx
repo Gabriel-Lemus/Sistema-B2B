@@ -27,35 +27,42 @@ function OrdersForm(props) {
   const getOrders = async () => {
     if (clientId !== '') {
       const orders = await axios.get(
-        `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/orders?clientOrders=${clientId}`
+        `http://${secrets.LOCALHOST_IP}:${
+          secrets.TOMCAT_PORT
+        }/sales-system/sellers?get=true&pedidosCliente=${localStorage.getItem(
+          'userId'
+        )}`
       );
 
-      let pendingOrders = JSON.parse(JSON.stringify(orders.data.pendingOrders));
+      let pendingOrders = JSON.parse(
+        JSON.stringify(orders.data.nonDeliveredOrders)
+      );
       const completedOrders = JSON.parse(
         JSON.stringify(orders.data.deliveredOrders)
       );
-      const cancelledOrders = JSON.parse(
-        JSON.stringify(orders.data.cancelledOrders)
-      );
+      // const cancelledOrders = JSON.parse(
+      //   JSON.stringify(orders.data?.cancelledOrders)
+      // );
 
       // Iterate through the devices of the pending orders and set each device toDelete to false
       pendingOrders.forEach((order) => {
-        order.devices.forEach((device) => {
-          device.toDelete = false;
-        });
+        order.forEach((device) => (device.toDelete = false));
       });
 
       // If a cancelled order doesn't have any devices, remove it from the cancelled orders array
       for (let i = 0; i < cancelledOrders.length; i++) {
-        if (cancelledOrders[i].devices.length === 0) {
+        if (cancelledOrders[i].length === 0) {
           cancelledOrders.splice(i, 1);
           i--;
         }
       }
 
+      // console.log(pendingOrders);
+      // console.log(completedOrders);
+
       // Iterate through the pending orders and their devices and remove the table-danger class from each of them
       for (let i = 0; i < pendingOrders.length; i++) {
-        for (let j = 0; j < pendingOrders[i].devices.length; j++) {
+        for (let j = 0; j < pendingOrders[i].length; j++) {
           $(`#pending-orders-table-${i}`)
             .find('tr')
             .eq(j + 1)
@@ -81,10 +88,8 @@ function OrdersForm(props) {
     // Iterate through the pending orders
     for (let i = 0; i < orders1.length; i++) {
       // Iterate through the pending orders devices
-      for (let j = 0; j < orders1[i].devices.length; j++) {
-        if (
-          !helpers.compareObjects(orders1[i].devices[j], orders2[i].devices[j])
-        ) {
+      for (let j = 0; j < orders1[i].length; j++) {
+        if (!helpers.compareObjects(orders1[i][j], orders2[i][j])) {
           return true;
         }
       }
@@ -97,95 +102,102 @@ function OrdersForm(props) {
     props.setLoading(true);
     let changedOrders = [];
 
-    // Iterate through the pending orders and check if there are changes
-    for (let i = 0; i < newPendingOrders.length; i++) {
-      // Iterate through the pending orders devices
-      for (let j = 0; j < newPendingOrders[i].devices.length; j++) {
-        if (
-          !helpers.compareObjects(
-            pendingOrders[i].devices[j],
-            newPendingOrders[i].devices[j]
-          )
-        ) {
-          changedOrders.push(newPendingOrders[i]);
-          break;
-        }
-      }
-    }
+    // TODO: work on allowing the clients to modify the pending orders
+    // // Iterate through the pending orders and check if there are changes
+    // for (let i = 0; i < newPendingOrders.length; i++) {
+    //   // Iterate through the pending orders devices
+    //   for (let j = 0; j < newPendingOrders[i].length; j++) {
+    //     if (
+    //       !helpers.compareObjects(pendingOrders[i][j], newPendingOrders[i][j])
+    //     ) {
+    //       changedOrders.push(newPendingOrders[i]);
+    //       break;
+    //     }
+    //   }
+    // }
 
-    const updatedOrders = {
-      orders: changedOrders,
-    };
+    // const updatedOrders = {
+    //   orders: changedOrders,
+    // };
 
-    // Attempt to save the changes in the pending orders
-    try {
-      const updatePendingOrdersRes = await axios.put(
-        `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/?updateOrders=true`,
-        updatedOrders
-      );
+    // // Attempt to save the changes in the pending orders
+    // try {
+    //   const updatePendingOrdersRes = await axios.put(
+    //     `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/?updateOrders=true`,
+    //     updatedOrders
+    //   );
 
-      if (updatePendingOrdersRes.data.success) {
-        getOrders();
-        props.setLoading(false);
-        helpers.showModal(
-          'Operación exitosa',
-          'Las modificaciones de las órdenes fueron guardadas correctamente.'
-        );
-      } else {
-        props.setLoading(false);
-        helpers.showModal(
-          'Error',
-          'Hubo un error al guardar las modificaciones de las órdenes. Por favor, intente nuevamente.'
-        );
-      }
-    } catch (error) {
+    //   if (updatePendingOrdersRes.data.success) {
+    //     getOrders();
+    //     props.setLoading(false);
+    //     helpers.showModal(
+    //       'Operación exitosa',
+    //       'Las modificaciones de las órdenes fueron guardadas correctamente.'
+    //     );
+    //   } else {
+    //     props.setLoading(false);
+    //     helpers.showModal(
+    //       'Error',
+    //       'Hubo un error al guardar las modificaciones de las órdenes. Por favor, intente nuevamente.'
+    //     );
+    //   }
+    // } catch (error) {
+    //   props.setLoading(false);
+    //   helpers.showModal(
+    //     'Error',
+    //     'Ocurrió un error al tratar de guardar los cambios. Por favor, inténtelo nuevamente.'
+    //   );
+    // }
+
+    setTimeout(() => {
       props.setLoading(false);
       helpers.showModal(
-        'Error',
-        'Ocurrió un error al tratar de guardar los cambios. Por favor, inténtelo nuevamente.'
+        'Operación exitosa',
+        'Las modificaciones de las órdenes fueron guardadas correctamente.'
       );
-    }
+    }, 1500);
   };
 
-  const handlePayOrder = async (orderIndex, isClientOrder) => {
+  const handlePayOrder = async (orderIndex) => {
     props.setLoading(true);
-    let payOrderRes;
-    let payParam;
 
-    if (!isClientOrder) {
-      payParam = `payOrder=${completedOrders[orderIndex]._id}`;
-    } else {
-      payParam = `payClientOrder=${completedOrders[orderIndex]._id}`;
-    }
+    // TODO: work on allowing the clients to pay for the orders
+    // const payOrderRes = await axios.put(
+    //   `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/?payOrder=${completedOrders[orderIndex]._id}`,
+    //   {}
+    // );
 
-    payOrderRes = await axios.put(
-      `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/?${payParam}`,
-      {}
-    );
+    // if (payOrderRes.data.success) {
+    //   let newCompletedOrders = JSON.parse(JSON.stringify(completedOrders));
 
-    if (payOrderRes.data.success) {
-      let newCompletedOrders = JSON.parse(JSON.stringify(completedOrders));
+    //   newCompletedOrders[orderIndex].completelyPayed = true;
 
-      newCompletedOrders[orderIndex].completelyPayed = true;
+    //   for (let i = 0; i < newCompletedOrders[orderIndex].length; i++) {
+    //     newCompletedOrders[orderIndex][i].payed = true;
+    //     newCompletedOrders[orderIndex][i].canBeDisplayed = true;
+    //   }
 
-      for (let i = 0; i < newCompletedOrders[orderIndex].devices.length; i++) {
-        newCompletedOrders[orderIndex].devices[i].payed = true;
-        newCompletedOrders[orderIndex].devices[i].canBeDisplayed = true;
-      }
+    //   setCompletedOrders(newCompletedOrders);
+    //   props.setLoading(false);
+    //   helpers.showModal(
+    //     'Operación exitosa',
+    //     'La orden fue pagada correctamente.'
+    //   );
+    // } else {
+    //   props.setLoading(false);
+    //   helpers.showModal(
+    //     'Error',
+    //     'Hubo un error al tratar de pagar la orden. Por favor, intente nuevamente.'
+    //   );
+    // }
 
-      setCompletedOrders(newCompletedOrders);
+    setTimeout(() => {
       props.setLoading(false);
       helpers.showModal(
         'Operación exitosa',
         'La orden fue pagada correctamente.'
       );
-    } else {
-      props.setLoading(false);
-      helpers.showModal(
-        'Error',
-        'Hubo un error al tratar de pagar la orden. Por favor, intente nuevamente.'
-      );
-    }
+    }, 1500);
   };
 
   return !props.loading ? (
@@ -200,7 +212,7 @@ function OrdersForm(props) {
                   <h4>Orden #{index + 1}</h4>
                   <p>
                     Fecha estimada de entrega:{' '}
-                    {helpers.formatDate2(order.maxDeliveryDate)}
+                    {helpers.formatDate2(order[0].fecha_entrega)}
                   </p>
                   <h5 className="mt-2 mb-3">Dispositivos:</h5>
                   <table id={`pending-orders-table-${index}`} className="table">
@@ -219,13 +231,13 @@ function OrdersForm(props) {
                       </tr>
                     </thead>
                     <tbody>
-                      {order.devices.map((device, deviceIndex) => (
+                      {order.map((device, deviceIndex) => (
                         <tr key={deviceIndex}>
                           <th scope="row">{deviceIndex + 1}</th>
-                          <td>{device.name}</td>
+                          <td>{device.nombre}</td>
                           <td>
                             <section className="input-row">
-                              {!order.devices[deviceIndex].delivered ? (
+                              {!order[deviceIndex].entregado ? (
                                 device.toDelete === undefined ||
                                 !device.toDelete ? (
                                   <>
@@ -237,11 +249,13 @@ function OrdersForm(props) {
                                             JSON.stringify(newPendingOrders)
                                           );
                                         if (
-                                          potentialNewPendingOrders[index]
-                                            .devices[deviceIndex].quantity > 1
+                                          potentialNewPendingOrders[index][
+                                            deviceIndex
+                                          ].cantidad_dispositivos > 1
                                         ) {
-                                          potentialNewPendingOrders[index]
-                                            .devices[deviceIndex].quantity--;
+                                          potentialNewPendingOrders[index][
+                                            deviceIndex
+                                          ].cantidad_dispositivos--;
                                           setNewPendingOrders(
                                             potentialNewPendingOrders
                                           );
@@ -259,17 +273,18 @@ function OrdersForm(props) {
                                     <input
                                       type="number"
                                       className="form-control form-control-sm device-quantity-input"
-                                      value={device.quantity}
+                                      value={device.cantidad_dispositivos}
                                       min="1"
                                       onChange={(e) => {
                                         const potentialNewPendingOrders =
                                           JSON.parse(
                                             JSON.stringify(newPendingOrders)
                                           );
-                                        potentialNewPendingOrders[
-                                          index
-                                        ].devices[deviceIndex].quantity =
-                                          Number(e.target.value);
+                                        potentialNewPendingOrders[index][
+                                          deviceIndex
+                                        ].cantidad_dispositivos = Number(
+                                          e.target.value
+                                        );
                                         setNewPendingOrders(
                                           potentialNewPendingOrders
                                         );
@@ -288,8 +303,9 @@ function OrdersForm(props) {
                                           JSON.parse(
                                             JSON.stringify(newPendingOrders)
                                           );
-                                        potentialNewPendingOrders[index]
-                                          .devices[deviceIndex].quantity++;
+                                        potentialNewPendingOrders[index][
+                                          deviceIndex
+                                        ].cantidad_dispositivos++;
                                         setNewPendingOrders(
                                           potentialNewPendingOrders
                                         );
@@ -315,7 +331,7 @@ function OrdersForm(props) {
                                     <input
                                       type="number"
                                       className="form-control form-control-sm device-quantity-input"
-                                      value={device.quantity}
+                                      value={device.cantidad_dispositivos}
                                       min="1"
                                       readOnly
                                     />
@@ -328,22 +344,22 @@ function OrdersForm(props) {
                                   </>
                                 )
                               ) : (
-                                device.quantity
+                                device.cantidad_dispositivos
                               )}
                             </section>
                           </td>
                           <td>
-                            {helpers.getFormattedCurrency('Q. ', device.price)}
+                            {helpers.getFormattedCurrency('Q. ', device.precio)}
                           </td>
                           <td>
                             {helpers.getFormattedCurrency(
                               'Q. ',
-                              device.quantity * device.price
+                              device.cantidad_dispositivos * device.precio
                             )}
                           </td>
                           <td>
                             <div className="checkbox-center">
-                              {!order.devices[deviceIndex].delivered ? (
+                              {!order[deviceIndex].entregado ? (
                                 <input
                                   type="checkbox"
                                   onChange={(e) => {
@@ -351,26 +367,26 @@ function OrdersForm(props) {
                                       JSON.parse(
                                         JSON.stringify(newPendingOrders)
                                       );
-                                    potentialNewPendingOrders[index].devices[
+                                    potentialNewPendingOrders[index][
                                       deviceIndex
                                     ].toDelete = e.target.checked;
 
                                     if (e.target.checked) {
-                                      potentialNewPendingOrders[index].devices[
+                                      potentialNewPendingOrders[index][
                                         deviceIndex
-                                      ].quantity = 0;
+                                      ].cantidad_dispositivos = 0;
 
                                       $(`#pending-orders-table-${index}`)
                                         .find('tr')
                                         .eq(deviceIndex + 1)
                                         .addClass('table-danger');
                                     } else {
-                                      potentialNewPendingOrders[index].devices[
+                                      potentialNewPendingOrders[index][
                                         deviceIndex
-                                      ].quantity =
-                                        pendingOrders[index].devices[
+                                      ].cantidad_dispositivos =
+                                        pendingOrders[index][
                                           deviceIndex
-                                        ].quantity;
+                                        ].cantidad_dispositivos;
 
                                       $(`#pending-orders-table-${index}`)
                                         .find('tr')
@@ -391,7 +407,7 @@ function OrdersForm(props) {
                                   className="form-check-input remove-device-checkbox"
                                 />
                               ) : (
-                                <div>Dispositivo(s) ya entregado</div>
+                                <div>Dispositivo(s) ya en tienda</div>
                               )}
                             </div>
                           </td>
@@ -410,9 +426,10 @@ function OrdersForm(props) {
                     Total:{' '}
                     {helpers.getFormattedCurrency(
                       'Q. ',
-                      order.devices.reduce(
+                      order.reduce(
                         (total, device) =>
-                          (total += device.quantity * device.price),
+                          (total +=
+                            device.cantidad_dispositivos * device.precio),
                         0
                       )
                     )}
@@ -478,18 +495,18 @@ function OrdersForm(props) {
                       </tr>
                     </thead>
                     <tbody>
-                      {order.devices.map((device, deviceIndex) => (
+                      {order.map((device, deviceIndex) => (
                         <tr key={deviceIndex}>
                           <td>{deviceIndex + 1}</td>
                           <td>{device.name}</td>
-                          <td>{device.quantity}</td>
+                          <td>{device.cantidad_dispositivos}</td>
                           <td>
-                            {helpers.getFormattedCurrency('Q. ', device.price)}
+                            {helpers.getFormattedCurrency('Q. ', device.precio)}
                           </td>
                           <td>
                             {helpers.getFormattedCurrency(
                               'Q. ',
-                              device.quantity * device.price
+                              device.cantidad_dispositivos * device.precio
                             )}
                           </td>
                         </tr>
@@ -507,9 +524,10 @@ function OrdersForm(props) {
                     Total:{' '}
                     {helpers.getFormattedCurrency(
                       'Q. ',
-                      order.devices.reduce(
+                      order.reduce(
                         (total, device) =>
-                          (total += device.quantity * device.price),
+                          (total +=
+                            device.cantidad_dispositivos * device.precio),
                         0
                       )
                     )}
@@ -520,12 +538,7 @@ function OrdersForm(props) {
                   <button
                     className="btn btn-primary btn-sm btn-outline-secondary mt-3"
                     onClick={() => {
-                      handlePayOrder(
-                        index,
-                        order.isClientOrder !== undefined
-                          ? order.isClientOrder
-                          : false
-                      );
+                      handlePayOrder(index);
                     }}
                     style={{
                       width: '100%',
@@ -544,7 +557,7 @@ function OrdersForm(props) {
             </div>
           )}
         </section>
-        <section className="canceled-orders mt-5">
+        {/* <section className="canceled-orders mt-5">
           <h2>Órdenes canceladas</h2>
           {cancelledOrders.length > 0 ? (
             cancelledOrders.map((order, index) => (
@@ -563,18 +576,18 @@ function OrdersForm(props) {
                       </tr>
                     </thead>
                     <tbody>
-                      {order.devices.map((device, deviceIndex) => (
+                      {order.map((device, deviceIndex) => (
                         <tr key={deviceIndex}>
                           <td>{deviceIndex + 1}</td>
                           <td>{device.name}</td>
-                          <td>{device.quantity}</td>
+                          <td>{device.cantidad_dispositivos}</td>
                           <td>
                             {helpers.getFormattedCurrency('Q. ', device.price)}
                           </td>
                           <td>
                             {helpers.getFormattedCurrency(
                               'Q. ',
-                              device.quantity * device.price
+                              device.cantidad_dispositivos * device.price
                             )}
                           </td>
                         </tr>
@@ -592,9 +605,9 @@ function OrdersForm(props) {
                     Total:{' '}
                     {helpers.getFormattedCurrency(
                       'Q. ',
-                      order.devices.reduce(
+                      order.reduce(
                         (total, device) =>
-                          (total += device.quantity * device.price),
+                          (total += device.cantidad_dispositivos * device.price),
                         0
                       )
                     )}
@@ -607,7 +620,7 @@ function OrdersForm(props) {
               No hay órdenes canceladas
             </div>
           )}
-        </section>
+        </section> */}
       </section>
     </>
   ) : (

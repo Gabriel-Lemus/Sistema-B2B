@@ -45,7 +45,11 @@ function DevicesCatalogSearch() {
     <>
       <DashboardTemplate
         displaySearchBar={true}
-        sideBarItems={helpers.CLIENT_PAGES}
+        sideBarItems={
+          localStorage.getItem('userType') !== 'distribuidor'
+            ? helpers.CLIENT_PAGES
+            : helpers.CLIENT_PAGES.concat(helpers.DISTRIBUTOR_CLIENTS_PAGES)
+        }
         pageTitle="Catálogo de dispositivos"
       >
         {devices.length === 0 ? (
@@ -68,3 +72,4 @@ function DevicesCatalogSearch() {
 }
 
 export default DevicesCatalogSearch;
+

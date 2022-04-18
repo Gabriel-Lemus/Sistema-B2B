@@ -38,7 +38,6 @@ function LoginForm() {
     });
   }, []);
 
-  // Handlers
   const handleCredentialsSubmission = async () => {
     setLoading(true);
 

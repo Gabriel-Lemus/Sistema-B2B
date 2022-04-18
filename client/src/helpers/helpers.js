@@ -57,6 +57,12 @@ const CLIENT_PAGES = [
     title: 'Perfil',
     reference: '/perfil',
   },
+];
+
+/**
+ * Distributor clients' additional pages
+ */
+const DISTRIBUTOR_CLIENTS_PAGES = [
   {
     icon: <FiBook />,
     title: 'Dispositivos agotados',
@@ -599,6 +605,7 @@ const getIndexOfObject = (arr, key, value) => {
 const helpers = {
   PALETTE,
   CLIENT_PAGES,
+  DISTRIBUTOR_CLIENTS_PAGES,
   SELLER_PAGES,
   ADMIN_PAGES,
   getCopyrightText,

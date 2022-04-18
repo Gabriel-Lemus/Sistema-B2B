@@ -45,7 +45,6 @@ function FactoriesDeviceDataSection(props) {
     props.setLoading(false);
   }, []);
 
-  // Functions
   const handleDeviceUpdate = async () => {
     props.setLoading(true);
     let potentialNewDevice = {

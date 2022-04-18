@@ -15,7 +15,11 @@ function Orders() {
     <>
       <DashboardTemplate
         displaySearchBar={false}
-        sideBarItems={helpers.CLIENT_PAGES}
+        sideBarItems={
+          localStorage.getItem('userType') !== 'distribuidor'
+            ? helpers.CLIENT_PAGES
+            : helpers.CLIENT_PAGES.concat(helpers.DISTRIBUTOR_CLIENTS_PAGES)
+        }
         pageTitle="Órdenes"
       >
         <OrdersForm setLoading={setLoading} />
@@ -26,3 +30,4 @@ function Orders() {
 }
 
 export default Orders;
+

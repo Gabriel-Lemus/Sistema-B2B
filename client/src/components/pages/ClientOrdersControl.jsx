@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import helpers from '../../helpers/helpers';
-import Loader from '../molecules/Loader';
-import SalesList from '../organisms/SalesList';
+import React, { useEffect, useState } from 'react';
 import DashboardTemplate from '../templates/DashboardTemplate';
+import helpers from '../../helpers/helpers';
+import ClientOrdersControlForm from '../organisms/ClientOrdersControlForm';
+import Loader from '../molecules/Loader';
 
-function DevicesCatalog() {
+function Orders() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = 'Compras';
+    document.title = 'Control de órdenes';
   }, []);
 
   return (
@@ -20,14 +20,14 @@ function DevicesCatalog() {
             ? helpers.CLIENT_PAGES
             : helpers.CLIENT_PAGES.concat(helpers.DISTRIBUTOR_CLIENTS_PAGES)
         }
-        pageTitle="Compras"
+        pageTitle="Control de órdenes"
       >
-        <SalesList loading={loading} setLoading={setLoading} />
+        <ClientOrdersControlForm setLoading={setLoading} />
       </DashboardTemplate>
       {loading ? <Loader loading={loading} /> : <></>}
     </>
   );
 }
 
-export default DevicesCatalog;
+export default Orders;
 

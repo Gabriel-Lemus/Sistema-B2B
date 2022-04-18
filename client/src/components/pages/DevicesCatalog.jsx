@@ -8,12 +8,10 @@ import { useNavigate } from 'react-router-dom';
 import secrets from '../../helpers/secrets';
 
 function DevicesCatalog() {
-  // State
   const navigate = useNavigate();
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Effects
   useEffect(() => {
     document.title = 'Catálogo de dispositivos';
 
@@ -35,7 +33,11 @@ function DevicesCatalog() {
     <>
       <DashboardTemplate
         displaySearchBar={true}
-        sideBarItems={helpers.CLIENT_PAGES}
+        sideBarItems={
+          localStorage.getItem('userType') !== 'distribuidor'
+            ? helpers.CLIENT_PAGES
+            : helpers.CLIENT_PAGES.concat(helpers.DISTRIBUTOR_CLIENTS_PAGES)
+        }
         pageTitle="Catálogo de dispositivos"
       >
         {devices.length === 0 ? (
@@ -56,3 +58,4 @@ function DevicesCatalog() {
 }
 
 export default DevicesCatalog;
+

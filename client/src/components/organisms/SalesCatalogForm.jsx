@@ -37,7 +37,6 @@ function SalesCatalogForm(props) {
     props.setLoading(false);
   }, []);
 
-  // Functions
   const equivalentDevices = (arr1, arr2) => {
     if (arr1.length !== arr2.length) {
       return false;

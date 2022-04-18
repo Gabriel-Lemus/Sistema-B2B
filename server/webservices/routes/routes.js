@@ -160,6 +160,23 @@ router.post("/", async (req, res) => {
         data: uploadOrder.data,
       });
     }
+  } else if (params.newClientOrder !== undefined) {
+    // Upload a new order from the sales backend to the factories backend
+    const order = req.body;
+    const uploadOrder = await axios.post(
+      `http://${LOCALHOST_IP}:${FACTORIES_BE_PORT}/orders?newClientOrder=true`,
+      order
+    );
+    const status = uploadOrder.data.success ? 200 : 400;
+    const message = uploadOrder.data.success
+      ? "New order uploaded successfully"
+      : "Error uploading new order";
+
+    res.status(status).json({
+      success: uploadOrder.data.success,
+      message: message,
+      data: uploadOrder.data,
+    });
   } else {
     res.status(400).send({
       success: false,
@@ -308,6 +325,22 @@ router.put("/", async (req, res) => {
         data: payOrder.data,
       });
     }
+  } else if (params.payClientOrder !== undefined) {
+    // Send a paid order to the sales backend
+    const order = req.body;
+
+    const payClientOrder = await axios.put(
+      `http://${LOCALHOST_IP}:${SALES_BE_PORT}/sales-system/sellers?payClientOrder=true`,
+      order
+    );
+
+    res.status(payClientOrder.data.success ? 200 : 400).send({
+      success: payClientOrder.data.success,
+      message: payClientOrder.data.success
+        ? "Order paid successfully."
+        : "Error paying the order.",
+      data: payClientOrder.data,
+    });
   } else {
     res.status(400).send({
       success: false,

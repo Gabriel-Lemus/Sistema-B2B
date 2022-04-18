@@ -7,7 +7,6 @@ import Loader from '../molecules/Loader';
 import secrets from '../../helpers/secrets';
 
 function LoginForm() {
-  // State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,7 +25,6 @@ function LoginForm() {
     }
   }, []);
 
-  // Handlers
   const handleCredentialsSubmission = () => {
     setLoading(true);
     if (email === '' || password === '') {

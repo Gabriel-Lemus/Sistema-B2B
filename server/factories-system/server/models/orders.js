@@ -7,6 +7,7 @@ const OrderSchema = new mongoose.Schema({
   deliveredDate: { type: Date, required: false },
   canceled: { type: Boolean, required: true },
   completelyPayed: { type: Boolean, required: false },
+  isClientOrder: { type: Boolean, required: false },
   devices: [
     {
       factoryId: { type: mongoose.Schema.Types.ObjectId, ref: "Factory" },
