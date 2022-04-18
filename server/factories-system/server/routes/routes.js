@@ -991,6 +991,185 @@ router.get("/:schema", async (req, res) => {
             message: `Error getting data from ${schemaName}: ${error}`,
           });
         }
+      } else if (
+        params.lastReportedSales !== undefined &&
+        schemaName === existingSchemas[3]
+      ) {
+        // Get the last reported sales for the factory since the last time they were reviewed
+        const factoryId = params.lastReportedSales;
+        const currentDate = new Date();
+
+        // Aggregate the orders collection to get the devices in the orders that belong to the factory, can be displayed and haven't been displayed yet
+        const orders = await schemas.orders.schema.aggregate([
+          {
+            $match: {
+              $and: [
+                { completed: true },
+                { canceled: false },
+                { "devices.lastReported": null },
+              ],
+            },
+          },
+        ]);
+
+        // Aggregate the orders collection to get the devices in the orders that belong to the factory, can be displayed and haven't been displayed yet
+        const reportedOrders = await schemas.orders.schema.aggregate([
+          {
+            $match: {
+              $and: [
+                { completed: true },
+                { canceled: false },
+              ],
+            },
+          },
+        ]);
+
+        // Record the last time the factory's devices were reviewed by finding the order with a lastReported attribute within a
+        // device in the devices array that has the most recent value. Null if there have been no reported devices.
+        let lastReported = null;
+
+        // Iterate through the reported orders
+        for (let i = 0; i < reportedOrders.length; i++) {
+          // Iterate through the devices in the order
+          for (let j = 0; j < reportedOrders[i].devices.length; j++) {
+            // Check if the device belongs to the factory
+            if (
+              reportedOrders[i].devices[j].factoryId.toString() === factoryId
+            ) {
+              if (
+                (reportedOrders[i].devices[j].lastReported !== undefined &&
+                  new Date(reportedOrders[i].devices[j].lastReported) >
+                    lastReported &&
+                  lastReported !== null) ||
+                (lastReported === null &&
+                  reportedOrders[i].devices[j].lastReported !== undefined)
+              ) {
+                lastReported = new Date(
+                  reportedOrders[i].devices[j].lastReported
+                );
+              }
+            }
+          }
+        }
+
+        // For every device in each order, filter those devices that belong to the factory
+        nonReportedDevices = orders.map((order) =>
+          order.devices.filter(
+            (device) => device.factoryId.toString() === factoryId
+          )
+        );
+
+        // Filter the devices that have the lastReported field set to null
+        nonReportedDevices = nonReportedDevices.map((order) =>
+          order.filter(
+            (device) =>
+              device.lastReported === null || device.lastReported === undefined
+          )
+        );
+
+        // If nonReportedDevices is has any empty arrays, remove them
+        nonReportedDevices = nonReportedDevices.filter(
+          (order) => order.length !== 0
+        );
+
+        // Flatten the array of arrays
+        nonReportedDevices = [].concat.apply([], nonReportedDevices);
+
+        // There may be repeated devices, iterate through the array and remove the duplicates, while incrementing the quantity of the existing device
+        for (let i = 0; i < nonReportedDevices.length; i++) {
+          for (let j = i + 1; j < nonReportedDevices.length; j++) {
+            if (
+              nonReportedDevices[i].deviceId.toString() ===
+              nonReportedDevices[j].deviceId.toString()
+            ) {
+              nonReportedDevices[i].quantity += nonReportedDevices[j].quantity;
+              nonReportedDevices.splice(j, 1);
+              j--;
+            }
+          }
+        }
+
+        // Get an array of the devices' ids
+        const deviceIds = nonReportedDevices.map((device) =>
+          device.deviceId.toString()
+        );
+
+        // Get the data of every device that hasn't been reported yet
+        const devices = await schemas.devices.schema.find(
+          { _id: { $in: deviceIds } },
+          {
+            _id: 1,
+            name: 1,
+            description: 1,
+            price: 1,
+            model_code: 1,
+            color: 1,
+            category: 1,
+            warranty_time: 1,
+          }
+        );
+        const devicesData = devices.map((device) => ({
+          ...device._doc,
+        }));
+
+        // Add the quantities to the devices
+        for (let i = 0; i < nonReportedDevices.length; i++) {
+          for (let j = 0; j < devicesData.length; j++) {
+            if (
+              nonReportedDevices[i].deviceId.toString() ===
+              devicesData[j]._id.toString()
+            ) {
+              devicesData[j].quantity = nonReportedDevices[i].quantity;
+              break;
+            }
+          }
+        }
+
+        // Set the orders that have devices that belong to the factory and set the lastReported field to now, the displayed field to true and the canBeDisplayed field to false
+        for (let i = 0; i < orders.length; i++) {
+          for (let j = 0; j < orders[i].devices.length; j++) {
+            if (orders[i].devices[j].factoryId.toString() === factoryId) {
+              orders[i].devices[j].lastReported = new Date(
+                new Date(currentDate.getTime() - 6 * 60 * 60 * 1000).toISOString()
+              );
+              orders[i].devices[j].displayed = true;
+              orders[i].devices[j].canBeDisplayed = false;
+            }
+          }
+        }
+
+        let updatedOrdersCount = 0;
+
+        // Iterate through the orders and update them
+        for (let i = 0; i < orders.length; i++) {
+          try {
+            const updatedOrder = await schemas.orders.schema.findOneAndUpdate(
+              { _id: orders[i]._id },
+              { $set: { devices: orders[i].devices } },
+              { new: true }
+            );
+            updatedOrdersCount++;
+          } catch (error) {
+            res.status(500).send({
+              success: false,
+              message: `Error updating order: ${error}`,
+            });
+          }
+        }
+
+        if (updatedOrdersCount === orders.length) {
+          res.status(200).send({
+            success: true,
+            devicesCount: devicesData.length,
+            nonReportedDevices: devicesData,
+            lastReported,
+          });
+        } else {
+          res.status(500).send({
+            success: false,
+            message: `Error updating orders`,
+          });
+        }
       } else {
         res.status(400).send({
           success: false,
@@ -1406,7 +1585,8 @@ router.put("/", async (req, res) => {
                     order.devices[i].factoryId.toString()
                 ).name,
                 deviceId: order.devices[i].deviceId.toString(),
-                estimatedDeliveryDate: order.devices[i].estimatedDeliveryDate.toISOString(),
+                estimatedDeliveryDate:
+                  order.devices[i].estimatedDeliveryDate.toISOString(),
               });
               break;
             }
