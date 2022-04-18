@@ -30,7 +30,7 @@ import FactoryDevicesCatalogSearch from './components/pages/FactoryDevicesCatalo
 import FactoryDevicesCatalogSearchWait from './components/pages/FactoryDevicesCatalogSearchWait';
 import FactoryDevicesSpecializedSearch from './components/pages/FactoryDevicesSpecializedSearch';
 import Orders from './components/pages/Orders';
-import OrdersControl from './components/pages/OrdersControl';
+import ClientOrdersControl from './components/pages/ClientOrdersControl';
 
 function App() {
   return (
@@ -54,7 +54,7 @@ function App() {
           <Route path="/Compras" element={<Sales />} />
           <Route path="/Dispositivos-Agotados" element={<SoldOutDevicesCatalog />} />
           <Route path="/Ordenes" element={<Orders />} />
-          <Route path="/Gestion-Ordenes" element={<OrdersControl />} />
+          <Route path="/Gestion-Ordenes" element={<ClientOrdersControl />} />
 
           {/* Seller pages */}
           <Route path="/Catalogo-Ventas" element={<SalesCatalog />} />
