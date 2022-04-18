@@ -60,7 +60,7 @@ function OrdersForm(props) {
             .find('tr')
             .eq(j + 1)
             .removeClass('table-danger');
-          
+
           // Uncheck the checkbox of the device
           $(`#pending-orders-table-${i}`)
             .find('tr')
@@ -147,11 +147,19 @@ function OrdersForm(props) {
     }
   };
 
-  const handlePayOrder = async (orderIndex) => {
+  const handlePayOrder = async (orderIndex, isClientOrder) => {
     props.setLoading(true);
+    let payOrderRes;
+    let payParam;
 
-    const payOrderRes = await axios.put(
-      `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/?payOrder=${completedOrders[orderIndex]._id}`,
+    if (!isClientOrder) {
+      payParam = `payOrder=${completedOrders[orderIndex]._id}`;
+    } else {
+      payParam = `payClientOrder=${completedOrders[orderIndex]._id}`;
+    }
+
+    payOrderRes = await axios.put(
+      `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/?${payParam}`,
       {}
     );
 
@@ -512,7 +520,12 @@ function OrdersForm(props) {
                   <button
                     className="btn btn-primary btn-sm btn-outline-secondary mt-3"
                     onClick={() => {
-                      handlePayOrder(index);
+                      handlePayOrder(
+                        index,
+                        order.isClientOrder !== undefined
+                          ? order.isClientOrder
+                          : false
+                      );
                     }}
                     style={{
                       width: '100%',
