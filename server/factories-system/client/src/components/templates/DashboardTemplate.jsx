@@ -89,7 +89,7 @@ function DashboardTemplate(props) {
                 {props.sideBarItems.map((item, index) => (
                   <li key={index} className="nav-item">
                     <Link className="nav-link sidebar-link" to={item.reference}>
-                      {item.icon}
+                      {helpers.getIcon(item.title)}
                       &nbsp;&nbsp;
                       {item.title}
                     </Link>

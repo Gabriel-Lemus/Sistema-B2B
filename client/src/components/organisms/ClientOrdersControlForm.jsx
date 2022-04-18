@@ -57,9 +57,6 @@ function OrdersForm(props) {
         }
       }
 
-      // console.log(pendingOrders);
-      // console.log(completedOrders);
-
       // Iterate through the pending orders and their devices and remove the table-danger class from each of them
       for (let i = 0; i < pendingOrders.length; i++) {
         for (let j = 0; j < pendingOrders[i].length; j++) {

@@ -17,7 +17,7 @@ function FactoryOrders() {
         displaySearchBar={false}
         sideBarItems={
           localStorage.getItem('userType') === 'fabricante'
-            ? helpers.FACTORY_PAGES
+            ? helpers.getFactoryPages(localStorage.getItem('id'))
             : helpers.SELLER_PAGES
         }
         pageTitle="Órdenes por entregar"
@@ -30,3 +30,4 @@ function FactoryOrders() {
 }
 
 export default FactoryOrders;
+

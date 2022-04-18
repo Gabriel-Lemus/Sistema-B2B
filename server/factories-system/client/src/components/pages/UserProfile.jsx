@@ -16,10 +16,8 @@ function ShoppingCart() {
       <DashboardTemplate
         displaySearchBar={false}
         sideBarItems={
-          localStorage.getItem('userType') !== 'vendedor'
-            ? helpers.CLIENT_PAGES
-            : localStorage.getItem('isAdmin') === 'true'
-            ? helpers.ADMIN_PAGES
+          localStorage.getItem('userType') === 'fabricante'
+            ? helpers.getFactoryPages(localStorage.getItem('id'))
             : helpers.SELLER_PAGES
         }
         pageTitle="Perfil de Usuario"
@@ -32,3 +30,4 @@ function ShoppingCart() {
 }
 
 export default ShoppingCart;
+

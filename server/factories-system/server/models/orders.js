@@ -20,6 +20,7 @@ const OrderSchema = new mongoose.Schema({
       deliveredDate: { type: Date, required: false },
       canBeDisplayed: { type: Boolean, required: true },
       displayed: { type: Boolean, required: true },
+      lastReported: { type: Date, required: false },
     },
   ],
 });
