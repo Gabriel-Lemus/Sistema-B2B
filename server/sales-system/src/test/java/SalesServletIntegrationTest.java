@@ -56,7 +56,13 @@ public class SalesServletIntegrationTest {
     }
 
     /**
-     * Test that the number of rows can be read, that a new row can be inserted and deleted.
+     * Test that the number of rows can be read, that a new row can be inserted and
+     * deleted.
+     * It tests the
+     * {@link SalesServlet#doGet(HttpServletRequest, HttpServletResponse)},
+     * {@link SalesServlet#doPost(HttpServletRequest, HttpServletResponse)} and
+     * {@link SalesServlet#doDelete(HttpServletRequest, HttpServletResponse)}
+     * methods.
      *
      * @throws IOException
      * @throws ServletException
@@ -136,10 +142,12 @@ public class SalesServletIntegrationTest {
         JSONObject newResponse2 = new JSONObject(stringWriter.toString());
         int newRowCount2 = newResponse2.getInt("rowCount");
 
-        // Check that the number of brands did increase by one when inserting a new brand
+        // Check that the number of brands did increase by one when inserting a new
+        // brand
         assertEquals(oldRowCount + 1, newRowCount);
 
-        // Check that the number of brands did decrease by one when deleting the newly inserted brand
+        // Check that the number of brands did decrease by one when deleting the newly
+        // inserted brand
         assertEquals(oldRowCount, newRowCount2);
     }
 }

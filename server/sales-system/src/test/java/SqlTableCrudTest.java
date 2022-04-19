@@ -42,50 +42,6 @@ public class SqlTableCrudTest {
     }
 
     /**
-     * Test the method to attempt delete a record by its id.
-     */
-    @Test
-    void testAttemptToDeleteRecordById() {
-        // StringWriter sw = new StringWriter();
-        // PrintWriter out = new PrintWriter(sw);
-    }
-
-    /**
-     * Test the method to attempt to display all the records.
-     */
-    @Test
-    void testAttemptToDisplayAllRecords() {
-        // StringWriter sw = new StringWriter();
-        // PrintWriter out = new PrintWriter(sw);
-        // HttpServletRequest request = mock(HttpServletRequest.class);
-        // when(request.getParameter("param")).thenReturn("value");
-    }
-
-    /**
-     * Test the method to attempt to get a page of records.
-     */
-    @Test
-    void testAttemptToGetPageOfRecords() {
-
-    }
-
-    /**
-     * Test the method to attempt to get a record by its id.
-     */
-    @Test
-    void testAttemptToGetRecordById() {
-
-    }
-
-    /**
-     * Test the method to attempt to insert a record.
-     */
-    @Test
-    void testAttemptToInsertRecord() {
-
-    }
-
-    /**
      * Test the method to get the select everything query.
      */
     @Test
@@ -167,8 +123,6 @@ public class SqlTableCrudTest {
      */
     @Test
     void testGetUpdateQuery() {
-        // String[] fields = { "id_credencial", "id_cliente", "id_vendedor",
-        // "tipo_usuario", "email", "salt", "hash" };
         String jsonString = "{\"id_credencial\":\"1\",\"id_cliente\":\"1\", \"id_vendedor\":" + null
                 + ",\"tipo_usuario\":\"cliente\",\"email\":\"abc@ejemplo.com\",\"salt\":\"abc123\",\"hash\":\"abc123\"}";
         JSONObject record = new JSONObject(jsonString);
@@ -178,13 +132,5 @@ public class SqlTableCrudTest {
 
         assertEquals(expectedQuery, tableCrud.getUpdateQuery(record, 1));
         assertNotEquals(notExpectedQuery, tableCrud.getUpdateQuery(record, 1));
-    }
-
-    /**
-     * Test the method to insert a new record.
-     */
-    @Test
-    void testInsertNewRecord() {
-
     }
 }

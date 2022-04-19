@@ -25,7 +25,9 @@ public class ServletHelperTest {
     private Secrets secrets = new Secrets();
 
     /**
-     * Test the method to check if a JSON object contains the given attributes.
+     * Test the method
+     * {@link ServletHelper#checkIfJsonContainsAttributes(JSONObject, String[])} to
+     * check if a JSON object contains the given attributes.
      */
     @Test
     void testCheckIfJsonContainsAttributes() {
@@ -41,7 +43,9 @@ public class ServletHelperTest {
     }
 
     /**
-     * Test the method to check if it returns the correct insert query.
+     * Test the method
+     * {@link ServletHelper#getInsertQuery(String, String, String[], String[], boolean[], JSONObject)}
+     * to check if it returns the correct insert query.
      */
     @Test
     void testGetInsertQuery() {
@@ -62,7 +66,9 @@ public class ServletHelperTest {
     }
 
     /**
-     * Test the method to check if it returns the correct string.
+     * Test the method
+     * {@link ServletHelper#getJsonAttrString(JSONObject, int, String[], String[])}
+     * to check if it returns the correct string.
      */
     @Test
     void testGetJsonAttrString() {
@@ -82,7 +88,9 @@ public class ServletHelperTest {
     }
 
     /**
-     * Test the method to check if it returns the comma when needed.
+     * Test the method
+     * {@link ServletHelper#checkIfJsonContainsAttributes(JSONObject, String[])} to
+     * check if it returns the comma when needed.
      */
     @Test
     void testGetNeccessaryComma() {
@@ -93,7 +101,9 @@ public class ServletHelperTest {
     }
 
     /**
-     * Test the method to check if it returns the correct row count.
+     * Test the method
+     * {@link ServletHelper#getNeccessaryComma(int, int)} to
+     * check if it returns the correct row count.
      */
     @Test
     void testGetQueryRowCount() {
@@ -114,7 +124,9 @@ public class ServletHelperTest {
     }
 
     /**
-     * Test the method returns the row as a string.
+     * Test the method
+     * {@link ServletHelper#getRow(ResultSet, PrintWriter, String[], String[])}
+     * returns the row as a string.
      */
     @Test
     void testGetRow() {
@@ -142,32 +154,97 @@ public class ServletHelperTest {
     }
 
     /**
-     * Test the method that checks if a string is a date with time.
+     * Test the method
+     * {@link ServletHelper#isDateWithTime(String)}
+     * that checks if a string is a date with time (complete date).
      */
     @Test
-    void testIsDateWithTime() {
+    void testIsDateWithTimeComplete() {
         assertTrue(helper.isDateWithTime("2020-01-01 00:00:00"));
         assertTrue(helper.isDateWithTime("2020-01-01 23:59:59"));
+    }
+
+    /**
+     * Test the method
+     * {@link ServletHelper#isDateWithTime(String)}
+     * that checks if a string is a date without time.
+     */
+    @Test
+    void testIsDateWithoutTime() {
         assertFalse(helper.isDateWithTime("2020-01-01"));
         assertFalse(helper.isDateWithTime("2020-01-01 00:00"));
         assertFalse(helper.isDateWithTime("2020-01-01 00:00:00.123"));
     }
 
     /**
-     * Test the method that checks if a string can be parsed as a number.
+     * Test the method
+     * {@link ServletHelper#isNumeric(String str)}
+     * that checks if a string can be parsed as a number (with 0)
      */
     @Test
-    void testIsNumeric() {
+    void testIsNumericWithZero() {
         assertTrue(helper.isNumeric("0"));
+    }
+
+    /**
+     * Test the method
+     * {@link ServletHelper#isNumeric(String str)}
+     * that checks if a string can be parsed as a number (with a
+     * positive integer)
+     */
+    @Test
+    void testIsNumericWithPositiveInteger() {
         assertTrue(helper.isNumeric("123"));
-        assertFalse(helper.isNumeric("Hola!"));
+    }
+
+    /**
+     * Test the method
+     * {@link ServletHelper#isNumeric(String str)}
+     * that checks if a string can be parsed as a number (with a
+     * negative integer)
+     */
+    @Test
+    void testIsNumericWithNegativeInteger() {
         assertTrue(helper.isNumeric("-123"));
+    }
+
+    /**
+     * Test the method
+     * {@link ServletHelper#isNumeric(String str)}
+     * that checks if a string can be parsed as a number (with a
+     * positive float)
+     */
+    @Test
+    void testIsNumericWithPositiveFloat() {
         assertTrue(helper.isNumeric("123.45"));
+    }
+
+    /**
+     * Test the method
+     * {@link ServletHelper#isNumeric(String str)}
+     * that checks if a string can be parsed as a number (with a
+     * negative float)
+     */
+    @Test
+    void testIsNumericWithNegativeFloat() {
         assertTrue(helper.isNumeric("-123.45"));
     }
 
     /**
-     * Test the method that writes an error message to the print writer.
+     * Test the method
+     * {@link ServletHelper#isNumeric(String str)}
+     * that checks if a string can be parsed as a number (with a
+     * non-number string)
+     */
+    @Test
+    void testIsNumericWithNonNumberString() {
+        assertFalse(helper.isNumeric("Hola!"));
+    }
+
+    /**
+     * Test the method
+     * {@link ServletHelper#printErrorMessage(PrintWriter out, Exception e)}
+     * that writes an error message to the print writer.
      */
     @Test
     void testPrintErrorMessage() {
@@ -187,7 +264,9 @@ public class ServletHelperTest {
     }
 
     /**
-     * Test the method that writes a message to the print writer in a json format.
+     * Test the method
+     * {@link ServletHelper#printJsonMessage(PrintWriter out, boolean success, String msgName, String msg)}
+     * that writes a message to the print writer in a json format.
      */
     @Test
     void testPrintJsonMessage() {
@@ -208,7 +287,9 @@ public class ServletHelperTest {
     }
 
     /**
-     * Test the method that prints a row from a query to the print writer.
+     * Test the method
+     * {@link ServletHelper#printRow(ResultSet rs, PrintWriter out, String[] attributes, String[] types)}
+     * that prints a row from a query to the print writer.
      */
     @Test
     void testPrintRow() {
@@ -240,6 +321,11 @@ public class ServletHelperTest {
         }
     }
 
+    /**
+     * Test the method
+     * {@link ServletHelper#boolean ServletHelper.requestContainsParameter(HttpServletRequest request, String param)} to
+     * check if a request contains a given parameter.
+     */
     @Test
     void testRequestContainsParameter() {
         HttpServletRequest request = mock(HttpServletRequest.class);
@@ -249,12 +335,22 @@ public class ServletHelperTest {
         assertFalse(helper.requestContainsParameter(request, "param2"));
     }
 
+    /**
+     * Test the method
+     * {@link ServletHelper#round(float number, int places)}
+     * that round a float to a given number of decimals.
+     */
     @Test
     void testRound() {
         assertEquals("1.0", helper.round(1.0f, 1));
         assertEquals("2.00", helper.round(2.0f, 2));
     }
 
+    /**
+     * Test the method
+     * {@link ServletHelper#formatNumber(String number)}
+     * that formats a number.
+     */
     @Test
     void testFormatNumber() {
         assertEquals("1,234,567,123.00", helper.formatNumber("1234567123"));
