@@ -23,7 +23,7 @@ public class SqlTableCrudTest {
     @BeforeEach
     public void setUp() {
         secrets = new Secrets();
-        String connectionUrl = secrets.getOracleCon();
+        String connectionUrl = secrets.getOracleConnectionString();
         String user = "Sales";
         String password = "adminsales";
         String localhostIp = "localhost";

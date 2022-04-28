@@ -23,13 +23,22 @@ import org.springframework.mock.web.DelegatingServletInputStream;
  */
 public class MailerTest {
     // Attributes
+    /** Mailer object to test. */
     private Mailer mailer;
+    /** Secrets object. */
     private Secrets secrets;
+    /** HttpServletRequest mock. */
     private HttpServletRequest request;
+    /** HttpServletResponse mock. */
     private HttpServletResponse response;
+    /** StringWriter to write to. */
     private StringWriter stringWriter;
+    /** PrintWriter to write to. */
     private PrintWriter out;
 
+    /**
+     * Initializes the test.
+     */
     @BeforeEach
     public void setUp() {
         mailer = new Mailer();

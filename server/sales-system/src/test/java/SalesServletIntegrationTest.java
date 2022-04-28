@@ -24,20 +24,36 @@ import org.springframework.mock.web.DelegatingServletInputStream;
  */
 public class SalesServletIntegrationTest {
     // Attributes
+    /** SalesServlet object to test. */
     private SalesServlet salesServlet;
+    /** HTTPServletRequest mock. */
     private HttpServletRequest request;
+    /** HttpServletResponse mock. */
     private HttpServletResponse response;
+    /** HTTPServletRequest mock. */
     private HttpServletRequest newRequest;
+    /** HttpServletResponse mock. */
     private HttpServletResponse newResponse;
+    /** HTTPServletRequest mock. */
     private HttpServletRequest otherRequest;
+    /** HttpServletResponse mock. */
     private HttpServletResponse otherResponse;
+    /** StringWriter to write to. */
     private StringWriter stringWriter;
+    /** PrintWriter to write to. */
     private PrintWriter out;
+    /** StringWriter to write to. */
     private StringWriter newStringWriter;
+    /** PrintWriter to write to. */
     private PrintWriter newOut;
+    /** StringWriter to write to. */
     private StringWriter otherStringWriter;
+    /** PrintWriter to write to. */
     private PrintWriter otherOut;
 
+    /**
+     * Initializes the test.
+     */
     @BeforeEach
     public void setUp() {
         salesServlet = new SalesServlet();

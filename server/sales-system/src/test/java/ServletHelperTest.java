@@ -107,7 +107,7 @@ public class ServletHelperTest {
      */
     @Test
     void testGetQueryRowCount() {
-        String conURL = secrets.getOracleCon();
+        String conURL = secrets.getOracleConnectionString();
         String user = "system";
         String password = "Oracle18c";
 
@@ -130,7 +130,7 @@ public class ServletHelperTest {
      */
     @Test
     void testGetRow() {
-        String conURL = secrets.getOracleCon();
+        String conURL = secrets.getOracleConnectionString();
         String user = "system";
         String password = "Oracle18c";
         PrintWriter out = new PrintWriter(System.out);
@@ -293,7 +293,7 @@ public class ServletHelperTest {
      */
     @Test
     void testPrintRow() {
-        String conURL = secrets.getOracleCon();
+        String conURL = secrets.getOracleConnectionString();
         String user = "system";
         String password = "Oracle18c";
         StringWriter sw = new StringWriter();
