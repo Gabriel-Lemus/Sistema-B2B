@@ -117,17 +117,14 @@ public class SalesServletIntegrationTest {
 
         // Get the number of brands
         JSONObject oldResponse = new JSONObject(stringWriter.toString());
-        System.out.println("oldResponse: " + oldResponse);
         int oldRowCount = oldResponse.getInt("rowCount");
 
         // Insert a new brand
         salesServlet.doPost(newRequest, newResponse);
-        System.out.println(newStringWriter.toString());
 
         // Get the new brands
         salesServlet.doGet(request, otherResponse);
         JSONObject newResponseJSON = new JSONObject(otherStringWriter.toString());
-        System.out.println("newResponse: " + newResponseJSON);
         int newRowCount = newResponseJSON.getInt("rowCount");
 
         // Delete the newly inserted brand
