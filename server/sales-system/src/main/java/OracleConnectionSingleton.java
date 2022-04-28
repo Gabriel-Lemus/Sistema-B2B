@@ -47,6 +47,7 @@ public class OracleConnectionSingleton {
         if (instance == null) {
             instance = new OracleConnectionSingleton();
         }
+
         return connection;
     }
 
