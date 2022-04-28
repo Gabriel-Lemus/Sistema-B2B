@@ -44,13 +44,14 @@ public class OracleConnectionSingletonTest {
     @Test
     void testCreateNewConnection() throws SQLException {
         // Arrange
-        // Nothing to arrange.
+        String newUser = "sys";
+        String newPassword = "Oracle18c";
 
         // Act
-        // Nothing to act on.
+        oracleConnectionSingleton = OracleConnectionSingleton.getConnection(newUser, newPassword);
 
         // Assert
-        assertTrue(oracleConnectionSingleton.isClosed());
+        assertNotNull(oracleConnectionSingleton);
     }
 
     /**
@@ -60,10 +61,11 @@ public class OracleConnectionSingletonTest {
     @Test
     void testCreateNewConnectionWhenInstanceAlreadyExists() {
         // Arrange
-        // Nothing to arrange.
+        String newUser = "sys";
+        String newPassword = "Oracle18c";
 
         // Act
-        // Nothing to act on.
+        otherOracleConnectionSingleton = OracleConnectionSingleton.getConnection(newUser, newPassword);
 
         // Assert
         assertNotNull(oracleConnectionSingleton);
