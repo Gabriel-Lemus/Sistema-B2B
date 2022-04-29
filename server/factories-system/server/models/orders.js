@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const OrderSchema = new mongoose.Schema({
+  _id: { type: Number, required: true },
   clientId: { type: mongoose.Schema.Types.ObjectId, ref: "Client" },
   completed: { type: Boolean, required: true },
   maxDeliveryDate: { type: Date, required: false },
