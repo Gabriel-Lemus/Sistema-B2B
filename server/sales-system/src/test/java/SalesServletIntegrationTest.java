@@ -72,11 +72,11 @@ public class SalesServletIntegrationTest {
     }
 
     /**
-     * Test that the number of rows can be read, that a new row can be inserted and
-     * deleted.
+     * Test that the CRUD methods for the sales servlet are working correctly.
      * It tests the
      * {@link SalesServlet#doGet(HttpServletRequest request, HttpServletResponse response)},
      * {@link SalesServlet#doPost(HttpServletRequest request, HttpServletResponse response)}
+     * {@link SalesServlet#doPut(HttpServletRequest request, HttpServletResponse response)}
      * and
      * {@link SalesServlet#doDelete(HttpServletRequest request, HttpServletResponse response)}
      * methods.
@@ -85,9 +85,10 @@ public class SalesServletIntegrationTest {
      * @throws ServletException
      */
     @Test
-    void testRowInsertionAndRead() throws IOException, ServletException {
+    void testCrudOperations() throws IOException, ServletException {
         // Arrange
         String body = "{\"nombre\": \"Apple\"}";
+        String newBody = "{\"nombre\": \"Apple ABC\"}";
 
         when(request.getParameter("table")).thenReturn("marcas");
         when(request.getParameterMap()).thenReturn(new java.util.HashMap<String, String[]>() {
@@ -130,6 +131,30 @@ public class SalesServletIntegrationTest {
         JSONObject newResponseJSON = new JSONObject(otherStringWriter.toString());
         int newRowCount = newResponseJSON.getInt("rowCount");
 
+        // Update the new brand
+        otherStringWriter = new StringWriter();
+        otherOut = new PrintWriter(otherStringWriter);
+        when(otherRequest.getParameter("table")).thenReturn("marcas");
+        when(otherRequest.getParameter("id")).thenReturn(Integer.toString(newRowCount));
+        when(otherRequest.getParameterMap()).thenReturn(new java.util.HashMap<String, String[]>() {
+            {
+                put("table", new String[] { "marcas" });
+                put("id", new String[] { Integer.toString(newRowCount) });
+            }
+        });
+        when(otherRequest.getParameter("body")).thenReturn(newBody);
+        when(otherRequest.getInputStream()).thenReturn(
+                new DelegatingServletInputStream(new ByteArrayInputStream(newBody.getBytes(StandardCharsets.UTF_8))));
+        when(otherRequest.getReader()).thenReturn(
+                new BufferedReader(new StringReader(newBody)));
+        when(otherRequest.getContentType()).thenReturn("application/json");
+        when(otherRequest.getCharacterEncoding()).thenReturn("UTF-8");
+        when(otherResponse.getWriter()).thenReturn(otherOut);
+        salesServlet.doPut(otherRequest, otherResponse);
+        salesServlet.doGet(request, response);
+        String expectedUpdatedBrand = "Apple ABC";
+        String actualUpdatedBrand = new JSONObject(otherStringWriter.toString()).getJSONObject("dataModified").getString("nombre");
+
         // Delete the newly inserted brand
         otherStringWriter = new StringWriter();
         otherOut = new PrintWriter(otherStringWriter);
@@ -161,5 +186,6 @@ public class SalesServletIntegrationTest {
         // Assert
         assertEquals(oldRowCount + 1, newRowCount);
         assertEquals(oldRowCount, newRowCount2);
+        assertEquals(expectedUpdatedBrand, actualUpdatedBrand);
     }
 }
