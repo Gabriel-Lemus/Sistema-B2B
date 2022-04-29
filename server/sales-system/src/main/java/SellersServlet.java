@@ -839,11 +839,13 @@ public class SellersServlet extends HttpServlet {
                             String addDeviceToOrderQuery = "INSERT INTO " + schema + "."
                                     + sellerName.replaceAll(" ", "_")
                                     + "_dispositivos_x_pedidos_futuros" +
-                                    "(id_dispositivo_x_pedido, id_pedido, id_dispositivo, nombre_dispositivo, cantidad_dispositivos, entregado) " +
-                                    "VALUES ('" + newDeviceXOrderId + "', '" + orderId + "', '"
+                                    "(id_dispositivo_x_pedido, id_pedido, id_dispositivo, nombre_dispositivo, cantidad_dispositivos, precio, entregado) "
+                                    + "VALUES ('" + newDeviceXOrderId + "', '" + orderId + "', '"
                                     + orders.getJSONObject(i).getString("deviceId") + "', '"
                                     + orders.getJSONObject(i).getString("deviceName") + "', '"
-                                    + orders.getJSONObject(i).getInt("quantity") + "', 'False')";
+                                    + orders.getJSONObject(i).getInt("quantity") +
+                                    "', '" + orders.getJSONObject(i).getDouble("price") +
+                                    "', 'False')";
                             stmt.executeUpdate(addDeviceToOrderQuery);
                             con.commit();
                             devicesXOrder++;
@@ -1415,18 +1417,15 @@ public class SellersServlet extends HttpServlet {
                         sellers.add(rs.getString("nombre"));
                     }
 
-                    // Get the client's orders as a join between de _dispositivos,
-                    // _dispositivos_x_pedidos_futuros and _pedidos_futuros tables of each seller
-                    // and as a union of all
+                    // Get the client's orders from the _dispositivos_x_pedidos_futuros table
                     String clientOrdersQuery = "";
                     for (int i = 0; i < sellers.size(); i++) {
                         String sellerName = sellers.get(i).replaceAll(" ", "_");
 
-                        clientOrdersQuery += "SELECT ddpf.id_dispositivo, ddpf.id_vendedor, ddpf.nombre, ddpf.descripcion, ddpf.precio, ddpf.codigo_modelo, ddpf.color, ddpf.categoria, ddpf.tiempo_garantia, ddpf.id_pedido, ddpf.cantidad_dispositivos, ddpf.entregado, pf.fecha_pedido, pf.cantidad_dispositivos dispositivos_totales, pf.impuestos, pf.descuentos, pf.total_pedido, pf.fecha_entrega FROM ";
-                        clientOrdersQuery += sellerName
-                                + "_pedidos_futuros pf, (SELECT dpf.id_dispositivo, d.id_vendedor, d.nombre, d.descripcion, d.precio, d.codigo_modelo, d.color, d.categoria, d.tiempo_garantia, dpf.id_pedido, dpf.cantidad_dispositivos, dpf.entregado FROM ";
-                        clientOrdersQuery += sellerName + "_dispositivos d, " + sellerName
-                                + "_dispositivos_x_pedidos_futuros dpf WHERE d.id_dispositivo = dpf.id_dispositivo) ddpf WHERE pf.id_pedido = ddpf.id_pedido AND pf.id_cliente = '"
+                        clientOrdersQuery += "SELECT dpf.id_dispositivo, pf.id_vendedor, dpf.nombre_dispositivo nombre, dpf.precio, pf.id_pedido, dpf.cantidad_dispositivos, dpf.entregado, pf.cantidad_dispositivos dispositivos_totales, pf.impuestos, pf.descuentos, pf.total_pedido, pf.fecha_entrega"
+                                + " FROM " + sellerName
+                                + "_pedidos_futuros pf, " + sellerName
+                                + "_dispositivos_x_pedidos_futuros dpf WHERE pf.id_pedido = dpf.id_pedido and pf.id_cliente = '"
                                 + clientId + "'";
 
                         if (i < sellers.size() - 1) {
@@ -1441,21 +1440,18 @@ public class SellersServlet extends HttpServlet {
                     JSONArray deliveredDevices = new JSONArray();
                     JSONArray notDeliveredDevices = new JSONArray();
                     JSONArray currentOrderDevices = new JSONArray();
-                    String prevOrderDate = "";
-                    String currentOrderDate = "";
+                    int prevOrderId = -1;
+                    int currentOrderId = 0;
                     boolean firstDevice = true;
-                    String[] deviceAttrs = { "id_dispositivo", "id_vendedor", "nombre", "descripcion", "precio",
-                            "codigo_modelo", "color", "categoria", "tiempo_garantia", "id_pedido",
-                            "cantidad_dispositivos", "entregado", "fecha_pedido", "dispositivos_totales", "impuestos",
+                    String[] deviceAttrs = { "id_dispositivo", "id_vendedor", "nombre", "precio", "id_pedido",
+                            "cantidad_dispositivos", "entregado", "dispositivos_totales", "impuestos",
                             "descuentos", "total_pedido", "fecha_entrega" };
-                    String[] deviceAttrsTypes = { "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "FLOAT",
-                            "VARCHAR2", "VARCHAR2", "VARCHAR2", "INTEGER", "INTEGER",
-                            "INTEGER", "BOOLEAN", "DATE", "INTEGER", "FLOAT",
-                            "FLOAT", "FLOAT", "DATE" };
+                    String[] deviceAttrsTypes = { "VARCHAR2", "INTEGER", "VARCHAR2", "FLOAT", "INTEGER",
+                            "INTEGER", "BOOLEAN", "INTEGER", "FLOAT", "FLOAT", "FLOAT", "DATE" };
 
                     // Iterate through the results and add the devices to the order
                     while (rs.next()) {
-                        currentOrderDate = rs.getString("fecha_pedido");
+                        currentOrderId = rs.getInt("id_pedido");
                         JSONObject currentDevice = new JSONObject();
 
                         for (int j = 0; j < deviceAttrs.length; j++) {
@@ -1477,10 +1473,10 @@ public class SellersServlet extends HttpServlet {
 
                         if (firstDevice) {
                             firstDevice = false;
-                            prevOrderDate = currentOrderDate;
+                            prevOrderId = currentOrderId;
                             currentOrderDevices.put(currentDevice);
                         } else {
-                            if (currentOrderDate.equals(prevOrderDate)) {
+                            if (currentOrderId == prevOrderId) {
                                 currentOrderDevices.put(currentDevice);
                             } else {
                                 boolean allDelivered = true;
@@ -1500,7 +1496,7 @@ public class SellersServlet extends HttpServlet {
 
                                 currentOrderDevices = new JSONArray();
                                 currentOrderDevices.put(currentDevice);
-                                prevOrderDate = currentOrderDate;
+                                prevOrderId = currentOrderId;
                             }
                         }
                     }
