@@ -615,7 +615,7 @@ router.post("/:schema", async (req, res) => {
           <div class="card" style="position: relative; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; -ms-flex-direction: column; flex-direction: column; min-width: 0; word-wrap: break-word; background-color: #bfe6ff; background-clip: border-box; border: 1px solid rgba(0,0,0,.125); border-radius: 0.25rem">
             <div class="card-body" style="-webkit-box-flex: 1; -ms-flex: 1 1 auto; flex: 1 1 auto; padding: 1.25rem">
               <h3 class="card-title" style="margin-bottom: 0.75rem">Reporte de Ventas</h3>
-              <p class="card-text" style="display: -webkit-box; margin-bottom: 1rem; margin-top: 0">Ha recibido este correo porque ha sido solicitado enviar el reporte de ventas a este correo electrónico.</p>
+              <p class="card-text" style="display: -webkit-box; margin-bottom: 1rem; margin-top: 0">Ha recibido este correo porque se ha sido solicitado enviar el reporte de ventas a este correo electrónico.</p>
             </div>
           </div>
         </div>`,
