@@ -1,6 +1,8 @@
 const express = require("express");
 const axios = require("axios");
 const router = express.Router();
+const Excel = require("exceljs");
+const nodemailer = require("nodemailer");
 
 // Environment variables
 const LOCALHOST_IP = process.env.LOCALHOST_IP;
@@ -182,7 +184,8 @@ router.post("/:schema", async (req, res) => {
       paramsNumber === 1 &&
       req.query.newOrderNoClientId === undefined &&
       req.query.newOrder === undefined &&
-      req.query.newClientOrder === undefined
+      req.query.newClientOrder === undefined &&
+      req.query.sendSalesReport === undefined
     ) {
       // Attempt to insert a new document into the specified collection/schema
       try {
@@ -554,6 +557,91 @@ router.post("/:schema", async (req, res) => {
             error: `Error registering all the orders. Only ${savedOrdersCount} of ${order.length} were registered successfully.`,
           });
         }
+      } else if (params.sendSalesReport !== undefined) {
+        const recipient = params.sendSalesReport;
+        const payload = req.body;
+        const items = payload.items;
+        const total = payload.total;
+        const title = payload.title;
+
+        let workbook = new Excel.Workbook();
+        let worksheet = workbook.addWorksheet("Reporte de Ventas");
+
+        worksheet.columns = [
+          { header: "Nombre", key: "name" },
+          { header: "Descripción", key: "description" },
+          { header: "Categoría", key: "category" },
+          { header: "Color", key: "color" },
+          { header: "Código de Modelo", key: "model_code" },
+          { header: "Tiempo de Garantía", key: "warranty_time" },
+          { header: "Cantidad", key: "quantity" },
+          { header: "Precio", key: "price" },
+        ];
+
+        items.forEach((item) => {
+          worksheet.addRow(item);
+        });
+
+        worksheet.addRow({
+          name: "",
+          description: "",
+          category: "",
+          color: "",
+          model_code: "",
+          warranty_time: "",
+          quantity: "Total",
+          price: total,
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+
+        const sender = process.env.EMAIL_SENDER;
+        const password = process.env.EMAIL_PASSWORD;
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          host: "smtp.gmail.com",
+          port: 587,
+          secure: true,
+          auth: {
+            user: sender,
+            pass: password,
+          },
+        });
+        const mailOptions = {
+          from: "Sistema B2B <" + sender + ">",
+          to: recipient,
+          subject: title,
+          html: `<div class="container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 85%; background-color: #bfe6ff; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif; font-size: 14px; line-height: 1.42857143; color: #333">
+          <div class="card" style="position: relative; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; -ms-flex-direction: column; flex-direction: column; min-width: 0; word-wrap: break-word; background-color: #bfe6ff; background-clip: border-box; border: 1px solid rgba(0,0,0,.125); border-radius: 0.25rem">
+            <div class="card-body" style="-webkit-box-flex: 1; -ms-flex: 1 1 auto; flex: 1 1 auto; padding: 1.25rem">
+              <h3 class="card-title" style="margin-bottom: 0.75rem">Reporte de Ventas</h3>
+              <p class="card-text" style="display: -webkit-box; margin-bottom: 1rem; margin-top: 0">Ha recibido este correo porque se ha sido solicitado enviar el reporte de ventas a este correo electrónico.</p>
+            </div>
+          </div>
+        </div>`,
+          attachments: [
+            {
+              filename: `${title}.xlsx`,
+              content: buffer,
+              contentType:
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            },
+          ],
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            return res.status(500).send({
+              success: false,
+              error: `Error sending the sales report: ${error}`,
+            });
+          } else {
+            res.status(201).send({
+              success: true,
+              message: "Sales report sent successfully.",
+            });
+          }
+        });
       } else {
         res.status(400).send({
           success: false,
@@ -1016,10 +1104,7 @@ router.get("/:schema", async (req, res) => {
         const reportedOrders = await schemas.orders.schema.aggregate([
           {
             $match: {
-              $and: [
-                { completed: true },
-                { canceled: false },
-              ],
+              $and: [{ completed: true }, { canceled: false }],
             },
           },
         ]);
@@ -1130,7 +1215,9 @@ router.get("/:schema", async (req, res) => {
           for (let j = 0; j < orders[i].devices.length; j++) {
             if (orders[i].devices[j].factoryId.toString() === factoryId) {
               orders[i].devices[j].lastReported = new Date(
-                new Date(currentDate.getTime() - 6 * 60 * 60 * 1000).toISOString()
+                new Date(
+                  currentDate.getTime() - 6 * 60 * 60 * 1000
+                ).toISOString()
               );
               orders[i].devices[j].displayed = true;
               orders[i].devices[j].canBeDisplayed = false;

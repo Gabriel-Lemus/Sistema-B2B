@@ -322,6 +322,33 @@
   width: 90% !important;
   margin: 0 auto; }
 
+div.dx-datagrid-columns-separator.dx-datagrid-columns-separator-transparent {
+  height: 0 !important; }
+
+div.dx-datagrid-tracker.dx-state-invisible {
+  height: 0 !important; }
+
+table.dx-datagrid-table.dx-datagrid-table-fixed {
+  width: 100% !important;
+  background-color: #fff; }
+
+tr.dx-row.dx-column-lines.dx-header-row {
+  background-color: #8cd3ff;
+  height: 5vh; }
+
+tr.dx-row.dx-data-row.dx-row-lines.dx-column-lines {
+  color: #808080;
+  height: 5vh; }
+
+div.dx-datagrid-text-content.dx-text-content-alignment-left,
+table.dx-datagrid-table.dx-datagrid-table-fixed > tbody > tr.dx-row.dx-data-row.dx-row-lines.dx-column-lines > td {
+  padding-left: 10px;
+  padding-right: 5px; }
+
+table.dx-datagrid-table.dx-datagrid-table-fixed {
+  border-collapse: collapse;
+  border: 1px solid #8cd3ff; }
+
 .clients-section {
   display: flex;
   flex-direction: column;
