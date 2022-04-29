@@ -451,25 +451,26 @@ router.post("/:schema", async (req, res) => {
       } else if (params.newClientOrder !== undefined) {
         // Register a new order for the sellers that come from a client
         const order = req.body;
-        let savedOrdersCount = 0;
-        let maxOrderDeliveryDate = new Date(0);
+        let maxOrderDeliveryDate = new Date();
+        let devicesDeliveryDates = [];
+        let estimatedDeliveryDateRounded;
 
-        // Iterate through the items in the order
+        // Get the client's id based on their name
+        const clientId = await schemas[existingSchemas[2]].schema
+          .findOne({
+            name: order[0].sellerName,
+          })
+          .select("_id");
+
+        // Get the client's shipping times
+        const clientShippingTimes = await schemas[existingSchemas[2]].schema
+          .findOne({
+            _id: clientId._id,
+          })
+          .select("shippingTimes");
+
+        // Iterate through the devices in the order
         for (let i = 0; i < order.length; i++) {
-          // Get the client's id based on their name
-          const clientId = await schemas[existingSchemas[2]].schema
-            .findOne({
-              name: order[i].sellerName,
-            })
-            .select("_id");
-
-          // Get the client's shipping times
-          const clientShippingTimes = await schemas[existingSchemas[2]].schema
-            .findOne({
-              _id: clientId._id,
-            })
-            .select("shippingTimes");
-
           // Get the device's shipping time
           const deviceShippingTimeDays = await schemas[
             existingSchemas[1]
@@ -479,17 +480,10 @@ router.post("/:schema", async (req, res) => {
             })
             .select("shipping_time");
 
-          // Get the factory's id based on the device's id
-          const factoryId = await schemas[existingSchemas[1]].schema
-            .findOne({
-              _id: order[i].deviceId,
-            })
-            .select("factoryId");
-
           // Find the client's shipping time in the clientShippingTimes array where the factoryId matches the device's factoryId
           const clientShippingTimeDays = clientShippingTimes.shippingTimes.find(
             (shippingTime) =>
-              shippingTime.factoryId.toString() === factoryId.factoryId
+              shippingTime.factoryId.toString() === order[i].factoryId
           ).shippingTime;
 
           // The estimated delivery date is the device's shipping time in days plus the client's shipping time in days for the given factory
@@ -501,60 +495,66 @@ router.post("/:schema", async (req, res) => {
           );
 
           // Round the estimated delivery date
-          const estimatedDeliveryDateRounded = new Date(
+          estimatedDeliveryDateRounded = new Date(
             estimatedDeliveryDate.getTime() +
               24 * 60 * 60 * 1000 -
               (estimatedDeliveryDate.getTime() % (24 * 60 * 60 * 1000))
           );
+
           if (estimatedDeliveryDate > maxOrderDeliveryDate) {
             maxOrderDeliveryDate = estimatedDeliveryDateRounded;
           }
 
-          // Create a new document for the order
-          const newOrderDocument = new schemas[schemaName].schema({
-            clientId,
-            completed: false,
-            maxDeliveryDate: estimatedDeliveryDateRounded,
-            isClientOrder: true,
-            canceled: false,
-            devices: [
-              {
-                deviceId: order[i].deviceId,
-                factoryId: factoryId.factoryId,
-                quantity: order[i].quantity,
-                price: order[i].price,
-                estimatedDeliveryDate: estimatedDeliveryDateRounded,
-                delivered: false,
-                payed: false,
-                deliveredDate: null,
-                canBeDisplayed: false,
-                displayed: false,
-              },
-            ],
-          });
-
-          // Try to create the new document for the order
-          try {
-            await newOrderDocument.save();
-            savedOrdersCount++;
-          } catch (error) {
-            return res.status(500).send({
-              success: false,
-              error: `Error creating creating the new order: ${error}`,
-            });
-          }
+          devicesDeliveryDates.push(estimatedDeliveryDateRounded);
         }
 
-        if (savedOrdersCount === order.length) {
+        // Get the id for the new order
+        const newOrderId = await schemas[schemaName].schema
+          .find()
+          .sort({
+            _id: -1,
+          })
+          .limit(1)
+          .select("_id");
+        const idForNewOrder =
+          newOrderId.length === 0 ? 1 : newOrderId[0]._id + 1;
+
+        // Create a new document for the order
+        const newOrderDocument = new schemas[schemaName].schema({
+          _id: idForNewOrder,
+          clientId: clientId._id,
+          completed: false,
+          maxDeliveryDate: estimatedDeliveryDateRounded,
+          isClientOrder: true,
+          canceled: false,
+          devices: order.map((device, idx) => ({
+            deviceId: device.deviceId,
+            factoryId: device.factoryId,
+            quantity: device.quantity,
+            price: device.price,
+            estimatedDeliveryDate: devicesDeliveryDates[idx],
+            delivered: false,
+            payed: false,
+            deliveredDate: null,
+            canBeDisplayed: false,
+            displayed: false,
+          })),
+        });
+
+        // Try to create the new document for the order
+        try {
+          await newOrderDocument.save();
           res.status(201).send({
             success: true,
-            message: "All the orders were registered successfully.",
+            message: "The new order was created successfully.",
             maxDeliveryDate: maxOrderDeliveryDate,
+            orderId: idForNewOrder,
+            estimatedDeliveryDates: devicesDeliveryDates,
           });
-        } else {
-          res.status(500).send({
+        } catch (error) {
+          return res.status(500).send({
             success: false,
-            error: `Error registering all the orders. Only ${savedOrdersCount} of ${order.length} were registered successfully.`,
+            error: `Error creating creating the new order: ${error}`,
           });
         }
       } else if (params.sendSalesReport !== undefined) {
