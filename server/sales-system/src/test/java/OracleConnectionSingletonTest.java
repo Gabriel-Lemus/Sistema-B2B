@@ -8,6 +8,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Unit testing for methods of the class {@link OracleConnectionSingleton}.
+ */
 public class OracleConnectionSingletonTest {
     /** Oracle database connection singleton. */
     private Connection oracleConnectionSingleton;
@@ -55,8 +58,9 @@ public class OracleConnectionSingletonTest {
     }
 
     /**
-     * Test that a new instance is not created when an instance of the
-     * OracleConnectionSingleton already exists.
+     * Test the method
+     * {@link OracleConnectionSingleton#getConnection(String userStr, String passwordStr)}
+     * to check that a new instance is not created when another one already exists.
      */
     @Test
     void testCreateNewConnectionWhenInstanceAlreadyExists() {
@@ -74,7 +78,9 @@ public class OracleConnectionSingletonTest {
     }
 
     /**
-     * Test that the connection can be changed to another user and password.
+     * Test the method
+     * {@link OracleConnectionSingleton#changeConnection(String userStr, String passwordStr)}
+     * to check that the connection can be changed to another user and password.
      * 
      * @throws SQLException If the connection to the Oracle database fails.
      */
@@ -92,7 +98,8 @@ public class OracleConnectionSingletonTest {
     }
 
     /**
-     * Test closing the connection to the Oracle database.
+     * Test the method {@link OracleConnectionSingleton#closeConnection()} the check
+     * that the connection to the Oracle database can be closed.
      * 
      * @throws SQLException If the connection to the Oracle database cannot be
      *                      closed.
@@ -111,8 +118,9 @@ public class OracleConnectionSingletonTest {
     }
 
     /**
-     * Check that if the connection has been closed, the same connection cannot be
-     * closed again.
+     * Check the method {@link OracleConnectionSingleton#closeConnection()} to check
+     * that if the connection has been closed, the same connection cannot be closed
+     * again.
      * 
      * @throws SQLException If the connection to the Oracle database cannot be
      *                      closed.

@@ -91,8 +91,8 @@ public class MailerTest {
 
     /**
      * Test the method for
-     * {@link Mailer#doPost(HttpServletRequest, HttpServletResponse)} that allows to
-     * send email receipts.
+     * {@link Mailer#doPost(HttpServletRequest request, HttpServletResponse response)}
+     * that allows to send email receipts.
      * 
      * @throws IOException
      * @throws ServletException
@@ -124,8 +124,8 @@ public class MailerTest {
 
     /**
      * Test the method for
-     * {@link Mailer#doPost(HttpServletRequest, HttpServletResponse)} that allows to
-     * send a credit purchase.
+     * {@link Mailer#doPost(HttpServletRequest request, HttpServletResponse response)}
+     * that allows to send a credit purchase.
      * 
      * @throws IOException
      * @throws ServletException
@@ -157,8 +157,8 @@ public class MailerTest {
 
     /**
      * Test the method for
-     * {@link Mailer#doPost(HttpServletRequest, HttpServletResponse)} with incorrect
-     * parameters.
+     * {@link Mailer#doPost(HttpServletRequest request, HttpServletResponse response)}
+     * with incorrect parameters.
      * 
      * @throws IOException
      * @throws ServletException

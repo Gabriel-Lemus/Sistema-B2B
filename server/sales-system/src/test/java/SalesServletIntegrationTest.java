@@ -52,7 +52,7 @@ public class SalesServletIntegrationTest {
     private PrintWriter otherOut;
 
     /**
-     * Initializes the test.
+     * Setup for tests.
      */
     @BeforeEach
     public void setUp() {
@@ -75,9 +75,10 @@ public class SalesServletIntegrationTest {
      * Test that the number of rows can be read, that a new row can be inserted and
      * deleted.
      * It tests the
-     * {@link SalesServlet#doGet(HttpServletRequest, HttpServletResponse)},
-     * {@link SalesServlet#doPost(HttpServletRequest, HttpServletResponse)} and
-     * {@link SalesServlet#doDelete(HttpServletRequest, HttpServletResponse)}
+     * {@link SalesServlet#doGet(HttpServletRequest request, HttpServletResponse response)},
+     * {@link SalesServlet#doPost(HttpServletRequest request, HttpServletResponse response)}
+     * and
+     * {@link SalesServlet#doDelete(HttpServletRequest request, HttpServletResponse response)}
      * methods.
      *
      * @throws IOException
@@ -85,6 +86,7 @@ public class SalesServletIntegrationTest {
      */
     @Test
     void testRowInsertionAndRead() throws IOException, ServletException {
+        // Arrange
         String body = "{\"nombre\": \"Apple\"}";
 
         when(request.getParameter("table")).thenReturn("marcas");
@@ -112,6 +114,7 @@ public class SalesServletIntegrationTest {
         when(newResponse.getWriter()).thenReturn(newOut);
         when(otherResponse.getWriter()).thenReturn(otherOut);
 
+        // Act
         // Get the current brands
         salesServlet.doGet(request, response);
 
@@ -155,12 +158,8 @@ public class SalesServletIntegrationTest {
         JSONObject newResponse2 = new JSONObject(stringWriter.toString());
         int newRowCount2 = newResponse2.getInt("rowCount");
 
-        // Check that the number of brands did increase by one when inserting a new
-        // brand
+        // Assert
         assertEquals(oldRowCount + 1, newRowCount);
-
-        // Check that the number of brands did decrease by one when deleting the newly
-        // inserted brand
         assertEquals(oldRowCount, newRowCount2);
     }
 }
