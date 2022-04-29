@@ -8,17 +8,24 @@ import secrets from '../../helpers/secrets';
 function OrdersForm(props) {
   const [isOrderSet, setIsOrderSet] = useState(false);
   const [order, setOrder] = useState([]);
+  const [sellers, setSellers] = useState([]);
+  const [orderSellerId, setOrderSellerId] = useState(0);
   const navigate = useNavigate();
   let subtotal = 0;
 
   // Get the orders from local storage
-  useEffect(() => {
+  useEffect(async () => {
     // Check if there is an order in local storage
     if (localStorage.getItem('order')) {
       const clientOrder = JSON.parse(localStorage.order);
       setOrder(clientOrder);
       setIsOrderSet(true);
     }
+
+    const distributors = await axios.get(
+      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sales?table=vendedores`
+    );
+    setSellers(distributors.data.data);
 
     props.setLoading(false);
   }, []);
@@ -33,23 +40,29 @@ function OrdersForm(props) {
     props.setLoading(true);
 
     const clientOrder = {
-      clientId: localStorage.getItem('userId'),
-      finalClientOrder: true,
+      finalClientId: localStorage.getItem('userId'),
+      distributorId: sellers[orderSellerId].id_vendedor,
+      clientId: null,
       completed: false,
       maxDeliveryDate: null,
+      deliveredDate: null,
       canceled: false,
+      completelyPayed: false,
+      isClientOrder: true,
       orders: [
         ...order.map((device) => ({
+          factoryId: device.id_fabricante,
           deviceId: device.id,
           quantity: device.cantidad,
           price: device.precio,
-          id_vendedor: device.id_vendedor,
           estimatedDeliveryDate: null,
           delivered: false,
           payed: false,
           deliveredDate: null,
           canBeDisplayed: false,
           displayed: false,
+          lastReported: null,
+          deviceName: device.nombre,
         })),
       ],
     };
@@ -99,7 +112,7 @@ function OrdersForm(props) {
           {order.map((device, index) => (
             <Link
               className="no-underline-link"
-              to={`/datos-dispositivo-agotado/${device.vendedor}/${device.id}`}
+              to={`/datos-dispositivo-por-encargo/${device.id_fabricante}/${device.id}`}
               key={index}
             >
               <li
@@ -146,6 +159,29 @@ function OrdersForm(props) {
                 <b>Total:</b>
               </p>
               <p>{helpers.getFormattedCurrency('Q. ', getTotal())}</p>
+            </div>
+          </li>
+        </ul>
+        <ul className="list-group mt-5 shopping-cart-list">
+          <li className="list-group-item">
+            <div className="d-flex w-100 justify-content-between">
+              <p>
+                <b>Vendedor:</b>
+              </p>
+              <p>
+                <select
+                  className="form-control"
+                  onChange={(e) => {
+                    setOrderSellerId(Number(e.target.value));
+                  }}
+                >
+                  {sellers.map((seller, index) => (
+                    <option key={index} value={index}>
+                      {seller.nombre}
+                    </option>
+                  ))}
+                </select>
+              </p>
             </div>
           </li>
         </ul>

@@ -538,7 +538,6 @@ function SalesList(props) {
                   />
                 </section>
               </section>
-              {/* Pay credit purchases button */}
               <button
                 className="btn btn-primary mt-5 mb-4"
                 onClick={handleCreditPurchasesPayment}
