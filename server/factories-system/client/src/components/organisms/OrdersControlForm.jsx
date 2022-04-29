@@ -225,7 +225,8 @@ function OrdersForm(props) {
                           <td>{device.name}</td>
                           <td>
                             <section className="input-row">
-                              {!order.devices[deviceIndex].delivered ? (
+                              {!order.devices[deviceIndex].delivered &&
+                              !order.isClientOrder ? (
                                 device.toDelete === undefined ||
                                 !device.toDelete ? (
                                   <>
@@ -343,7 +344,8 @@ function OrdersForm(props) {
                           </td>
                           <td>
                             <div className="checkbox-center">
-                              {!order.devices[deviceIndex].delivered ? (
+                              {!order.devices[deviceIndex].delivered &&
+                              !order.isClientOrder ? (
                                 <input
                                   type="checkbox"
                                   onChange={(e) => {
@@ -390,8 +392,10 @@ function OrdersForm(props) {
                                   }}
                                   className="form-check-input remove-device-checkbox"
                                 />
-                              ) : (
+                              ) : order.devices[deviceIndex].delivered ? (
                                 <div>Dispositivo(s) ya entregado</div>
+                              ) : (
+                                <div>Orden de cliente</div>
                               )}
                             </div>
                           </td>
