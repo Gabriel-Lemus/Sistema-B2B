@@ -65,8 +65,8 @@ const CLIENT_PAGES = [
 const DISTRIBUTOR_CLIENTS_PAGES = [
   {
     icon: <FiBook />,
-    title: 'Dispositivos agotados',
-    reference: '/dispositivos-agotados',
+    title: 'Dispositivos por encargo',
+    reference: '/dispositivos-por-encargo',
   },
   {
     icon: <RiCheckboxMultipleLine />,
