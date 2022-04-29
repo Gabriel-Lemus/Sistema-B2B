@@ -313,9 +313,18 @@ router.post("/:schema", async (req, res) => {
         // Set the order's max delivery date
         order.maxDeliveryDate = maxDeliveryDate;
 
+        // Get the id for the new order
+        const newOrderId = await schemas[schemaName].schema.find().sort({
+          _id: -1,
+        });
+        const idForNewOrder = newOrderId.length === 0 ? 1 : newOrderId[0]._id + 1;
+
         // Try to create the new document for the order
         try {
-          const newOrderDocument = new schemas[schemaName].schema(order);
+          const newOrderDocument = new schemas[schemaName].schema({
+            _id: idForNewOrder,
+            ...order,
+          });
           await newOrderDocument.save();
           res.status(201).send({
             success: true,
