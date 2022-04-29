@@ -40,7 +40,7 @@ public class SellersServlet extends HttpServlet {
     // Servlet initialization
     public void init() throws ServletException {
         secrets = new Secrets();
-        conUrl = secrets.getOracleCon();
+        conUrl = secrets.getOracleConnectionString();
         user = "Sales";
         password = "adminsales";
         localhostIp = "localhost";

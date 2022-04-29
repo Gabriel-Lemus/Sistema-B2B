@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 public class SalesServlet extends HttpServlet {
     // Attributes
     private Secrets secrets = new Secrets();
-    private SqlSchema sqlSchema = new SqlSchema(secrets.getOracleCon(), "Sales", "adminsales", "localhost", "Sales",
+    private SqlSchema sqlSchema = new SqlSchema(secrets.getOracleConnectionString(), "Sales", "adminsales", "localhost", "Sales",
         new String[] { "credenciales_usuarios", "clientes", "vendedores", "marcas" },
         new String[] { "id_credencial", "id_cliente", "id_vendedor", "id_marca" },
         new String[] { "email", null, "nombre", "nombre" },
@@ -40,7 +40,7 @@ public class SalesServlet extends HttpServlet {
     // Servlet initialization
     public void init() throws ServletException {
         secrets = new Secrets();
-        String connectionUrl = secrets.getOracleCon();
+        String connectionUrl = secrets.getOracleConnectionString();
         String user = "Sales";
         String password = "adminsales";
         String localhostIp = "localhost";

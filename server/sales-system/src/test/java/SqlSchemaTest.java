@@ -20,12 +20,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.DelegatingServletInputStream;
 
 /**
- * Integration testing for methods of the class {@link SalesServlet}.
+ * Unit testing for methods of the class {@link SqlSchema}.
  */
-public class SalesServletIntegrationTest {
+public class SqlSchemaTest {
     // Attributes
-    /** SalesServlet object to test. */
-    private SalesServlet salesServlet;
+    /** SQLSchema object */
+    SqlSchema sqlSchema;
+    /** Secrets object */
+    Secrets secrets;
     /** HTTPServletRequest mock. */
     private HttpServletRequest request;
     /** HttpServletResponse mock. */
@@ -56,7 +58,6 @@ public class SalesServletIntegrationTest {
      */
     @BeforeEach
     public void setUp() {
-        salesServlet = new SalesServlet();
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);
         newRequest = mock(HttpServletRequest.class);
@@ -69,16 +70,42 @@ public class SalesServletIntegrationTest {
         newOut = new PrintWriter(newStringWriter);
         otherStringWriter = new StringWriter();
         otherOut = new PrintWriter(otherStringWriter);
+        secrets = new Secrets();
+        sqlSchema = new SqlSchema(secrets.getOracleConnectionString(), "Sales", "adminsales", "localhost", "Sales",
+                new String[] { "credenciales_usuarios", "clientes", "vendedores", "marcas" },
+                new String[] { "id_credencial", "id_cliente", "id_vendedor", "id_marca" },
+                new String[] { "email", null, "nombre", "nombre" },
+                new String[][] {
+                        { "id_credencial", "id_cliente", "id_vendedor", "tipo_usuario", "email", "salt", "hash" },
+                        { "id_cliente", "nombre", "nit", "email", "telefono", "patente_comercio", "tipo_cliente",
+                                "tiene_suscripcion", "vencimiento_suscripcion" },
+                        { "id_vendedor", "nombre", "es_admin" },
+                        { "id_marca", "nombre" },
+                },
+                new String[][] {
+                        { "INTEGER", "INTEGER", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2" },
+                        { "INTEGER", "VARCHAR2", "INTEGER", "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2", "VARCHAR2",
+                                "DATE" },
+                        { "INTEGER", "VARCHAR2", "VARCHAR2" },
+                        { "INTEGER", "VARCHAR2" },
+                },
+                new boolean[][] {
+                        { false, true, true, false, false, false, false },
+                        { false, false, true, true, true, true, true, false, true },
+                        { false, false, false },
+                        { false, false },
+                },
+                new int[] { 100, 100, 100, 100 });
     }
 
     /**
      * Test that the CRUD methods for the sales servlet are working correctly.
      * It tests the
-     * {@link SalesServlet#doGet(HttpServletRequest request, HttpServletResponse response)},
-     * {@link SalesServlet#doPost(HttpServletRequest request, HttpServletResponse response)}
-     * {@link SalesServlet#doPut(HttpServletRequest request, HttpServletResponse response)}
+     * {@link SqlSchema#handleGet(HttpServletRequest request, HttpServletResponse response)},
+     * {@link SqlSchema#handlePost(HttpServletRequest request, HttpServletResponse response)}
+     * {@link SqlSchema#handlePut(HttpServletRequest request, HttpServletResponse response)}
      * and
-     * {@link SalesServlet#doDelete(HttpServletRequest request, HttpServletResponse response)}
+     * {@link SqlSchema#handleDelete(HttpServletRequest request, HttpServletResponse response)}
      * methods.
      *
      * @throws IOException
@@ -117,17 +144,17 @@ public class SalesServletIntegrationTest {
 
         // Act
         // Get the current brands
-        salesServlet.doGet(request, response);
+        sqlSchema.handleGet(request, response);
 
         // Get the number of brands
         JSONObject oldResponse = new JSONObject(stringWriter.toString());
         int oldRowCount = oldResponse.getInt("rowCount");
 
         // Insert a new brand
-        salesServlet.doPost(newRequest, newResponse);
+        sqlSchema.handlePost(newRequest, newResponse);
 
         // Get the new brands
-        salesServlet.doGet(request, otherResponse);
+        sqlSchema.handleGet(request, otherResponse);
         JSONObject newResponseJSON = new JSONObject(otherStringWriter.toString());
         int newRowCount = newResponseJSON.getInt("rowCount");
 
@@ -150,10 +177,11 @@ public class SalesServletIntegrationTest {
         when(otherRequest.getContentType()).thenReturn("application/json");
         when(otherRequest.getCharacterEncoding()).thenReturn("UTF-8");
         when(otherResponse.getWriter()).thenReturn(otherOut);
-        salesServlet.doPut(otherRequest, otherResponse);
-        salesServlet.doGet(request, response);
+        sqlSchema.handlePut(otherRequest, otherResponse);
+        sqlSchema.handleGet(request, response);
         String expectedUpdatedBrand = "Apple ABC";
-        String actualUpdatedBrand = new JSONObject(otherStringWriter.toString()).getJSONObject("dataModified").getString("nombre");
+        String actualUpdatedBrand = new JSONObject(otherStringWriter.toString()).getJSONObject("dataModified")
+                .getString("nombre");
 
         // Delete the newly inserted brand
         otherStringWriter = new StringWriter();
@@ -176,10 +204,10 @@ public class SalesServletIntegrationTest {
         when(otherResponse.getWriter()).thenReturn(otherOut);
 
         // Delete the newly inserted brand
-        salesServlet.doDelete(otherRequest, otherResponse);
+        sqlSchema.handleDelete(otherRequest, otherResponse);
 
         // Get the new brands
-        salesServlet.doGet(request, response);
+        sqlSchema.handleGet(request, response);
         JSONObject newResponse2 = new JSONObject(stringWriter.toString());
         int newRowCount2 = newResponse2.getInt("rowCount");
 
