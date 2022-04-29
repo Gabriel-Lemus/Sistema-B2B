@@ -731,74 +731,37 @@ public class SellersServlet extends HttpServlet {
             String bodyStr = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
             JSONObject clientOrder = new JSONObject(bodyStr);
             JSONArray orders = clientOrder.getJSONArray("orders");
-            int clientId = clientOrder.getInt("clientId");
+            int clientId = clientOrder.getInt("finalClientId");
+            int sellerId = clientOrder.getInt("distributorId");
             String currentDate = LocalDateTime.now().toString();
             currentDate = currentDate.replace("T", " ");
             currentDate = currentDate.substring(0, currentDate.length() - 4);
-            int[] orderIds = new int[orders.length()];
-            String[] sellerNames = new String[orders.length()];
+            int orderId = -1;
 
-            // Iterate through the orders and create a new order for each one
-            for (int i = 0; i < orders.length(); i++) {
-                try {
-                    Class.forName("oracle.jdbc.driver.OracleDriver");
-                    Connection con = DriverManager.getConnection(conUrl, user, password);
-                    con.setAutoCommit(false);
-                    Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-                    int sellerId = orders.getJSONObject(i).getInt("id_vendedor");
-                    String sellerName = "SELECT nombre FROM " + schema + ".vendedores WHERE id_vendedor = '" + sellerId
-                            + "'";
-                    ResultSet rs = stmt.executeQuery(sellerName);
-                    rs.next();
-                    sellerName = rs.getString("nombre").replaceAll(" ", "_");
-                    sellerNames[i] = sellerName;
-                    orders.getJSONObject(i).put("sellerName", sellerName.replaceAll("_", " "));
-                    int newOrderId = 1;
-                    String getNewOrderIdQuery = "SELECT COUNT(*) AS total FROM " + schema + "." + sellerName
-                            + "_pedidos_futuros";
-                    rs = stmt.executeQuery(getNewOrderIdQuery);
-                    double price = orders.getJSONObject(i).getDouble("price");
-                    double taxes = 0;
-                    double discounts = 0.15;
-                    double total = price + taxes - (price * discounts);
-                    total = total * (1 - discounts);
-                    long factor = (long) Math.pow(10, 2);
-                    total = (double) ((long) (Math.round(total * factor))) / factor;
+            // Get the seller name based on the seller id of the first item in the order
+            String sellerName = "";
 
-                    if (rs.next()) {
-                        newOrderId = rs.getInt("total") + 1;
-                    }
-                    orderIds[i] = newOrderId;
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                Connection con = DriverManager.getConnection(conUrl, user, password);
+                Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                String getSellerNameQuery = "SELECT nombre FROM " + schema + ".vendedores WHERE id_vendedor = '"
+                        + sellerId + "'";
+                ResultSet rs = stmt.executeQuery(getSellerNameQuery);
 
-                    String newSellerOrder = "INSERT INTO " + schema + "." + sellerName + "_pedidos_futuros (ID_PEDIDO, "
-                            + "ID_CLIENTE, ID_VENDEDOR, FECHA_PEDIDO, PRECIO, CANTIDAD_DISPOSITIVOS, IMPUESTOS, DESCUENTOS, TOTAL_PEDIDO, FECHA_ENTREGA) VALUES (";
-                    newSellerOrder += "'" + newOrderId + "', '" + clientId + "', '" + sellerId + "', TO_DATE('"
-                            + currentDate
-                            + "', 'YYYY-MM-DD HH24:MI:SS'), '" + price + "', '"
-                            + orders.getJSONObject(i).getInt("quantity")
-                            + "', '" + taxes + "', '" + discounts + "', '" + total + "', NULL)";
-                    stmt.executeUpdate(newSellerOrder);
-                    con.commit();
-
-                    int newDeviceXOrderId = 1;
-                    String getNewDeviceXOrderIdQuery = "SELECT COUNT(*) AS total FROM " + schema + "." + sellerName
-                            + "_dispositivos_x_pedidos_futuros";
-                    rs = stmt.executeQuery(getNewDeviceXOrderIdQuery);
-
-                    if (rs.next()) {
-                        newDeviceXOrderId = rs.getInt("total") + 1;
-                    }
-
-                    String newDeviceXOrder = "INSERT INTO " + schema + "." + sellerName
-                            + "_dispositivos_x_pedidos_futuros (ID_DISPOSITIVO_X_PEDIDO, ID_PEDIDO, ID_DISPOSITIVO, CANTIDAD_DISPOSITIVOS, ENTREGADO) VALUES ";
-                    newDeviceXOrder += "('" + newDeviceXOrderId + "', '" + newOrderId + "', '"
-                            + orders.getJSONObject(i).getString("deviceId") + "', '"
-                            + orders.getJSONObject(i).getInt("quantity") + "', 'False')";
-                    stmt.executeUpdate(newDeviceXOrder);
-                    con.commit();
-                } catch (Exception e) {
-                    helper.printErrorMessage(out, e);
+                if (rs.next()) {
+                    sellerName = rs.getString("nombre");
+                } else {
+                    helper.printJsonMessage(out, false, "error",
+                            "There was an error while trying to get the name of the seller.");
                 }
+            } catch (Exception e) {
+                helper.printErrorMessage(out, e);
+            }
+
+            // Add the seller name to each item in the order
+            for (int i = 0; i < orders.length(); i++) {
+                orders.getJSONObject(i).put("sellerName", sellerName);
             }
 
             // Attempt to post the orders to the web server
@@ -819,37 +782,87 @@ public class SellersServlet extends HttpServlet {
                 HttpResponse postNewClientOrderResponse = client.execute(postNewClientOrder);
                 String responseBody = EntityUtils.toString(postNewClientOrderResponse.getEntity());
                 JSONObject postNewClientOrderResponseJson = new JSONObject(responseBody);
-
+                postNewClientOrderResponseJson = postNewClientOrderResponseJson.getJSONObject("data");
+                String maxDeliveryDate = postNewClientOrderResponseJson.getString("maxDeliveryDate");
+                maxDeliveryDate = maxDeliveryDate.replace("T", " ");
+                maxDeliveryDate = maxDeliveryDate.substring(0, maxDeliveryDate.length() - 5);
                 boolean factoriesOrderSuccessful = postNewClientOrderResponseJson.getBoolean("success");
 
-                // If the order was successfully posted to the web server and to the factories
-                // backend, then register the estimated delivery date
                 if (factoriesOrderSuccessful) {
-                    JSONObject responseData = postNewClientOrderResponseJson.getJSONObject("data");
-                    String deliveryDate = responseData.getString("maxDeliveryDate").replace("T", " ");
-                    deliveryDate = deliveryDate.substring(0, deliveryDate.length() - 5);
+                    orderId = postNewClientOrderResponseJson.getInt("orderId");
+                    int totalDevices = 0;
+                    int devicesXOrder = 0;
+                    double discount = 0.15;
+                    double taxes = 0;
+                    double total = 0;
+                    double totalWithDiscount = 0;
 
-                    // Iterate through the orderIds array and update each order with the estimated
-                    // delivery date
-                    for (int i = 0; i < orderIds.length; i++) {
-                        try {
-                            Class.forName("oracle.jdbc.driver.OracleDriver");
-                            Connection con = DriverManager.getConnection(conUrl, user, password);
-                            con.setAutoCommit(false);
-                            Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-                                    ResultSet.CONCUR_READ_ONLY);
-                            String updateOrderDeliveryDate = "UPDATE " + schema + "." + sellerNames[i]
-                                    + "_pedidos_futuros SET FECHA_ENTREGA = TO_DATE('" + deliveryDate
-                                    + "', 'YYYY-MM-DD HH24:MI:SS') WHERE ID_PEDIDO = '" + orderIds[i] + "'";
-                            stmt.executeUpdate(updateOrderDeliveryDate);
-                            con.commit();
-                        } catch (Exception e) {
-                            helper.printErrorMessage(out, e);
-                        }
+                    // To get the total, reduce the product of the price and the quantity of each
+                    // item in the order
+                    for (int i = 0; i < orders.length(); i++) {
+                        total += orders.getJSONObject(i).getDouble("price")
+                                * orders.getJSONObject(i).getInt("quantity");
+                        totalDevices += orders.getJSONObject(i).getInt("quantity");
                     }
-                }
+                    totalWithDiscount = total * (1 - discount) + taxes;
 
-                out.println(postNewClientOrderResponseJson.toString());
+                    // Add the order to the database
+                    try {
+                        Class.forName("oracle.jdbc.driver.OracleDriver");
+                        Connection con = DriverManager.getConnection(conUrl, user, password);
+                        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                ResultSet.CONCUR_READ_ONLY);
+                        String addOrderQuery = "INSERT INTO " + schema + "." + sellerName.replaceAll(" ", "_")
+                                + "_pedidos_futuros (id_pedido, id_cliente, id_vendedor, fecha_pedido, precio, cantidad_dispositivos, impuestos, descuentos, total_pedido, fecha_entrega) "
+                                + "VALUES ('" + orderId + "', '" + clientId + "', '" + sellerId + "', TO_DATE('"
+                                + currentDate
+                                + "', 'YYYY-MM-DD HH24:MI:SS'), '" + total + "', '" + totalDevices + "', '" + taxes
+                                + "', '"
+                                + discount + "', '" + totalWithDiscount + "', TO_DATE('" + maxDeliveryDate
+                                + "', 'YYYY-MM-DD HH24:MI:SS'))";
+                        con.setAutoCommit(false);
+                        stmt.executeUpdate(addOrderQuery);
+                        con.commit();
+
+                        // Iterate through the devices in the order and add the to the
+                        // _dispositivos_x_pedidos_futuros table
+                        for (int i = 0; i < orders.length(); i++) {
+                            int newDeviceXOrderId = 1;
+                            String getNewDeviceXOrderIdQuery = "SELECT COUNT(*) FROM " + schema + "."
+                                    + sellerName.replaceAll(" ", "_") + "_dispositivos_x_pedidos_futuros";
+                            ResultSet rs = stmt.executeQuery(getNewDeviceXOrderIdQuery);
+
+                            if (rs.next()) {
+                                newDeviceXOrderId = rs.getInt(1) + 1;
+                            }
+
+                            String addDeviceToOrderQuery = "INSERT INTO " + schema + "."
+                                    + sellerName.replaceAll(" ", "_")
+                                    + "_dispositivos_x_pedidos_futuros" +
+                                    "(id_dispositivo_x_pedido, id_pedido, id_dispositivo, nombre_dispositivo, cantidad_dispositivos, entregado) " +
+                                    "VALUES ('" + newDeviceXOrderId + "', '" + orderId + "', '"
+                                    + orders.getJSONObject(i).getString("deviceId") + "', '"
+                                    + orders.getJSONObject(i).getString("deviceName") + "', '"
+                                    + orders.getJSONObject(i).getInt("quantity") + "', 'False')";
+                            stmt.executeUpdate(addDeviceToOrderQuery);
+                            con.commit();
+                            devicesXOrder++;
+                        }
+
+                        if (devicesXOrder == orders.length()) {
+                            helper.printJsonMessage(out, true, "success",
+                                    "The order was successfully added to the database.");
+                        } else {
+                            helper.printJsonMessage(out, false, "error",
+                                    "There was an error while trying to add the order to the database.");
+                        }
+                    } catch (Exception e) {
+                        helper.printErrorMessage(out, e);
+                    }
+                } else {
+                    helper.printJsonMessage(out, false, "error",
+                            "There was an error while trying to post the orders to the web server.");
+                }
             } catch (Exception e) {
                 helper.printErrorMessage(out, e);
             }
