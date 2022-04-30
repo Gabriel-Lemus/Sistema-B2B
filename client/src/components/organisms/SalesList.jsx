@@ -63,8 +63,12 @@ function SalesList(props) {
       if (helpers.isValidEmail(userEmail)) {
         if (helpers.isValidCardExpirationDate(cardExpiration)) {
           const creditPurchasesPayment = await axios.put(
-            `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?pagarComprasCredito=true`,
-            creditPurchases
+            `http://${secrets.LOCALHOST_IP}:${
+              secrets.TOMCAT_PORT
+            }/sales-system/sellers?pagarComprasCredito=${localStorage.getItem(
+              'userId'
+            )}`,
+            {}
           );
 
           if (creditPurchasesPayment.data.success) {
@@ -140,24 +144,16 @@ function SalesList(props) {
                 {purchaseList.map((purchase, index) => (
                   <tbody key={index}>
                     <tr>
-                      <td>{purchase.nombre}</td>
+                      <td>{purchase.dispositivo}</td>
                       <td>
                         {helpers.getFormattedCurrency('Q. ', purchase.precio)}
                       </td>
-                      <td>x {purchase.dispositivos_adquiridos}</td>
+                      <td>x {purchase.cantidad_dispositivos}</td>
                       <td className="text-right">
                         {helpers.getFormattedCurrency(
                           'Q. ',
-                          purchase.precio * purchase.dispositivos_adquiridos
+                          purchase.precio * purchase.cantidad_dispositivos
                         )}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colSpan={4}>
-                        <strong>Descripción: </strong>
-                        {purchase.descripcion.length <= 100
-                          ? purchase.descripcion
-                          : purchase.descripcion.substring(0, 100) + '...'}
                       </td>
                     </tr>
                   </tbody>
@@ -175,7 +171,7 @@ function SalesList(props) {
                         purchaseList.reduce(
                           (acc, purchase) =>
                             acc +
-                            purchase.precio * purchase.dispositivos_adquiridos,
+                            purchase.precio * purchase.cantidad_dispositivos,
                           0
                         )
                       )}
@@ -230,7 +226,9 @@ function SalesList(props) {
         </div>
       ) : (
         <div className="alert alert-info mt-4">
-          <h5 className="text-center">No ha realizado ninguna compra al contado aún.</h5>
+          <h5 className="text-center">
+            No ha realizado ninguna compra al contado aún.
+          </h5>
         </div>
       )}
       {creditPurchases.length !== 0 ? (
@@ -270,29 +268,19 @@ function SalesList(props) {
                       {purchaseList.map((purchase, index) => (
                         <tbody key={index}>
                           <tr>
-                            <td>{purchase.nombre}</td>
+                            <td>{purchase.dispositivo}</td>
                             <td>
                               {helpers.getFormattedCurrency(
                                 'Q. ',
                                 purchase.precio
                               )}
                             </td>
-                            <td>x {purchase.dispositivos_adquiridos}</td>
+                            <td>x {purchase.cantidad_dispositivos}</td>
                             <td className="text-right">
                               {helpers.getFormattedCurrency(
                                 'Q. ',
-                                purchase.precio *
-                                  purchase.dispositivos_adquiridos
+                                purchase.precio * purchase.cantidad_dispositivos
                               )}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td colSpan={4}>
-                              <strong>Descripción: </strong>
-                              {purchase.descripcion.length <= 100
-                                ? purchase.descripcion
-                                : purchase.descripcion.substring(0, 100) +
-                                  '...'}
                             </td>
                           </tr>
                         </tbody>
@@ -311,7 +299,7 @@ function SalesList(props) {
                                 (acc, purchase) =>
                                   acc +
                                   purchase.precio *
-                                    purchase.dispositivos_adquiridos,
+                                    purchase.cantidad_dispositivos,
                                 0
                               )
                             )}
@@ -538,7 +526,6 @@ function SalesList(props) {
                   />
                 </section>
               </section>
-              {/* Pay credit purchases button */}
               <button
                 className="btn btn-primary mt-5 mb-4"
                 onClick={handleCreditPurchasesPayment}

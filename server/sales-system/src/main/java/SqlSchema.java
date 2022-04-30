@@ -20,7 +20,7 @@ public class SqlSchema {
     private SqlTableCrud[] tableCruds;
     private ServletHelper helper;
 
-    // Constructor
+    // SqlSchema Constructor.
     public SqlSchema(String conUrl, String user, String password,
             String localhostIp, String schema, String[] tableNames,
             String[] primaryKeys, String[] nonRepeatableField,
@@ -69,6 +69,12 @@ public class SqlSchema {
         return exists;
     }
 
+    /**
+     * Get the table index based on the table name.
+     * 
+     * @param table The name of the table.
+     * @return The index of the table in the schema.
+     */
     private int getTableIndexFromName(String table) {
         for (int i = 0; i < schemaTables.length; i++) {
             if (schemaTables[i].equalsIgnoreCase(table)) {
@@ -164,8 +170,8 @@ public class SqlSchema {
     /**
      * Handle the POST requests for the CRUD operations of the tables.
      * 
-     * @param request    The request object.
-     * @param response   The response object.
+     * @param request  The request object.
+     * @param response The response object.
      * @throws ServletException If the servlet throws an exception.
      * @throws IOException      If there is an error with the input or output.
      */
@@ -187,8 +193,8 @@ public class SqlSchema {
     /**
      * Handle the GET requests for the CRUD operations of the tables.
      * 
-     * @param request    The request object.
-     * @param response   The response object.
+     * @param request  The request object.
+     * @param response The response object.
      * @throws ServletException If the servlet throws an exception.
      * @throws IOException      If there is an error with the input or output.
      */
@@ -210,8 +216,8 @@ public class SqlSchema {
     /**
      * Handle the PUT requests for the CRUD operations of the tables.
      * 
-     * @param request    The request object.
-     * @param response   The response object.
+     * @param request  The request object.
+     * @param response The response object.
      * @throws ServletException If the servlet throws an exception.
      * @throws IOException      If there is an error with the input or output.
      */
@@ -234,8 +240,8 @@ public class SqlSchema {
      * Handle the DELETE requests for the CRUD operations of the
      * tables.
      * 
-     * @param request    The request object.
-     * @param response   The response object.
+     * @param request  The request object.
+     * @param response The response object.
      * @throws ServletException If the servlet throws an exception.
      * @throws IOException      If there is an error with the input or output.
      */

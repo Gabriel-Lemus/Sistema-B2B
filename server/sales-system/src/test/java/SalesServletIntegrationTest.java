@@ -24,20 +24,36 @@ import org.springframework.mock.web.DelegatingServletInputStream;
  */
 public class SalesServletIntegrationTest {
     // Attributes
+    /** SalesServlet object to test. */
     private SalesServlet salesServlet;
+    /** HTTPServletRequest mock. */
     private HttpServletRequest request;
+    /** HttpServletResponse mock. */
     private HttpServletResponse response;
+    /** HTTPServletRequest mock. */
     private HttpServletRequest newRequest;
+    /** HttpServletResponse mock. */
     private HttpServletResponse newResponse;
+    /** HTTPServletRequest mock. */
     private HttpServletRequest otherRequest;
+    /** HttpServletResponse mock. */
     private HttpServletResponse otherResponse;
+    /** StringWriter to write to. */
     private StringWriter stringWriter;
+    /** PrintWriter to write to. */
     private PrintWriter out;
+    /** StringWriter to write to. */
     private StringWriter newStringWriter;
+    /** PrintWriter to write to. */
     private PrintWriter newOut;
+    /** StringWriter to write to. */
     private StringWriter otherStringWriter;
+    /** PrintWriter to write to. */
     private PrintWriter otherOut;
 
+    /**
+     * Setup for tests.
+     */
     @BeforeEach
     public void setUp() {
         salesServlet = new SalesServlet();
@@ -56,14 +72,23 @@ public class SalesServletIntegrationTest {
     }
 
     /**
-     * Test that the number of rows can be read, that a new row can be inserted and deleted.
+     * Test that the CRUD methods for the sales servlet are working correctly.
+     * It tests the
+     * {@link SalesServlet#doGet(HttpServletRequest request, HttpServletResponse response)},
+     * {@link SalesServlet#doPost(HttpServletRequest request, HttpServletResponse response)}
+     * {@link SalesServlet#doPut(HttpServletRequest request, HttpServletResponse response)}
+     * and
+     * {@link SalesServlet#doDelete(HttpServletRequest request, HttpServletResponse response)}
+     * methods.
      *
      * @throws IOException
      * @throws ServletException
      */
     @Test
-    void testRowInsertionAndRead() throws IOException, ServletException {
+    void testCrudOperations() throws IOException, ServletException {
+        // Arrange
         String body = "{\"nombre\": \"Apple\"}";
+        String newBody = "{\"nombre\": \"Apple ABC\"}";
 
         when(request.getParameter("table")).thenReturn("marcas");
         when(request.getParameterMap()).thenReturn(new java.util.HashMap<String, String[]>() {
@@ -90,23 +115,45 @@ public class SalesServletIntegrationTest {
         when(newResponse.getWriter()).thenReturn(newOut);
         when(otherResponse.getWriter()).thenReturn(otherOut);
 
+        // Act
         // Get the current brands
         salesServlet.doGet(request, response);
 
         // Get the number of brands
         JSONObject oldResponse = new JSONObject(stringWriter.toString());
-        System.out.println("oldResponse: " + oldResponse);
         int oldRowCount = oldResponse.getInt("rowCount");
 
         // Insert a new brand
         salesServlet.doPost(newRequest, newResponse);
-        System.out.println(newStringWriter.toString());
 
         // Get the new brands
         salesServlet.doGet(request, otherResponse);
         JSONObject newResponseJSON = new JSONObject(otherStringWriter.toString());
-        System.out.println("newResponse: " + newResponseJSON);
         int newRowCount = newResponseJSON.getInt("rowCount");
+
+        // Update the new brand
+        otherStringWriter = new StringWriter();
+        otherOut = new PrintWriter(otherStringWriter);
+        when(otherRequest.getParameter("table")).thenReturn("marcas");
+        when(otherRequest.getParameter("id")).thenReturn(Integer.toString(newRowCount));
+        when(otherRequest.getParameterMap()).thenReturn(new java.util.HashMap<String, String[]>() {
+            {
+                put("table", new String[] { "marcas" });
+                put("id", new String[] { Integer.toString(newRowCount) });
+            }
+        });
+        when(otherRequest.getParameter("body")).thenReturn(newBody);
+        when(otherRequest.getInputStream()).thenReturn(
+                new DelegatingServletInputStream(new ByteArrayInputStream(newBody.getBytes(StandardCharsets.UTF_8))));
+        when(otherRequest.getReader()).thenReturn(
+                new BufferedReader(new StringReader(newBody)));
+        when(otherRequest.getContentType()).thenReturn("application/json");
+        when(otherRequest.getCharacterEncoding()).thenReturn("UTF-8");
+        when(otherResponse.getWriter()).thenReturn(otherOut);
+        salesServlet.doPut(otherRequest, otherResponse);
+        salesServlet.doGet(request, response);
+        String expectedUpdatedBrand = "Apple ABC";
+        String actualUpdatedBrand = new JSONObject(otherStringWriter.toString()).getJSONObject("dataModified").getString("nombre");
 
         // Delete the newly inserted brand
         otherStringWriter = new StringWriter();
@@ -136,10 +183,9 @@ public class SalesServletIntegrationTest {
         JSONObject newResponse2 = new JSONObject(stringWriter.toString());
         int newRowCount2 = newResponse2.getInt("rowCount");
 
-        // Check that the number of brands did increase by one when inserting a new brand
+        // Assert
         assertEquals(oldRowCount + 1, newRowCount);
-
-        // Check that the number of brands did decrease by one when deleting the newly inserted brand
         assertEquals(oldRowCount, newRowCount2);
+        assertEquals(expectedUpdatedBrand, actualUpdatedBrand);
     }
 }

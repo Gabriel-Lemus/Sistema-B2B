@@ -21,3 +21,6 @@ MailSecrets.java
 
 # Credentials for Java
 Secrets.java
+
+# Node modules
+/node_modules

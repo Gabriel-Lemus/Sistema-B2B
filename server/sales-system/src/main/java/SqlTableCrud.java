@@ -28,7 +28,7 @@ public class SqlTableCrud {
     private int maxRows;
     private ServletHelper helper;
 
-    // Constructor
+    // SqlTableCrud Constructor
     public SqlTableCrud(String conUrl, String user, String password,
             String localhostIp, String schema, String tableName,
             String primaryKey, String[] attributes, String[] types,
@@ -112,6 +112,14 @@ public class SqlTableCrud {
         return updateQuery;
     }
 
+    /**
+     * Gets the insert query string based on the schema, table name, and json object
+     * provided.
+     * 
+     * @param json      The json object to get the attributes from.
+     * @param recordKey The primary key of the record to update.
+     * @return The insert query string.
+     */
     public String getUpdateQueryStringKey(JSONObject json, String recordKey) {
         String updateQuery = "UPDATE " + schema + "." + tableName + " SET ";
 
@@ -464,6 +472,13 @@ public class SqlTableCrud {
         }
     }
 
+    /**
+     * Get method helper to get a record by its id.
+     * 
+     * @param out      The print writer to print the message to.
+     * @param recordId The id of the record to get.
+     * @throws Exception If the select operation fails.
+     */
     public void attemptToGetRecordByStringId(PrintWriter out, String recordId) throws Exception {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection con = DriverManager.getConnection(conUrl, user, password);
@@ -665,6 +680,14 @@ public class SqlTableCrud {
         }
     }
 
+    /**
+     * Attempts to insert a new record into the database.
+     * 
+     * @param out      The output stream to write the response to.
+     * @param request  The request to get the parameters from.
+     * @param recordId The id of the record to insert.
+     * @throws Exception If an error occurs.
+     */
     public void insertNewRecord(PrintWriter out, HttpServletRequest request, int recordId) throws Exception {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection con = DriverManager.getConnection(conUrl, user, password);
@@ -721,6 +744,14 @@ public class SqlTableCrud {
         }
     }
 
+    /**
+     * Attempts to insert a new record into the database.
+     * 
+     * @param out      The output stream to write the response to.
+     * @param request  The request to get the parameters from.
+     * @param recordId The id of the record to insert.
+     * @throws Exception If an error occurs.
+     */
     public void insertNewRecordStringId(PrintWriter out, HttpServletRequest request, String recordId) throws Exception {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Connection con = DriverManager.getConnection(conUrl, user, password);
