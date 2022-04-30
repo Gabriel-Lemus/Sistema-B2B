@@ -18,7 +18,7 @@ function DeviceData() {
             ? helpers.getFactoryPages(localStorage.getItem('id'))
             : helpers.SELLER_PAGES
         }
-        pageTitle="Catálogo de dispositivos"
+        pageTitle="Reporte de ventas"
       >
         <SalesReportsForm
           sellerId={id}
