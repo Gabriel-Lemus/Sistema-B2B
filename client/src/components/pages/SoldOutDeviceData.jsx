@@ -9,32 +9,40 @@ import Loader from '../molecules/Loader';
 import secrets from '../../helpers/secrets';
 
 function DeviceData() {
-  let { seller, id } = useParams();
+  let { factory, id } = useParams();
   const [device, setDevice] = useState({});
   const [dataSuccess, setDataSuccess] = useState(false);
   const [currentImage, setCurrentImage] = useState('');
   const [quantity, setQuantity] = useState(0);
   const [sellerId, setSellerId] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [sellerName, setSellerName] = useState('');
 
   useEffect(async () => {
     $('.background-div').css('height', $(document).height());
     $('#sidebarMenu').css('height', $(document.body).height());
+    // let deviceData = await axios.get(
+    //   `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?get=true&verDispositivo=true&id=${id}&vendedor=${factory}`
+    // );
     let deviceData = await axios.get(
-      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?get=true&verDispositivo=true&id=${id}&vendedor=${seller}`
+      `http://${secrets.LOCALHOST_IP}:${3002}/devices/${id}`
     );
-    let sellerIdNum = await axios.get(
-      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?get=true&sellerId=${seller}`
+    // let sellerIdNum = await axios.get(
+    //   `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?get=true&sellerId=${factory}`
+    // );
+    let sellerData = await axios.get(
+      `http://${secrets.LOCALHOST_IP}:${3002}/factories/${factory}`
     );
     if (deviceData.data.success) {
       setDataSuccess(true);
       document.title =
-        deviceData.data.dispositivos[0].nombre +
+        deviceData.data.data.name +
         ' - ' +
-        deviceData.data.dispositivos[0].marca;
-      setDevice(deviceData.data.dispositivos[0]);
-      setCurrentImage(deviceData.data.dispositivos[0].fotos[0]);
-      setSellerId(sellerIdNum.data.sellerId);
+        sellerData.data.data.name
+      setDevice(deviceData.data.data);
+      setCurrentImage(deviceData.data.data.images[0]);
+      setSellerId(sellerData.data.data._id);
+      setSellerName(sellerData.data.data.name);
     } else {
       setDataSuccess(false);
     }
@@ -53,7 +61,7 @@ function DeviceData() {
 
         // Check if the device is already in the order
         for (let i = 0; i < order.length; i++) {
-          if (order[i].id === id && order[i].vendedor === seller) {
+          if (order[i].id === id && order[i].id_vendedor === factory) {
             newAmount += Number(order[i].cantidad);
             changedAmount = true;
             oldIdx = i;
@@ -66,12 +74,12 @@ function DeviceData() {
             if (i === oldIdx) {
               newOrder.push({
                 id: id,
-                vendedor: seller,
-                nombre: device.nombre,
-                precio: device.precio,
+                id_fabricante: factory,
+                nombre: device.name,
+                precio: device.price,
                 id_vendedor: sellerId,
                 cantidad: newAmount,
-                foto: device.fotos[0],
+                foto: device.images[0],
               });
             } else {
               newOrder.push(order[i]);
@@ -84,12 +92,12 @@ function DeviceData() {
             ...order,
             {
               id: id,
-              nombre: device.nombre,
-              precio: device.precio,
+              nombre: device.name,
+              precio: device.price,
               id_vendedor: sellerId,
-              vendedor: seller,
+              id_fabricante: factory,
               cantidad: Number(quantity),
-              foto: device.fotos[0],
+              foto: device.images[0],
             },
           ];
 
@@ -101,12 +109,12 @@ function DeviceData() {
           JSON.stringify([
             {
               id: id,
-              nombre: device.nombre,
-              precio: device.precio,
+              nombre: device.name,
+              precio: device.price,
               id_vendedor: sellerId,
-              vendedor: seller,
+              id_fabricante: factory,
               cantidad: Number(quantity),
-              foto: device.fotos[0],
+              foto: device.images[0],
             },
           ])
         );
@@ -142,7 +150,7 @@ function DeviceData() {
             device={device}
             setCurrentImage={setCurrentImage}
             currentImage={currentImage}
-            seller={seller}
+            seller={sellerName}
             setQuantity={setQuantity}
             handleAddDevices={handleAddDevices}
             loading={loading}

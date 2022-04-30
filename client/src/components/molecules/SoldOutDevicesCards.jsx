@@ -43,7 +43,7 @@ function DevicesCatalog(props) {
                   )}
             </p>
             <Link
-              to={`/datos-dispositivo-agotado/${device.vendedor}/${device.id_dispositivo}`}
+              to={`/datos-dispositivo-por-encargo/${device.id_fabrica}/${device.id_dispositivo}`}
             >
               <button className="btn btn-primary">Conocer más</button>
             </Link>
