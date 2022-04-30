@@ -12,20 +12,34 @@ function DevicesCatalog() {
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  useEffect(async () => {
     document.title = 'Catálogo de dispositivos agotados';
 
     // Check if user is not logged in
     if (!helpers.isLoggedIn()) {
       navigate('/');
     } else {
-      (async () => {
-        let devicesData = await axios.get(
-          `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?get=true&dispositivosAgotados=true`
-        );
-        setDevices(devicesData.data.dispositivos);
-        setLoading(false);
-      })();
+      // let devicesData = await axios.get(
+      //   `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?get=true&dispositivosAgotados=true`
+      // );
+      let devicesData = await axios.get(
+        `http://${secrets.LOCALHOST_IP}:${3002}/devices`
+      );
+      let devicesList = devicesData.data.data.map((device) => ({
+        categoria: device.category,
+        codigo_modelo: device.model_code,
+        color: device.color,
+        descripcion: device.description,
+        fotos: device.images,
+        id_dispositivo: device._id,
+        id_fabrica: device.factoryId,
+        nombre: device.name,
+        precio: device.price,
+        tiempo_garantia: device.warranty_time,
+      }));
+
+      setDevices(devicesList);
+      setLoading(false);
     }
   }, []);
 

@@ -20,9 +20,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.DelegatingServletInputStream;
 
 /**
- * Integration testing for methods of the class {@link SalesServlet}.
+ * Unit testing for methods of the class {@link OracleConnectionSingleton}.
  */
-public class SalesServletIntegrationTest {
+public class SalesServletTest {
     // Attributes
     /** SalesServlet object to test. */
     private SalesServlet salesServlet;
@@ -81,8 +81,8 @@ public class SalesServletIntegrationTest {
      * {@link SalesServlet#doDelete(HttpServletRequest request, HttpServletResponse response)}
      * methods.
      *
-     * @throws IOException
-     * @throws ServletException
+     * @throws IOException if an I/O error occurs
+     * @throws ServletException if a servlet exception occurs
      */
     @Test
     void testCrudOperations() throws IOException, ServletException {

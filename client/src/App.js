@@ -48,11 +48,11 @@ function App() {
           <Route path="/Catalogo-Dispositivos-Busqueda-Espera/" element={<DevicesCatalogSearchWait />} />
           <Route path="/Busqueda-Especializada" element={<SpecializedSearch />} />
           <Route path="/Datos-Dispositivo/:seller/:id" element={<DeviceData />} />
-          <Route path="/Datos-Dispositivo-Agotado/:seller/:id" element={<SoldOutDeviceData />} />
+          <Route path="/Datos-Dispositivo-Por-Encargo/:factory/:id" element={<SoldOutDeviceData />} />
           <Route path="/Carrito-Compras" element={<ShoppingCart />} />
           <Route path="/Perfil" element={<UserProfile />} />
           <Route path="/Compras" element={<Sales />} />
-          <Route path="/Dispositivos-Agotados" element={<SoldOutDevicesCatalog />} />
+          <Route path="/Dispositivos-Por-Encargo" element={<SoldOutDevicesCatalog />} />
           <Route path="/Ordenes" element={<Orders />} />
           <Route path="/Gestion-Ordenes" element={<ClientOrdersControl />} />
 

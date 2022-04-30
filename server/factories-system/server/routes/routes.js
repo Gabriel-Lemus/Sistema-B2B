@@ -1,6 +1,8 @@
 const express = require("express");
 const axios = require("axios");
 const router = express.Router();
+const Excel = require("exceljs");
+const nodemailer = require("nodemailer");
 
 // Environment variables
 const LOCALHOST_IP = process.env.LOCALHOST_IP;
@@ -182,7 +184,8 @@ router.post("/:schema", async (req, res) => {
       paramsNumber === 1 &&
       req.query.newOrderNoClientId === undefined &&
       req.query.newOrder === undefined &&
-      req.query.newClientOrder === undefined
+      req.query.newClientOrder === undefined &&
+      req.query.sendSalesReport === undefined
     ) {
       // Attempt to insert a new document into the specified collection/schema
       try {
@@ -310,9 +313,19 @@ router.post("/:schema", async (req, res) => {
         // Set the order's max delivery date
         order.maxDeliveryDate = maxDeliveryDate;
 
+        // Get the id for the new order
+        const newOrderId = await schemas[schemaName].schema.find().sort({
+          _id: -1,
+        });
+        const idForNewOrder =
+          newOrderId.length === 0 ? 1 : newOrderId[0]._id + 1;
+
         // Try to create the new document for the order
         try {
-          const newOrderDocument = new schemas[schemaName].schema(order);
+          const newOrderDocument = new schemas[schemaName].schema({
+            _id: idForNewOrder,
+            ...order,
+          });
           await newOrderDocument.save();
           res.status(201).send({
             success: true,
@@ -448,25 +461,26 @@ router.post("/:schema", async (req, res) => {
       } else if (params.newClientOrder !== undefined) {
         // Register a new order for the sellers that come from a client
         const order = req.body;
-        let savedOrdersCount = 0;
-        let maxOrderDeliveryDate = new Date(0);
+        let maxOrderDeliveryDate = new Date();
+        let devicesDeliveryDates = [];
+        let estimatedDeliveryDateRounded;
 
-        // Iterate through the items in the order
+        // Get the client's id based on their name
+        const clientId = await schemas[existingSchemas[2]].schema
+          .findOne({
+            name: order[0].sellerName,
+          })
+          .select("_id");
+
+        // Get the client's shipping times
+        const clientShippingTimes = await schemas[existingSchemas[2]].schema
+          .findOne({
+            _id: clientId._id,
+          })
+          .select("shippingTimes");
+
+        // Iterate through the devices in the order
         for (let i = 0; i < order.length; i++) {
-          // Get the client's id based on their name
-          const clientId = await schemas[existingSchemas[2]].schema
-            .findOne({
-              name: order[i].sellerName,
-            })
-            .select("_id");
-
-          // Get the client's shipping times
-          const clientShippingTimes = await schemas[existingSchemas[2]].schema
-            .findOne({
-              _id: clientId._id,
-            })
-            .select("shippingTimes");
-
           // Get the device's shipping time
           const deviceShippingTimeDays = await schemas[
             existingSchemas[1]
@@ -476,17 +490,10 @@ router.post("/:schema", async (req, res) => {
             })
             .select("shipping_time");
 
-          // Get the factory's id based on the device's id
-          const factoryId = await schemas[existingSchemas[1]].schema
-            .findOne({
-              _id: order[i].deviceId,
-            })
-            .select("factoryId");
-
           // Find the client's shipping time in the clientShippingTimes array where the factoryId matches the device's factoryId
           const clientShippingTimeDays = clientShippingTimes.shippingTimes.find(
             (shippingTime) =>
-              shippingTime.factoryId.toString() === factoryId.factoryId
+              shippingTime.factoryId.toString() === order[i].factoryId
           ).shippingTime;
 
           // The estimated delivery date is the device's shipping time in days plus the client's shipping time in days for the given factory
@@ -498,62 +505,153 @@ router.post("/:schema", async (req, res) => {
           );
 
           // Round the estimated delivery date
-          const estimatedDeliveryDateRounded = new Date(
+          estimatedDeliveryDateRounded = new Date(
             estimatedDeliveryDate.getTime() +
               24 * 60 * 60 * 1000 -
               (estimatedDeliveryDate.getTime() % (24 * 60 * 60 * 1000))
           );
+
           if (estimatedDeliveryDate > maxOrderDeliveryDate) {
             maxOrderDeliveryDate = estimatedDeliveryDateRounded;
           }
 
-          // Create a new document for the order
-          const newOrderDocument = new schemas[schemaName].schema({
-            clientId,
-            completed: false,
-            maxDeliveryDate: estimatedDeliveryDateRounded,
-            isClientOrder: true,
-            canceled: false,
-            devices: [
-              {
-                deviceId: order[i].deviceId,
-                factoryId: factoryId.factoryId,
-                quantity: order[i].quantity,
-                price: order[i].price,
-                estimatedDeliveryDate: estimatedDeliveryDateRounded,
-                delivered: false,
-                payed: false,
-                deliveredDate: null,
-                canBeDisplayed: false,
-                displayed: false,
-              },
-            ],
-          });
-
-          // Try to create the new document for the order
-          try {
-            await newOrderDocument.save();
-            savedOrdersCount++;
-          } catch (error) {
-            return res.status(500).send({
-              success: false,
-              error: `Error creating creating the new order: ${error}`,
-            });
-          }
+          devicesDeliveryDates.push(estimatedDeliveryDateRounded);
         }
 
-        if (savedOrdersCount === order.length) {
+        // Get the id for the new order
+        const newOrderId = await schemas[schemaName].schema
+          .find()
+          .sort({
+            _id: -1,
+          })
+          .limit(1)
+          .select("_id");
+        const idForNewOrder =
+          newOrderId.length === 0 ? 1 : newOrderId[0]._id + 1;
+
+        // Create a new document for the order
+        const newOrderDocument = new schemas[schemaName].schema({
+          _id: idForNewOrder,
+          clientId: clientId._id,
+          completed: false,
+          maxDeliveryDate: estimatedDeliveryDateRounded,
+          isClientOrder: true,
+          canceled: false,
+          devices: order.map((device, idx) => ({
+            deviceId: device.deviceId,
+            factoryId: device.factoryId,
+            quantity: device.quantity,
+            price: device.price,
+            estimatedDeliveryDate: devicesDeliveryDates[idx],
+            delivered: false,
+            payed: false,
+            deliveredDate: null,
+            canBeDisplayed: false,
+            displayed: false,
+          })),
+        });
+
+        // Try to create the new document for the order
+        try {
+          await newOrderDocument.save();
           res.status(201).send({
             success: true,
-            message: "All the orders were registered successfully.",
+            message: "The new order was created successfully.",
             maxDeliveryDate: maxOrderDeliveryDate,
+            orderId: idForNewOrder,
+            estimatedDeliveryDates: devicesDeliveryDates,
           });
-        } else {
-          res.status(500).send({
+        } catch (error) {
+          return res.status(500).send({
             success: false,
-            error: `Error registering all the orders. Only ${savedOrdersCount} of ${order.length} were registered successfully.`,
+            error: `Error creating creating the new order: ${error}`,
           });
         }
+      } else if (params.sendSalesReport !== undefined) {
+        const recipient = params.sendSalesReport;
+        const payload = req.body;
+        const items = payload.items;
+        const total = payload.total;
+        const title = payload.title;
+
+        let workbook = new Excel.Workbook();
+        let worksheet = workbook.addWorksheet("Reporte de Ventas");
+
+        worksheet.columns = [
+          { header: "Nombre", key: "name" },
+          { header: "Descripción", key: "description" },
+          { header: "Categoría", key: "category" },
+          { header: "Color", key: "color" },
+          { header: "Código de Modelo", key: "model_code" },
+          { header: "Tiempo de Garantía", key: "warranty_time" },
+          { header: "Cantidad", key: "quantity" },
+          { header: "Precio", key: "price" },
+        ];
+
+        items.forEach((item) => {
+          worksheet.addRow(item);
+        });
+
+        worksheet.addRow({
+          name: "",
+          description: "",
+          category: "",
+          color: "",
+          model_code: "",
+          warranty_time: "",
+          quantity: "Total",
+          price: total,
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+
+        const sender = process.env.EMAIL_SENDER;
+        const password = process.env.EMAIL_PASSWORD;
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          host: "smtp.gmail.com",
+          port: 587,
+          secure: true,
+          auth: {
+            user: sender,
+            pass: password,
+          },
+        });
+        const mailOptions = {
+          from: "Sistema B2B <" + sender + ">",
+          to: recipient,
+          subject: title,
+          html: `<div class="container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 85%; background-color: #bfe6ff; font-family: "Helvetica Neue",Helvetica,Arial,sans-serif; font-size: 14px; line-height: 1.42857143; color: #333">
+          <div class="card" style="position: relative; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-orient: vertical; -webkit-box-direction: normal; -ms-flex-direction: column; flex-direction: column; min-width: 0; word-wrap: break-word; background-color: #bfe6ff; background-clip: border-box; border: 1px solid rgba(0,0,0,.125); border-radius: 0.25rem">
+            <div class="card-body" style="-webkit-box-flex: 1; -ms-flex: 1 1 auto; flex: 1 1 auto; padding: 1.25rem">
+              <h3 class="card-title" style="margin-bottom: 0.75rem">Reporte de Ventas</h3>
+              <p class="card-text" style="display: -webkit-box; margin-bottom: 1rem; margin-top: 0">Ha recibido este correo porque se ha sido solicitado enviar el reporte de ventas a este correo electrónico.</p>
+            </div>
+          </div>
+        </div>`,
+          attachments: [
+            {
+              filename: `${title}.xlsx`,
+              content: buffer,
+              contentType:
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            },
+          ],
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            return res.status(500).send({
+              success: false,
+              error: `Error sending the sales report: ${error}`,
+            });
+          } else {
+            res.status(201).send({
+              success: true,
+              message: "Sales report sent successfully.",
+            });
+          }
+        });
       } else {
         res.status(400).send({
           success: false,
@@ -1016,10 +1114,7 @@ router.get("/:schema", async (req, res) => {
         const reportedOrders = await schemas.orders.schema.aggregate([
           {
             $match: {
-              $and: [
-                { completed: true },
-                { canceled: false },
-              ],
+              $and: [{ completed: true }, { canceled: false }],
             },
           },
         ]);
@@ -1130,7 +1225,9 @@ router.get("/:schema", async (req, res) => {
           for (let j = 0; j < orders[i].devices.length; j++) {
             if (orders[i].devices[j].factoryId.toString() === factoryId) {
               orders[i].devices[j].lastReported = new Date(
-                new Date(currentDate.getTime() - 6 * 60 * 60 * 1000).toISOString()
+                new Date(
+                  currentDate.getTime() - 6 * 60 * 60 * 1000
+                ).toISOString()
               );
               orders[i].devices[j].displayed = true;
               orders[i].devices[j].canBeDisplayed = false;
@@ -1596,8 +1693,7 @@ router.put("/", async (req, res) => {
         // Send the paid order to the webservice so that it can be sent to the sales backend as a delivery order
         const newDevicesOrder = {
           clientName: client.name,
-          deviceId: orderDevices[0].deviceId,
-          quantity: orderDevices[0].quantity,
+          orderId: Number(order._id.toString()),
           estimatedDeliveryDate: orderDevices[0].estimatedDeliveryDate,
         };
         const sendDevicesToStore = await axios.put(
@@ -1629,6 +1725,112 @@ router.put("/", async (req, res) => {
         res.status(500).send({
           success: false,
           message: `Error updating data from ${existingSchemas[3]}: ${error}`,
+        });
+      }
+    } else if (params.updateClientOrder) {
+      // Update the order made by the client
+      const orders = req.body;
+      let updatedOrders = 0;
+
+      // Iterate through the orders and update them
+      for (let i = 0; i < orders.length; i++) {
+        // Check if all of the devices in the order were cancelled
+        let cancelledDevices = 0;
+        let orderId = orders[i][0].id_pedido;
+
+        for (let j = 0; j < orders[i].length; j++) {
+          if (orders[i][j].toDelete) {
+            cancelledDevices++;
+          }
+        }
+
+        // If all of the devices were cancelled, the order is cancelled
+        if (cancelledDevices === orders[i].length) {
+          // Cancel the order
+          try {
+            const updatedOrder = await schemas[
+              existingSchemas[3]
+            ].schema.findOneAndUpdate(
+              { _id: orderId },
+              {
+                $set: {
+                  canceled: true,
+                },
+              }
+            );
+
+            if (updatedOrder) {
+              updatedOrders++;
+            }
+          } catch (error) {
+            res.status(500).send({
+              success: false,
+              message: `Error updating data from ${existingSchemas[3]}: ${error}`,
+            });
+          }
+        } else {
+          // Update the order
+          let previousOrderDevices = [];
+          let newOrderDevices = [];
+
+          // Get the order given its id
+          const order = await schemas[existingSchemas[3]].schema.findOne({
+            _id: orderId,
+          });
+          previousOrderDevices = order.devices;
+
+          // Update the devices in the order
+          for (let j = 0; j < orders[i].length; j++) {
+            // Add the device with the new quantity to the order if it was not cancelled
+            if (!orders[i][j].toDelete) {
+              newOrderDevices.push({
+                ...previousOrderDevices
+                  .toObject()
+                  .find(
+                    (device) =>
+                      device.deviceId.toString() ===
+                      orders[i][j].id_dispositivo.toString()
+                  ),
+                quantity: orders[i][j].cantidad_dispositivos,
+              });
+            }
+          }
+
+          // Update the order
+          try {
+            const updatedOrder = await schemas[
+              existingSchemas[3]
+            ].schema.findOneAndUpdate(
+              { _id: orderId },
+              {
+                $set: {
+                  devices: newOrderDevices,
+                },
+              }
+            );
+
+            if (updatedOrder) {
+              updatedOrders++;
+            }
+          } catch (error) {
+            res.status(500).send({
+              success: false,
+              message: `Error updating data from ${existingSchemas[3]}: ${error}`,
+            });
+          }
+        }
+      }
+
+      // Check if all the orders were updated
+      if (updatedOrders === orders.length) {
+        res.status(200).send({
+          success: true,
+          message: "The orders were successfully updated.",
+        });
+      } else {
+        res.status(500).send({
+          success: false,
+          message: `Error updating the orders. Only ${updatedOrders} of ${orders.length} were updated.`,
         });
       }
     } else {

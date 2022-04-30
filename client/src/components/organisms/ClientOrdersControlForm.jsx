@@ -40,9 +40,6 @@ function OrdersForm(props) {
       const completedOrders = JSON.parse(
         JSON.stringify(orders.data.deliveredOrders)
       );
-      // const cancelledOrders = JSON.parse(
-      //   JSON.stringify(orders.data?.cancelledOrders)
-      // );
 
       // Iterate through the devices of the pending orders and set each device toDelete to false
       pendingOrders.forEach((order) => {
@@ -97,104 +94,57 @@ function OrdersForm(props) {
 
   const handleSavePendingOrders = async () => {
     props.setLoading(true);
-    let changedOrders = [];
 
-    // TODO: work on allowing the clients to modify the pending orders
-    // // Iterate through the pending orders and check if there are changes
-    // for (let i = 0; i < newPendingOrders.length; i++) {
-    //   // Iterate through the pending orders devices
-    //   for (let j = 0; j < newPendingOrders[i].length; j++) {
-    //     if (
-    //       !helpers.compareObjects(pendingOrders[i][j], newPendingOrders[i][j])
-    //     ) {
-    //       changedOrders.push(newPendingOrders[i]);
-    //       break;
-    //     }
-    //   }
-    // }
+    const updateOrders = await axios.post(
+      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?actualizarPedido=true`,
+      {
+        clientId: localStorage.getItem('userId'),
+        orders: newPendingOrders,
+      }
+    );
 
-    // const updatedOrders = {
-    //   orders: changedOrders,
-    // };
-
-    // // Attempt to save the changes in the pending orders
-    // try {
-    //   const updatePendingOrdersRes = await axios.put(
-    //     `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/?updateOrders=true`,
-    //     updatedOrders
-    //   );
-
-    //   if (updatePendingOrdersRes.data.success) {
-    //     getOrders();
-    //     props.setLoading(false);
-    //     helpers.showModal(
-    //       'Operación exitosa',
-    //       'Las modificaciones de las órdenes fueron guardadas correctamente.'
-    //     );
-    //   } else {
-    //     props.setLoading(false);
-    //     helpers.showModal(
-    //       'Error',
-    //       'Hubo un error al guardar las modificaciones de las órdenes. Por favor, intente nuevamente.'
-    //     );
-    //   }
-    // } catch (error) {
-    //   props.setLoading(false);
-    //   helpers.showModal(
-    //     'Error',
-    //     'Ocurrió un error al tratar de guardar los cambios. Por favor, inténtelo nuevamente.'
-    //   );
-    // }
-
-    setTimeout(() => {
-      props.setLoading(false);
+    if (updateOrders.data.success) {
+      getOrders();
+      setCanSavePendingOrders(false);
       helpers.showModal(
         'Operación exitosa',
-        'Las modificaciones de las órdenes fueron guardadas correctamente.'
+        'Se han guardado los cambios en los pedidos pendientes'
       );
-    }, 1500);
+      props.setLoading(false);
+    } else {
+      helpers.showModal(
+        'Error',
+        'Ocurrió un error al guardar los cambios en los pedidos pendientes. Por favor, inténtelo de nuevo.'
+      );
+      props.setLoading(false);
+    }
   };
 
   const handlePayOrder = async (orderIndex) => {
     props.setLoading(true);
 
-    // TODO: work on allowing the clients to pay for the orders
-    // const payOrderRes = await axios.put(
-    //   `http://${secrets.LOCALHOST_IP}:${secrets.FACTORIES_BACKEND_PORT}/?payOrder=${completedOrders[orderIndex]._id}`,
-    //   {}
-    // );
+    const payOrder = await axios.post(
+      `http://${secrets.LOCALHOST_IP}:${secrets.TOMCAT_PORT}/sales-system/sellers?pagarPedido=true`,
+      {
+        orderId: completedOrders[orderIndex][0].id_pedido,
+        sellerId: completedOrders[orderIndex][0].id_vendedor,
+      }
+    );
 
-    // if (payOrderRes.data.success) {
-    //   let newCompletedOrders = JSON.parse(JSON.stringify(completedOrders));
-
-    //   newCompletedOrders[orderIndex].completelyPayed = true;
-
-    //   for (let i = 0; i < newCompletedOrders[orderIndex].length; i++) {
-    //     newCompletedOrders[orderIndex][i].payed = true;
-    //     newCompletedOrders[orderIndex][i].canBeDisplayed = true;
-    //   }
-
-    //   setCompletedOrders(newCompletedOrders);
-    //   props.setLoading(false);
-    //   helpers.showModal(
-    //     'Operación exitosa',
-    //     'La orden fue pagada correctamente.'
-    //   );
-    // } else {
-    //   props.setLoading(false);
-    //   helpers.showModal(
-    //     'Error',
-    //     'Hubo un error al tratar de pagar la orden. Por favor, intente nuevamente.'
-    //   );
-    // }
-
-    setTimeout(() => {
-      props.setLoading(false);
+    if (payOrder.data.success) {
+      getOrders();
       helpers.showModal(
         'Operación exitosa',
-        'La orden fue pagada correctamente.'
+        'El pedido fue pagado exitosamente'
       );
-    }, 1500);
+      props.setLoading(false);
+    } else {
+      helpers.showModal(
+        'Error',
+        'Ocurrió un error al pagar el pedido. Por favor, inténtelo de nuevo.'
+      );
+      props.setLoading(false);
+    }
   };
 
   return !props.loading ? (
@@ -346,12 +296,17 @@ function OrdersForm(props) {
                             </section>
                           </td>
                           <td>
-                            {helpers.getFormattedCurrency('Q. ', device.precio)}
+                            {helpers.getFormattedCurrency(
+                              'Q. ',
+                              device.precio * 0.85
+                            )}
                           </td>
                           <td>
                             {helpers.getFormattedCurrency(
                               'Q. ',
-                              device.cantidad_dispositivos * device.precio
+                              device.cantidad_dispositivos *
+                                device.precio *
+                                0.85
                             )}
                           </td>
                           <td>
@@ -426,7 +381,9 @@ function OrdersForm(props) {
                       order.reduce(
                         (total, device) =>
                           (total +=
-                            device.cantidad_dispositivos * device.precio),
+                            device.cantidad_dispositivos *
+                            device.precio *
+                            0.85),
                         0
                       )
                     )}
@@ -470,10 +427,9 @@ function OrdersForm(props) {
                   <h3>Orden #{index + 1}</h3>
                   <p>
                     <b>Fecha de entrega:</b>{' '}
-                    {helpers.formatDate2(order.deliveredDate)}
+                    {helpers.formatDate2(order[0].fecha_entrega)}
                   </p>
-                  {order.completelyPayed === undefined ||
-                  !order.completelyPayed ? (
+                  {order.pagado === undefined || !order.pagado ? (
                     <></>
                   ) : (
                     <div className="mb-3">
@@ -495,15 +451,20 @@ function OrdersForm(props) {
                       {order.map((device, deviceIndex) => (
                         <tr key={deviceIndex}>
                           <td>{deviceIndex + 1}</td>
-                          <td>{device.name}</td>
+                          <td>{device.nombre}</td>
                           <td>{device.cantidad_dispositivos}</td>
                           <td>
-                            {helpers.getFormattedCurrency('Q. ', device.precio)}
+                            {helpers.getFormattedCurrency(
+                              'Q. ',
+                              device.precio * 0.85
+                            )}
                           </td>
                           <td>
                             {helpers.getFormattedCurrency(
                               'Q. ',
-                              device.cantidad_dispositivos * device.precio
+                              device.cantidad_dispositivos *
+                                device.precio *
+                                0.85
                             )}
                           </td>
                         </tr>
@@ -530,8 +491,7 @@ function OrdersForm(props) {
                     )}
                   </h5>
                 </section>
-                {order.completelyPayed === undefined ||
-                !order.completelyPayed ? (
+                {order[0].pagado === undefined || !order[0].pagado ? (
                   <button
                     className="btn btn-primary btn-sm btn-outline-secondary mt-3"
                     onClick={() => {

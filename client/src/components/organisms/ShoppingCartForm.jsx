@@ -251,6 +251,8 @@ function ShoppingCartForm(props) {
                 ).id_venta,
                 id_dispositivo: devices[i].id,
                 cantidad_dispositivos: devices[i].cantidad,
+                precio: devices[i].precio,
+                nombre_dispositivo: devices[i].nombre,
               }
             );
 
