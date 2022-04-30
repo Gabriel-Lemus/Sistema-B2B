@@ -92,7 +92,7 @@ function DeviceDataSection(props) {
               <td>
                 {helpers.getFormattedCurrency(
                   'Q. ',
-                  Number(props.device.price)
+                  Number(props.device.price * 0.85)
                 )}
               </td>
             </tr>

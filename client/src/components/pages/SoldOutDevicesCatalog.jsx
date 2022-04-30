@@ -37,7 +37,6 @@ function DevicesCatalog() {
         precio: device.price,
         tiempo_garantia: device.warranty_time,
       }));
-      console.log(devicesData.data);
 
       setDevices(devicesList);
       setLoading(false);
