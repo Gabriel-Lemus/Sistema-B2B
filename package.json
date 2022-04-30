@@ -6,7 +6,7 @@
   "scripts": {
     "deploySalesServlets": "cd ./server/sales-system/.helper-scripts && ./deploy-servlets.sh",
     "startFrontEnd": "cd ./client && npm start",
-    "deployFrontEnd": "cd ./client/.helper-scripts && sudo ./deploy-front-end.sh",
+    "deployFrontEnd": "cd ./client && ./.helper-scripts/deploy-front-end.sh",
     "startFactoriesFrontEnd": "cd ./server/factories-system/client && npm start",
     "serveFactoriesSystem": "cd ./server/factories-system/client && npm run build && cd ./.helper-scripts && ./serve-factories-system.sh",
     "startImagesServer": "cd ./server/sales-system/images-server && npm start",
