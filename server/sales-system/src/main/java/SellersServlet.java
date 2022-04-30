@@ -839,13 +839,13 @@ public class SellersServlet extends HttpServlet {
                             String addDeviceToOrderQuery = "INSERT INTO " + schema + "."
                                     + sellerName.replaceAll(" ", "_")
                                     + "_dispositivos_x_pedidos_futuros" +
-                                    "(id_dispositivo_x_pedido, id_pedido, id_dispositivo, nombre_dispositivo, cantidad_dispositivos, precio, entregado) "
+                                    "(id_dispositivo_x_pedido, id_pedido, id_dispositivo, nombre_dispositivo, cantidad_dispositivos, precio, entregado, pagado) "
                                     + "VALUES ('" + newDeviceXOrderId + "', '" + orderId + "', '"
                                     + orders.getJSONObject(i).getString("deviceId") + "', '"
                                     + orders.getJSONObject(i).getString("deviceName") + "', '"
                                     + orders.getJSONObject(i).getInt("quantity") +
                                     "', '" + orders.getJSONObject(i).getDouble("price") +
-                                    "', 'False')";
+                                    "', 'False', 'False')";
                             stmt.executeUpdate(addDeviceToOrderQuery);
                             con.commit();
                             devicesXOrder++;
@@ -865,6 +865,244 @@ public class SellersServlet extends HttpServlet {
                     helper.printJsonMessage(out, false, "error",
                             "There was an error while trying to post the orders to the web server.");
                 }
+            } catch (Exception e) {
+                helper.printErrorMessage(out, e);
+            }
+        } else if (helper.requestContainsParameter(request, "actualizarPedido")) {
+            String bodyStr = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
+            JSONObject body = new JSONObject(bodyStr);
+            JSONArray orders = body.getJSONArray("orders");
+
+            // Send the order to the web server
+            String localHostIP = secrets.getLocalHostIP();
+            String webServerPort = secrets.getWebServerPort();
+            HttpClient client = HttpClientBuilder.create().build();
+            HttpPut putClientOrder = new HttpPut(
+                    "http://" + localHostIP + ":" + webServerPort + "/?updateClientOrder=true");
+
+            try {
+                StringEntity entity = new StringEntity(orders.toString());
+                putClientOrder.setEntity(entity);
+                putClientOrder.setHeader("Content-type", "application/json");
+                HttpResponse putUpdateClientOrderResponseJson = client.execute(putClientOrder);
+                String putUpdateClientOrderResponseBody = EntityUtils
+                        .toString(putUpdateClientOrderResponseJson.getEntity());
+                JSONObject putUpdateClientOrderResponseJsonJson = new JSONObject(putUpdateClientOrderResponseBody);
+
+                if (putUpdateClientOrderResponseJsonJson.getBoolean("success")) {
+                    try {
+                        Class.forName("oracle.jdbc.driver.OracleDriver");
+                        Connection con = DriverManager.getConnection(conUrl, user, password);
+                        con.setAutoCommit(false);
+                        Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                ResultSet.CONCUR_READ_ONLY);
+                        int totalDevices = 0;
+                        double total = 0;
+                        double totalWithDiscount = 0;
+                        double taxes = 0;
+                        double discount = 0.15;
+                        String sellerName = "";
+                        int sellerId = orders.getJSONArray(0).getJSONObject(0).getInt("id_vendedor");
+
+                        // Iterate through the orders and update them
+                        for (int i = 0; i < orders.length(); i++) {
+                            JSONArray order = orders.getJSONArray(i);
+                            int cancelledDevices = 0;
+                            int orderId = order.getJSONObject(i).getInt("id_pedido");
+
+                            // Check if all the devices in the order were cancelled
+                            for (int j = 0; j < order.length(); j++) {
+                                if (order.getJSONObject(j).getBoolean("toDelete")) {
+                                    cancelledDevices++;
+                                }
+                            }
+
+                            if (cancelledDevices != order.length()) {
+                                // Update the order
+                                String sellerNameQuery = "SELECT nombre FROM " + schema + ".vendedores"
+                                        + " WHERE id_vendedor = '" + sellerId + "'";
+                                ResultSet rs = stmt.executeQuery(sellerNameQuery);
+
+                                if (rs.next()) {
+                                    sellerName = rs.getString("nombre");
+                                }
+
+                                // Iterate through the devices in the order and update them
+                                for (int j = 0; j < order.length(); j++) {
+                                    JSONObject device = order.getJSONObject(j);
+                                    String updateDeviceQuery = "";
+
+                                    // Check if the device was cancelled
+                                    if (device.getBoolean("toDelete")) {
+                                        updateDeviceQuery = "DELETE FROM " + schema + "."
+                                                + sellerName.replaceAll(" ", " ") + "_dispositivos_x_pedidos_futuros"
+                                                + " WHERE id_dispositivo = '"
+                                                + device.getString("id_dispositivo") + "' AND id_pedido = '" + orderId
+                                                + "'";
+                                        totalDevices -= device.getInt("cantidad_dispositivos");
+                                        total -= device.getInt("cantidad_dispositivos") * device.getDouble("precio");
+                                    } else {
+                                        updateDeviceQuery = "UPDATE " + schema + "." + sellerName.replaceAll(" ", "_")
+                                                + "_dispositivos_x_pedidos_futuros"
+                                                + " SET cantidad_dispositivos = '"
+                                                + device.getInt("cantidad_dispositivos")
+                                                + "' WHERE id_dispositivo = '" + device.getString("id_dispositivo")
+                                                + "' AND id_pedido = '" + orderId + "'";
+                                        totalDevices += device.getInt("cantidad_dispositivos");
+                                        total += device.getInt("cantidad_dispositivos") * device.getDouble("precio");
+                                    }
+
+                                    stmt.executeUpdate(updateDeviceQuery);
+                                    con.commit();
+                                }
+                                totalWithDiscount = total * (1 - discount) + taxes;
+
+                                // Update the order
+                                String updateOrderQuery = "UPDATE " + schema + "." + sellerName.replaceAll(" ", "_")
+                                        + "_pedidos_futuros SET cantidad_dispositivos = '" + totalDevices
+                                        + "', impuestos = '" + taxes
+                                        + "', descuentos = '" + discount
+                                        + "', total_pedido = '" + totalWithDiscount
+                                        + "' WHERE id_pedido = '" + orderId + "'";
+                                stmt.executeUpdate(updateOrderQuery);
+                                con.commit();
+
+                                // Success
+                                JSONObject successResponse = new JSONObject();
+                                successResponse.put("success", true);
+                                successResponse.put("message", "El pedido ha sido actualizado correctamente.");
+
+                                out.println(successResponse.toString());
+                            } else {
+                                // Cancel the order
+                                // Delete the devices from the _dispositivos_x_pedidos_futuros table
+                                String sellerNameQuery = "SELECT nombre FROM " + schema + ".vendedores"
+                                        + " WHERE id_vendedor = '" + sellerId + "'";
+                                ResultSet rs = stmt.executeQuery(sellerNameQuery);
+
+                                if (rs.next()) {
+                                    sellerName = rs.getString("nombre");
+                                }
+
+                                String deleteDevicesQuery = "DELETE FROM " + schema + "."
+                                        + sellerName.replaceAll(" ", "_")
+                                        + "_dispositivos_x_pedidos_futuros"
+                                        + " WHERE id_pedido = '" + orderId + "'";
+                                stmt.executeUpdate(deleteDevicesQuery);
+                                con.commit();
+
+                                // Delete the order from the _pedidos_futuros table
+                                String deleteOrderQuery = "DELETE FROM " + schema + "."
+                                        + sellerName.replaceAll(" ", "_")
+                                        + "_pedidos_futuros"
+                                        + " WHERE id_pedido = '" + orderId + "'";
+                                stmt.executeUpdate(deleteOrderQuery);
+                                con.commit();
+
+                                // Success
+                                JSONObject successResponse = new JSONObject();
+                                successResponse.put("success", true);
+                                successResponse.put("message", "El pedido ha sido cancelado correctamente.");
+
+                                out.println(successResponse.toString());
+                            }
+                        }
+                    } catch (Exception e) {
+                        helper.printErrorMessage(out, e);
+                    }
+                } else {
+                    helper.printJsonMessage(out, false, "error",
+                            "There was an error while trying to update the order in the database.");
+                }
+            } catch (IOException e) {
+                helper.printErrorMessage(out, e);
+            }
+        } else if (helper.requestContainsParameter(request, "pagarPedido")) {
+            String bodyStr = request.getReader().lines().reduce("", (acc, cur) -> acc + cur);
+            JSONObject body = new JSONObject(bodyStr);
+            int orderId = body.getInt("orderId");
+            int sellerId = body.getInt("sellerId");
+            int saleId = 0;
+            int clientId = 0;
+            double totalWithDiscount = 0;
+            String sellerName = "";
+            String deliveryDate = "";
+
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                Connection con = DriverManager.getConnection(conUrl, user, password);
+                con.setAutoCommit(false);
+                Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+
+                // Get the name of the seller
+                String sellerNameQuery = "SELECT nombre FROM " + schema + ".vendedores"
+                        + " WHERE id_vendedor = '" + sellerId + "'";
+                ResultSet rs = stmt.executeQuery(sellerNameQuery);
+
+                if (rs.next()) {
+                    sellerName = rs.getString("nombre");
+                }
+                sellerName = sellerName.replaceAll(" ", "_");
+
+                // Get the delivery date
+                String deliveryDateQuery = "SELECT fecha_entrega FROM " + schema + "." + sellerName
+                        + "_pedidos_futuros"
+                        + " WHERE id_pedido = '" + orderId + "'";
+                rs = stmt.executeQuery(deliveryDateQuery);
+
+                if (rs.next()) {
+                    deliveryDate = rs.getString("fecha_entrega");
+                }
+
+                // Pay the sale that has the same delivery date
+                String paySaleQuery = "UPDATE " + schema + "." + sellerName
+                        + "_ventas SET pagado = 'True'"
+                        + " WHERE fecha_venta = TO_DATE('" + deliveryDate + "', 'YYYY-MM-DD HH24:MI:SS')";
+                stmt.executeUpdate(paySaleQuery);
+
+                // Get the sale id, client id and total_venta
+                String saleIdQuery = "SELECT id_venta, id_cliente, total_venta FROM " + schema + "." + sellerName
+                        + "_ventas"
+                        + " WHERE fecha_venta = TO_DATE('" + deliveryDate + "', 'YYYY-MM-DD HH24:MI:SS')";
+                rs = stmt.executeQuery(saleIdQuery);
+
+                if (rs.next()) {
+                    saleId = rs.getInt("id_venta");
+                    clientId = rs.getInt("id_cliente");
+                    totalWithDiscount = rs.getDouble("total_venta");
+                }
+
+                // Pay the devices that belong to the order in the
+                // _dispositivos_x_pedidos_futuros table
+                String payDevicesQuery = "UPDATE " + schema + "." + sellerName
+                        + "_dispositivos_x_pedidos_futuros SET pagado = 'True'"
+                        + " WHERE id_pedido = '" + orderId + "'";
+                stmt.executeUpdate(payDevicesQuery);
+
+                // Register the payment in the _pagos table
+                int idPayment = 1;
+                String getLastPaymentIdQuery = "SELECT COUNT(*) FROM " + schema + "." + sellerName
+                        + "_pagos";
+                rs = stmt.executeQuery(getLastPaymentIdQuery);
+
+                if (rs.next()) {
+                    idPayment = rs.getInt(1) + 1;
+                }
+
+                String registerPaymentQuery = "INSERT INTO " + schema + "." + sellerName + "_pagos"
+                        + "(id_pago, id_venta, id_cliente, id_vendedor, fecha_pago, total) VALUES ("
+                        + idPayment + ", " + saleId + ", " + clientId + ", " + sellerId + ", "
+                        + "TO_DATE('" + deliveryDate + "', 'YYYY-MM-DD HH24:MI:SS'), " + totalWithDiscount + ")";
+                stmt.executeUpdate(registerPaymentQuery);
+
+                con.commit();
+
+                // Success
+                JSONObject successResponse = new JSONObject();
+                successResponse.put("success", true);
+                successResponse.put("message", "El pedido ha sido pagado correctamente.");
+
+                out.println(successResponse.toString());
             } catch (Exception e) {
                 helper.printErrorMessage(out, e);
             }
@@ -1422,7 +1660,7 @@ public class SellersServlet extends HttpServlet {
                     for (int i = 0; i < sellers.size(); i++) {
                         String sellerName = sellers.get(i).replaceAll(" ", "_");
 
-                        clientOrdersQuery += "SELECT dpf.id_dispositivo, pf.id_vendedor, dpf.nombre_dispositivo nombre, dpf.precio, pf.id_pedido, dpf.cantidad_dispositivos, dpf.entregado, pf.cantidad_dispositivos dispositivos_totales, pf.impuestos, pf.descuentos, pf.total_pedido, pf.fecha_entrega"
+                        clientOrdersQuery += "SELECT dpf.id_dispositivo, pf.id_vendedor, dpf.nombre_dispositivo nombre, dpf.precio, pf.id_pedido, dpf.cantidad_dispositivos, dpf.entregado, dpf.pagado, pf.cantidad_dispositivos dispositivos_totales, pf.impuestos, pf.descuentos, pf.total_pedido, pf.fecha_entrega"
                                 + " FROM " + sellerName
                                 + "_pedidos_futuros pf, " + sellerName
                                 + "_dispositivos_x_pedidos_futuros dpf WHERE pf.id_pedido = dpf.id_pedido and pf.id_cliente = '"
@@ -1444,10 +1682,10 @@ public class SellersServlet extends HttpServlet {
                     int currentOrderId = 0;
                     boolean firstDevice = true;
                     String[] deviceAttrs = { "id_dispositivo", "id_vendedor", "nombre", "precio", "id_pedido",
-                            "cantidad_dispositivos", "entregado", "dispositivos_totales", "impuestos",
+                            "cantidad_dispositivos", "entregado", "pagado", "dispositivos_totales", "impuestos",
                             "descuentos", "total_pedido", "fecha_entrega" };
                     String[] deviceAttrsTypes = { "VARCHAR2", "INTEGER", "VARCHAR2", "FLOAT", "INTEGER",
-                            "INTEGER", "BOOLEAN", "INTEGER", "FLOAT", "FLOAT", "FLOAT", "DATE" };
+                            "INTEGER", "BOOLEAN", "BOOLEAN", "INTEGER", "FLOAT", "FLOAT", "FLOAT", "DATE" };
 
                     // Iterate through the results and add the devices to the order
                     while (rs.next()) {
@@ -1677,10 +1915,10 @@ public class SellersServlet extends HttpServlet {
             JSONObject body = new JSONObject(bodyStr);
             String sellerName = body.getString("clientName");
             String sellerNameNoSpaces = sellerName.replaceAll(" ", "_");
-            String deviceId = body.getString("deviceId");
-            int quantity = body.getInt("quantity");
-            String estimatedDeliveryDate = body.getString("estimatedDeliveryDate").replace("T", " ");
-            estimatedDeliveryDate = estimatedDeliveryDate.substring(0, estimatedDeliveryDate.length() - 5);
+            int orderId = body.getInt("orderId");
+            String today = LocalDateTime.now().toString();
+            today = today.replace("T", " ");
+            today = today.substring(0, today.length() - 4);
 
             try {
                 Class.forName("oracle.jdbc.driver.OracleDriver");
@@ -1689,46 +1927,102 @@ public class SellersServlet extends HttpServlet {
                 Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
                         ResultSet.CONCUR_READ_ONLY);
 
-                // Get the seller's id from the seller's name
-                String getSellerIdQuery = "SELECT id_vendedor FROM " + schema + ".vendedores WHERE nombre = '"
-                        + sellerName + "'";
-                ResultSet sellerIdRS = stmt.executeQuery(getSellerIdQuery);
+                // Update the devices that belong to the order as delivered in the
+                // _dispositivos_x_pedidos_futuros table
+                String updateDevicesQuery = "UPDATE " + schema + "." + sellerNameNoSpaces
+                        + "_dispositivos_x_pedidos_futuros SET entregado = 'True' WHERE id_pedido = '"
+                        + orderId + "'";
+                stmt.executeUpdate(updateDevicesQuery);
+
+                // Update the order's delivery date as today in the _pedido_futuros table
+                String updateOrderDeliveryDateQuery = "UPDATE " + schema + "." + sellerNameNoSpaces
+                        + "_pedidos_futuros SET fecha_entrega = TO_DATE('" + today
+                        + "', 'yyyy-MM-dd HH24:MI:SS') WHERE id_pedido = '"
+                        + orderId + "'";
+                stmt.executeUpdate(updateOrderDeliveryDateQuery);
+
+                // Get the client's id, seller's id, devices amount, price, taxes, discount and
+                // total
+                // from the order
+                int clientId = 0;
                 int sellerId = 0;
+                int devicesAmount = 0;
+                double price = 0;
+                double taxes = 0;
+                double discount = 0;
+                double total = 0;
+                String getClientIdQuery = "SELECT id_cliente, id_vendedor, cantidad_dispositivos, impuestos, descuentos, total_pedido, precio FROM "
+                        + schema + "." + sellerNameNoSpaces + "_pedidos_futuros WHERE id_pedido = " + orderId;
+                ResultSet clientIdRS = stmt.executeQuery(getClientIdQuery);
 
-                if (sellerIdRS.next()) {
-                    sellerId = sellerIdRS.getInt("id_vendedor");
+                if (clientIdRS.next()) {
+                    clientId = clientIdRS.getInt("id_cliente");
+                    sellerId = clientIdRS.getInt("id_vendedor");
+                    devicesAmount = clientIdRS.getInt("cantidad_dispositivos");
+                    price = clientIdRS.getDouble("precio");
+                    taxes = clientIdRS.getDouble("impuestos");
+                    discount = clientIdRS.getDouble("descuentos");
+                    total = clientIdRS.getDouble("total_pedido");
                 }
 
-                // Get the id of the order from the join of the _pedidos_futuros and
-                // _dispositivos_x_pedidos_futuros tables where the device id and quantity match
-                // and the estimated delivery date is less than the fecha_entrega column
-                String getOrderIdQuery = "SELECT pf.id_pedido FROM " + schema + "." + sellerNameNoSpaces
-                        + "_pedidos_futuros pf, "
-                        + schema + "." + sellerNameNoSpaces
-                        + "_dispositivos_x_pedidos_futuros dpf WHERE pf.id_pedido = dpf.id_pedido "
-                        + "AND dpf.id_dispositivo = '" + deviceId + "' AND dpf.cantidad_dispositivos = " + quantity
-                        + " AND id_vendedor = " + sellerId
-                        + " AND TO_DATE('" + estimatedDeliveryDate + "', 'yyyy-MM-dd HH24:MI:SS') <= pf.fecha_entrega";
-                ResultSet orderIdRS = stmt.executeQuery(getOrderIdQuery);
-                int orderId = 0;
+                // Add the order as a new sale in the _ventas table
+                int newSaleId = 1;
+                String getNewSaleIdQuery = "SELECT COUNT(*) FROM " + schema + "." + sellerNameNoSpaces
+                        + "_ventas";
+                ResultSet newSaleIdRS = stmt.executeQuery(getNewSaleIdQuery);
 
-                if (orderIdRS.next()) {
-                    orderId = orderIdRS.getInt("id_pedido");
+                if (newSaleIdRS.next()) {
+                    newSaleId = newSaleIdRS.getInt(1) + 1;
                 }
 
-                // Set the device as delivered on the _dispositivos_x_pedidos_futuros table
-                String setDeviceAsDeliveredQuery = "UPDATE " + schema + "." + sellerNameNoSpaces
-                        + "_dispositivos_x_pedidos_futuros SET entregado = 'True' WHERE id_pedido = " + orderId
-                        + " AND id_dispositivo = '" + deviceId + "'";
-                stmt.executeUpdate(setDeviceAsDeliveredQuery);
+                String registerSaleQuery = "INSERT INTO " + schema + "." + sellerNameNoSpaces
+                        + "_ventas (id_venta, id_cliente, id_vendedor, fecha_venta, precio_venta, cantidad_dispositivos, impuestos, descuentos, total_venta, venta_mostrada, pagado) VALUES ("
+                        + newSaleId + ", " + clientId + ", " + sellerId + ", TO_DATE('" + today
+                        + "', 'yyyy-MM-dd HH24:MI:SS'), " + price + ", " + devicesAmount + ", " + taxes
+                        + ", " + discount + ", " + total + ", 'True', 'False')";
+                stmt.executeUpdate(registerSaleQuery);
+
+                // Get the new dispositivo_x_venta id
+                int newDeviceSaleId = 1;
+                String getNewDeviceSaleIdQuery = "SELECT COUNT(*) FROM " + schema + "." + sellerNameNoSpaces
+                        + "_dispositivos_x_ventas";
+                ResultSet newDeviceSaleIdRS = stmt.executeQuery(getNewDeviceSaleIdQuery);
+
+                if (newDeviceSaleIdRS.next()) {
+                    newDeviceSaleId = newDeviceSaleIdRS.getInt(1) + 1;
+                }
+
+                // Add the order's devices as the devices of the sale in the
+                // _dispositivos_x_ventas table
+                String getDevicesQuery = "SELECT id_dispositivo, cantidad_dispositivos, nombre_dispositivo, precio FROM "
+                        + schema + "." + sellerNameNoSpaces + "_dispositivos_x_pedidos_futuros WHERE id_pedido = '"
+                        + orderId + "'";
+                Statement getDevicesStmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                        ResultSet.CONCUR_READ_ONLY);
+                ResultSet devicesRS = getDevicesStmt.executeQuery(getDevicesQuery);
+
+                while (devicesRS.next()) {
+                    String deviceId = devicesRS.getString("id_dispositivo");
+                    int deviceAmount = devicesRS.getInt("cantidad_dispositivos");
+                    String deviceName = devicesRS.getString("nombre_dispositivo");
+                    double devicePrice = devicesRS.getDouble("precio");
+
+                    String registerDeviceQuery = "INSERT INTO " + schema + "." + sellerNameNoSpaces
+                            + "_dispositivos_x_ventas (id_dispositivo_x_venta, id_venta, id_dispositivo, nombre_dispositivo, precio, cantidad_dispositivos) VALUES ('"
+                            + newDeviceSaleId + "', '" + newSaleId + "', '" + deviceId + "', '" + deviceName
+                            + "', '" + devicePrice + "', '" + deviceAmount + "')";
+                    stmt.executeUpdate(registerDeviceQuery);
+                    newDeviceSaleId++;
+                }
+
                 con.commit();
 
-                JSONObject jsonResponse = new JSONObject();
-                jsonResponse.put("success", true);
-                jsonResponse.put("message", "El pedido ha sido entregado correctamente.");
+                // Successful response
+                JSONObject successResponse = new JSONObject();
+                successResponse.put("success", true);
+                successResponse.put("message", "The order was successfully delivered");
 
-                con.close();
-                out.print(jsonResponse.toString());
+                out.println(successResponse.toString());
             } catch (Exception e) {
                 helper.printErrorMessage(out, e);
             }

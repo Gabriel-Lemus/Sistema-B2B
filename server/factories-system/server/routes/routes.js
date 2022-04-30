@@ -317,7 +317,8 @@ router.post("/:schema", async (req, res) => {
         const newOrderId = await schemas[schemaName].schema.find().sort({
           _id: -1,
         });
-        const idForNewOrder = newOrderId.length === 0 ? 1 : newOrderId[0]._id + 1;
+        const idForNewOrder =
+          newOrderId.length === 0 ? 1 : newOrderId[0]._id + 1;
 
         // Try to create the new document for the order
         try {
@@ -1692,8 +1693,7 @@ router.put("/", async (req, res) => {
         // Send the paid order to the webservice so that it can be sent to the sales backend as a delivery order
         const newDevicesOrder = {
           clientName: client.name,
-          deviceId: orderDevices[0].deviceId,
-          quantity: orderDevices[0].quantity,
+          orderId: Number(order._id.toString()),
           estimatedDeliveryDate: orderDevices[0].estimatedDeliveryDate,
         };
         const sendDevicesToStore = await axios.put(
@@ -1725,6 +1725,112 @@ router.put("/", async (req, res) => {
         res.status(500).send({
           success: false,
           message: `Error updating data from ${existingSchemas[3]}: ${error}`,
+        });
+      }
+    } else if (params.updateClientOrder) {
+      // Update the order made by the client
+      const orders = req.body;
+      let updatedOrders = 0;
+
+      // Iterate through the orders and update them
+      for (let i = 0; i < orders.length; i++) {
+        // Check if all of the devices in the order were cancelled
+        let cancelledDevices = 0;
+        let orderId = orders[i][0].id_pedido;
+
+        for (let j = 0; j < orders[i].length; j++) {
+          if (orders[i][j].toDelete) {
+            cancelledDevices++;
+          }
+        }
+
+        // If all of the devices were cancelled, the order is cancelled
+        if (cancelledDevices === orders[i].length) {
+          // Cancel the order
+          try {
+            const updatedOrder = await schemas[
+              existingSchemas[3]
+            ].schema.findOneAndUpdate(
+              { _id: orderId },
+              {
+                $set: {
+                  canceled: true,
+                },
+              }
+            );
+
+            if (updatedOrder) {
+              updatedOrders++;
+            }
+          } catch (error) {
+            res.status(500).send({
+              success: false,
+              message: `Error updating data from ${existingSchemas[3]}: ${error}`,
+            });
+          }
+        } else {
+          // Update the order
+          let previousOrderDevices = [];
+          let newOrderDevices = [];
+
+          // Get the order given its id
+          const order = await schemas[existingSchemas[3]].schema.findOne({
+            _id: orderId,
+          });
+          previousOrderDevices = order.devices;
+
+          // Update the devices in the order
+          for (let j = 0; j < orders[i].length; j++) {
+            // Add the device with the new quantity to the order if it was not cancelled
+            if (!orders[i][j].toDelete) {
+              newOrderDevices.push({
+                ...previousOrderDevices
+                  .toObject()
+                  .find(
+                    (device) =>
+                      device.deviceId.toString() ===
+                      orders[i][j].id_dispositivo.toString()
+                  ),
+                quantity: orders[i][j].cantidad_dispositivos,
+              });
+            }
+          }
+
+          // Update the order
+          try {
+            const updatedOrder = await schemas[
+              existingSchemas[3]
+            ].schema.findOneAndUpdate(
+              { _id: orderId },
+              {
+                $set: {
+                  devices: newOrderDevices,
+                },
+              }
+            );
+
+            if (updatedOrder) {
+              updatedOrders++;
+            }
+          } catch (error) {
+            res.status(500).send({
+              success: false,
+              message: `Error updating data from ${existingSchemas[3]}: ${error}`,
+            });
+          }
+        }
+      }
+
+      // Check if all the orders were updated
+      if (updatedOrders === orders.length) {
+        res.status(200).send({
+          success: true,
+          message: "The orders were successfully updated.",
+        });
+      } else {
+        res.status(500).send({
+          success: false,
+          message: `Error updating the orders. Only ${updatedOrders} of ${orders.length} were updated.`,
         });
       }
     } else {
